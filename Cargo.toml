@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 sea-orm = { version = "0.8", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ] }
+dotenv = "0.14.1"

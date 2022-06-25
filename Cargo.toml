@@ -6,9 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sea-orm = { version = "0.8", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ] }
-dotenv = "0.14.1"
-rocket = { version = "0.4.11" }
-# [dependencies.sea-orm-rocket]
-# path = "../../sea-orm-rocket/lib" # remove this line in your own project and use the git line
-# git = "https://github.com/SeaQL/sea-orm"
+anyhow = "1.0.58"
+async-std = { version = "1.9.0", features = ["attributes"] }
+# futures = { version = "^0.3" }
+# tokio = { version= "0.2", features=["rt-threaded", "macros"]}
+sea-orm = { version = "0.8.0", default-features = false, features = ["runtime-async-std-rustls", "sqlx-postgres", "macros"] }

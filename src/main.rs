@@ -1,5 +1,7 @@
 mod user_table;
+mod expense_table;
 use user_table::prelude::User;
+use expense_table::prelude::Expense;
 
 // Import the needed modules for table creation
 use sea_orm::{ConnectionTrait, Database, Schema};
@@ -26,6 +28,7 @@ async fn main() -> Result<()>{
 	let schema = Schema::new(builder);
 	
 	let create_table_op =  db.execute(builder.build(&schema.create_table_from_entity(User))).await;
+	let create_table_op =  db.execute(builder.build(&schema.create_table_from_entity(Expense))).await;
 	println!("`CREATE TABLE User` {:?}", 
 		match create_table_op {
 			Ok(_) => "Operation Successful".to_owned(),

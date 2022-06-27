@@ -26,10 +26,17 @@ async fn main() -> Result<()>{
 	let builder = db.get_database_backend();
 	let schema = Schema::new(builder);
 	
-	let create_table_op =  db.execute(builder.build(&schema.create_table_from_entity(User))).await;
-	let create_table_op =  db.execute(builder.build(&schema.create_table_from_entity(Expense))).await;
+	let _create_table_user =  db.execute(builder.build(&schema.create_table_from_entity(User))).await;
+	let _create_table_expense =  db.execute(builder.build(&schema.create_table_from_entity(Expense))).await;
+	
 	println!("`CREATE TABLE User` {:?}", 
-		match create_table_op {
+		match _create_table_user {
+			Ok(_) => "Operation Successful".to_owned(),
+			Err(e) => format!("Unsuccessful - Error {:?}", e),
+		}
+	);
+	println!("`CREATE TABLE Expense` {:?}", 
+		match _create_table_expense {
 			Ok(_) => "Operation Successful".to_owned(),
 			Err(e) => format!("Unsuccessful - Error {:?}", e),
 		}

@@ -1,7 +1,6 @@
-mod user_table;
-mod expense_table;
-use user_table::prelude::User;
-use expense_table::prelude::Expense;
+mod tables;
+use tables::prelude::User;
+use tables::prelude::Expense;
 
 // Import the needed modules for table creation
 use sea_orm::{ConnectionTrait, Database, Schema};

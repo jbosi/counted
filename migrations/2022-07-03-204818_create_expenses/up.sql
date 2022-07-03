@@ -3,8 +3,8 @@
 CREATE TABLE projects (
   id integer PRIMARY KEY,
   name character varying NOT NULL,
-  createdAt date NOT NULL,
-  totalExpenses double precision NOT NULL,
+  created_at date NOT NULL,
+  total_expenses double precision NOT NULL,
   currency VARCHAR(255)
 );
 
@@ -18,5 +18,5 @@ CREATE TABLE expenses (
   amount double precision NOT NULL,
   description character varying NULL,
   name character varying NOT NULL,
-  type VARCHAR(255)
+  expense_type VARCHAR(255)
 );

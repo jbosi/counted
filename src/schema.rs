@@ -9,8 +9,7 @@ table! {
         amount -> Float8,
         description -> Nullable<Varchar>,
         name -> Varchar,
-        #[sql_name = "type"]
-        type_ -> Nullable<Varchar>,
+        expense_type -> Nullable<Varchar>,
     }
 }
 
@@ -18,8 +17,8 @@ table! {
     projects (id) {
         id -> Int4,
         name -> Varchar,
-        createdat -> Date,
-        totalexpenses -> Float8,
+        created_at -> Date,
+        total_expenses -> Float8,
         currency -> Nullable<Varchar>,
     }
 }

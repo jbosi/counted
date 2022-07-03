@@ -1,9 +1,3 @@
-mod tables;
-use tables::prelude::User;
-use tables::prelude::Expense;
-
-// Import the needed modules for table creation
-use sea_orm::{ConnectionTrait, Database, Schema};
 // Handle errors using the `https://crates.io/crates/anyhow` crate
 use anyhow::Result;
 

@@ -23,7 +23,8 @@ pub fn establish_connection() -> PgConnection {
 
 fn main() {
 	let connection = establish_connection();
-	create_user(&connection, "testName2", &100.2);
+	// create_user(&connection, "testName2", &100.2);
+	// delete_user(&connection, 1);
 }
 
 
@@ -39,4 +40,12 @@ pub fn create_user(conn: &PgConnection, name: &str, balance: &f64) -> () {
         .values(&new_user)
         .execute(conn)
         .expect("Error saving new post");
+}
+
+pub fn delete_user(conn: &PgConnection, id_to_delete: i32) -> () {
+	use schema::users::dsl::*;
+
+	diesel::delete(users.filter(id.eq_all(id_to_delete)))
+		.execute(conn)
+		.expect("Error deleteing user");
 }

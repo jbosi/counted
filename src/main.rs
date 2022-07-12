@@ -23,8 +23,9 @@ pub fn establish_connection() -> PgConnection {
 
 fn main() {
 	let connection = establish_connection();
-	// create_user(&connection, "testName2", &100.2);
+	// create_user(&connection, "testNameB", &1.0);
 	// delete_user(&connection, 1);
+	get_users(&connection);
 }
 
 
@@ -33,13 +34,26 @@ pub fn create_user(conn: &PgConnection, name: &str, balance: &f64) -> () {
 
     let new_user = NewUser {
         name: name.to_string(),
-        balance: *balance
+        balance: Some(*balance)
     };
 
     diesel::insert_into(users::table)
         .values(&new_user)
         .execute(conn)
         .expect("Error saving new post");
+}
+
+pub fn get_users(conn: &PgConnection) -> Vec<User> {
+	use schema::users::dsl::*;
+
+	let results = users.load::<User>(conn)
+		.expect("Error while trying to get Users");
+	
+	for result in &results {
+		println!("{}", result.name)
+	}
+
+	return results
 }
 
 pub fn delete_user(conn: &PgConnection, id_to_delete: i32) -> () {

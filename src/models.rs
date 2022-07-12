@@ -7,7 +7,7 @@ use super::schema::users;
 pub struct User {
     pub id: i32,
     pub name: String,
-    pub balance: f64,
+    pub balance: Option<f64>,
 }
 
 #[derive(Queryable)]
@@ -37,5 +37,5 @@ pub struct Project {
 #[table_name="users"]
 pub struct NewUser {
     pub name: String,
-    pub balance: f64,
+    pub balance: Option<f64>,
 }

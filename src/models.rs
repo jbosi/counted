@@ -35,7 +35,7 @@ pub struct Project {
 
 #[derive(Insertable)]
 #[table_name="users"]
-pub struct NewUser<'a> {
-    pub name: &'a String,
-    pub balance: &'a f64,
+pub struct NewUser {
+    pub name: String,
+    pub balance: f64,
 }

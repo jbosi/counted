@@ -56,10 +56,19 @@ pub fn get_users(conn: &PgConnection) -> Vec<User> {
 	return results
 }
 
+pub fn update_user_amount(conn: &PgConnection, user_id: i32, amount: f64) -> () {
+	use schema::users::dsl::{users, balance};
+
+	diesel::update(users.find(user_id))
+		.set(balance.eq(amount))
+		.execute(conn)
+		.expect("Error while updating user amount");
+}
+
 pub fn delete_user(conn: &PgConnection, id_to_delete: i32) -> () {
 	use schema::users::dsl::*;
 
-	diesel::delete(users.filter(id.eq_all(id_to_delete)))
+	diesel::delete(users.find(id_to_delete))
 		.execute(conn)
 		.expect("Error deleteing user");
 }

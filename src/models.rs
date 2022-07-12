@@ -1,19 +1,23 @@
+
+use diesel::data_types::PgTimestamp;
+use diesel::Queryable;
+use super::schema::users;
+
 #[derive(Queryable)]
-pub struct Users {
+pub struct User {
     pub id: i32,
     pub name: String,
     pub balance: f64,
-    pub published: bool
 }
 
 #[derive(Queryable)]
-pub struct Expenses {
+pub struct Expense {
     pub id: i32,
     pub paid_for_id: i32,
     pub paid_by_id: i32,
     pub author_id: i32,
     pub project_id: i32,
-    pub date: Date,
+    pub date: PgTimestamp,
     pub amount: f64,
     pub description: String,
     pub name: String,
@@ -21,10 +25,17 @@ pub struct Expenses {
 }
 
 #[derive(Queryable)]
-pub struct Users {
+pub struct Project {
     pub id: i32,
     pub name: String,
-    pub created_at: Date,
+    pub created_at: PgTimestamp,
     pub total_expenses: f64,
     pub currency: String
+}
+
+#[derive(Insertable)]
+#[table_name="users"]
+pub struct NewUser<'a> {
+    pub name: &'a String,
+    pub balance: &'a f64,
 }

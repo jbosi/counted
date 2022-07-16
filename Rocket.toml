@@ -1,2 +1,0 @@
-[default.databases.hcount]
-url = "postgres://jbosi:password@localhost/hcount"

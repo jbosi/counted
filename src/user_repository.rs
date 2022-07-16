@@ -1,51 +1,58 @@
 use crate::models::{User, NewUser};
 use diesel::prelude::*;
-use diesel::pg::PgConnection;
-use crate::schema;
-// use rocket::serde::{Serialize, Deserialize, json::Json};
+use crate::{schema, DbPool};
+use actix_web::{web, get, HttpRequest, Responder, post, Result};
 
-pub fn create_user(conn: &PgConnection, name: &str, balance: &f64) -> () {
+#[post("/users")]
+pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) -> Result<String> {
 	use schema::users;
 
+	let conn = pool.get().expect("couldn't get db connection from pool");
+
     let new_user = NewUser {
-        name: name.to_string(),
-        balance: Some(*balance)
+        name: new_user.name.to_string(),
+        balance: new_user.balance
     };
 
     diesel::insert_into(users::table)
         .values(&new_user)
-        .execute(conn)
+        .execute(&conn)
         .expect("Error saving new post");
+	
+	// TODO send newly created user
+	Ok("User added".to_string())
 }
 
 
-// #[get("/users")]
-pub fn get_users(conn: &PgConnection) -> Vec<User> {
+#[get("/users")]
+pub async fn get_users(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	use schema::users::dsl::*;
 
-	let results = users.load::<User>(conn)
-		.expect("Error while trying to get Users");
-	
-	for result in &results {
-		println!("{}", result.name)
-	}
+	let conn = pool.get().expect("couldn't get db connection from pool");
 
-	return results
+	let results = users.load::<User>(&conn)
+		.expect("Error while trying to get Users");
+
+	web::Json(results)
 }
 
-pub fn update_user_amount(conn: &PgConnection, user_id: i32, amount: f64) -> () {
+pub fn update_user_amount(pool: web::Data<DbPool>, user_id: i32, amount: f64) -> () {
 	use schema::users::dsl::{users, balance};
+
+	let conn = pool.get().expect("couldn't get db connection from pool");
 
 	diesel::update(users.find(user_id))
 		.set(balance.eq(amount))
-		.execute(conn)
+		.execute(&conn)
 		.expect("Error while updating user amount");
 }
 
-pub fn delete_user(conn: &PgConnection, id_to_delete: i32) -> () {
+pub fn delete_user(pool: web::Data<DbPool>, id_to_delete: i32) -> () {
 	use schema::users::dsl::*;
 
+	let conn = pool.get().expect("couldn't get db connection from pool");
+
 	diesel::delete(users.find(id_to_delete))
-		.execute(conn)
+		.execute(&conn)
 		.expect("Error deleting user");
 }

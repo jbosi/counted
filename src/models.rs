@@ -2,8 +2,9 @@
 use diesel::data_types::PgTimestamp;
 use diesel::Queryable;
 use super::schema::users;
+use serde::{Serialize, Deserialize};
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
     pub id: i32,
     pub name: String,
@@ -33,7 +34,7 @@ pub struct Project {
     pub currency: String
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Serialize, Deserialize, Debug)]
 #[table_name="users"]
 pub struct NewUser {
     pub name: String,

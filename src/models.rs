@@ -40,3 +40,9 @@ pub struct NewUser {
     pub name: String,
     pub balance: Option<f64>,
 }
+
+#[derive(Deserialize,  Debug)]
+pub struct PatchableUserAmount {
+    pub user_id: i32,
+    pub amount: f64
+}

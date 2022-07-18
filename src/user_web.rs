@@ -1,8 +1,9 @@
 use crate::models::{User, NewUser};
+use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::{schema, DbPool};
-use actix_web::{web, get, HttpRequest, Responder, post};
+use actix_web::{web, get, HttpRequest, Responder, post, delete};
 
 #[post("/users")]
 pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) -> impl Responder {
@@ -20,7 +21,6 @@ pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) 
 		.get_result::<User>(&conn)
 		.expect("Error saving new post");
 	
-	// TODO send newly created user
 	web::Json(created_user)
 }
 
@@ -48,12 +48,15 @@ pub fn update_user_amount(pool: web::Data<DbPool>, user_id: i32, amount: f64) {
 		.expect("Error while updating user amount");
 }
 
-pub fn delete_user(pool: web::Data<DbPool>, id_to_delete: i32) {
+#[delete("/users/{user_id}")]
+pub async fn delete_user(pool: web::Data<DbPool>, user_id: web::Path<i32>) -> HttpResponse {
 	use schema::users::dsl::*;
 
 	let conn = pool.get().expect("couldn't get db connection from pool");
 
-	diesel::delete(users.find(id_to_delete))
+	diesel::delete(users.find(user_id.into_inner()))
 		.execute(&conn)
 		.expect("Error deleting user");
+
+		HttpResponse::Ok().finish()
 }

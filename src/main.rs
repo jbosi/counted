@@ -1,12 +1,12 @@
 pub mod models;
 pub mod schema;
-pub mod user_repository;
+pub mod user_web;
 
 #[macro_use]
 extern crate diesel;
 
 use diesel::pg::PgConnection;
-use user_repository::{get_users, create_user};
+use user_web::{get_users, create_user};
 use std::env;
 use diesel::r2d2::ConnectionManager;
  

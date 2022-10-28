@@ -1,4 +1,6 @@
-table! {
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
     expenses (id) {
         id -> Int4,
         paid_for_id -> Nullable<Int4>,
@@ -13,7 +15,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     projects (id) {
         id -> Int4,
         name -> Varchar,
@@ -23,7 +25,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     users (id) {
         id -> Int4,
         name -> Varchar,
@@ -31,9 +33,9 @@ table! {
     }
 }
 
-joinable!(expenses -> projects (project_id));
+diesel::joinable!(expenses -> projects (project_id));
 
-allow_tables_to_appear_in_same_query!(
+diesel::allow_tables_to_appear_in_same_query!(
     expenses,
     projects,
     users,

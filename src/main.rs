@@ -1,6 +1,7 @@
 pub mod models;
 pub mod schema;
 pub mod user_web;
+pub mod expense_web;
 
 #[macro_use]
 extern crate diesel;

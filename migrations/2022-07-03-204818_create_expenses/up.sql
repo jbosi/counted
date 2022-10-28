@@ -9,7 +9,7 @@ CREATE TABLE projects (
 );
 
 CREATE TABLE expenses (
-  id integer PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   paid_for_id integer REFERENCES users(id),
   paid_by_id integer REFERENCES users(id),
   author_id integer REFERENCES users(id),

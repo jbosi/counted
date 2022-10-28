@@ -1,7 +1,7 @@
 
 use diesel::data_types::PgTimestamp;
 use diesel::Queryable;
-use super::schema::users;
+use super::schema::{users, expenses};
 use serde::{Serialize, Deserialize};
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
@@ -11,14 +11,14 @@ pub struct User {
     pub balance: Option<f64>,
 }
 
-#[derive(Queryable)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Expense {
     pub id: i32,
-    pub paid_for_id: i32,
-    pub paid_by_id: i32,
-    pub author_id: i32,
-    pub project_id: i32,
-    pub date: PgTimestamp,
+    pub paid_for_id: Option<i32>,
+    pub paid_by_id: Option<i32>,
+    pub author_id: Option<i32>,
+    pub project_id: Option<i32>,
+    // pub date: PgTimestamp,
     pub amount: f64,
     pub description: String,
     pub name: String,
@@ -39,6 +39,21 @@ pub struct Project {
 pub struct NewUser {
     pub name: String,
     pub balance: Option<f64>,
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug)]
+#[table_name="expenses"]
+pub struct NewExpense {
+    pub name: String,
+    pub amount: f64,
+    // pub date: String,
+    pub description: Option<String>,
+    pub expense_type: Option<String>,
+
+    pub paid_for_id: Option<i32>,
+    pub paid_by_id: Option<i32>,
+    pub author_id: Option<i32>,
+    pub project_id: Option<i32>,
 }
 
 #[derive(Deserialize,  Debug)]

@@ -8,8 +8,6 @@ use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
 
 #[post("/users")]
 pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) -> impl Responder {
-	use schema::users;
-
 	let conn = pool.get().expect("couldn't get db connection from pool");
 
 	let new_user = NewUser {
@@ -17,7 +15,7 @@ pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) 
 		balance: new_user.balance
 	};
 
-	let created_user = diesel::insert_into(users::table)
+	let created_user = diesel::insert_into(schema::users::table)
 		.values(&new_user)
 		.get_result::<User>(&conn)
 		.expect("Error saving new post");

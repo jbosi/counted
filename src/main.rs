@@ -7,7 +7,8 @@ pub mod expense_web;
 extern crate diesel;
 
 use diesel::pg::PgConnection;
-use user_web::{get_users, create_user};
+use expense_web::{create_expense, get_expense, delete_expense};
+use user_web::{get_users, create_user, update_user_name, delete_user};
 use std::env;
 use diesel::r2d2::ConnectionManager;
  
@@ -33,8 +34,13 @@ async fn main() -> std::io::Result<()> {
 		App::new()
 			.app_data(web::Data::new(pool.clone()))
 			.service(hello)
-			.service(get_users)
 			.service(create_user)
+			.service(get_users)
+			.service(update_user_name)
+			.service(delete_user)
+			.service(create_expense)
+			.service(get_expense)
+			.service(delete_expense)
 	})
 		.bind(("127.0.0.1", 8080))?
 		.run()

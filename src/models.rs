@@ -1,10 +1,11 @@
 
+use diesel::data_types::PgDate;
 use diesel::sql_types::{Timestamp, Timestamptz};
 use diesel::{data_types::PgTimestamp, sql_types::Date};
 use diesel::Queryable;
 use super::schema::{users, expenses};
 use serde::{Serialize, Deserialize};
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
@@ -59,7 +60,7 @@ pub struct NewExpense {
 }
 
 #[derive(Deserialize,  Debug)]
-pub struct PatchableUserAmount {
+pub struct PatchableUser {
     pub user_id: i32,
-    pub amount: f64
+    pub name: String
 }

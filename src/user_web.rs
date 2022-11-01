@@ -1,5 +1,4 @@
-use crate::models::PatchableUserAmount;
-use crate::models::{User, NewUser};
+use crate::models::{User, NewUser, PatchableUser};
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
@@ -8,7 +7,7 @@ use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
 
 #[post("/users")]
 pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) -> impl Responder {
-	let conn = pool.get().expect("couldn't get db connection from pool");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let new_user = NewUser {
 		name: new_user.name.to_string(),
@@ -17,7 +16,7 @@ pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) 
 
 	let created_user = diesel::insert_into(schema::users::table)
 		.values(&new_user)
-		.get_result::<User>(&conn)
+		.get_result::<User>(&mut conn)
 		.expect("Error saving new post");
 	
 	web::Json(created_user)
@@ -28,9 +27,9 @@ pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) 
 pub async fn get_users(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	use schema::users::dsl::*;
 
-	let conn = pool.get().expect("couldn't get db connection from pool");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let results = users.load::<User>(&conn)
+	let results = users.load::<User>(&mut conn)
 		.expect("Error while trying to get Users");
 
 	web::Json(results)
@@ -38,14 +37,14 @@ pub async fn get_users(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Respo
 
 
 #[patch("/users")]
-pub async fn update_user_amount(pool: web::Data<DbPool>, payload: web::Json<PatchableUserAmount>) -> impl Responder {
-	use schema::users::dsl::{users, balance};
+pub async fn update_user_name(pool: web::Data<DbPool>, payload: web::Json<PatchableUser>) -> impl Responder {
+	use schema::users::dsl::{users, name};
 
-	let conn = pool.get().expect("couldn't get db connection from pool");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let updated_user = diesel::update(users.find(payload.user_id))
-		.set(balance.eq(payload.amount))
-		.execute(&conn)
+		.set(name.eq(&payload.name))
+		.execute(&mut conn)
 		.expect("Error while updating user amount");
 
 	web::Json(updated_user)
@@ -55,10 +54,10 @@ pub async fn update_user_amount(pool: web::Data<DbPool>, payload: web::Json<Patc
 pub async fn delete_user(pool: web::Data<DbPool>, user_id: web::Path<i32>) -> HttpResponse {
 	use schema::users::dsl::*;
 
-	let conn = pool.get().expect("couldn't get db connection from pool");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	diesel::delete(users.find(user_id.into_inner()))
-		.execute(&conn)
+		.execute(&mut conn)
 		.expect("Error deleting user");
 
 		HttpResponse::Ok().finish()

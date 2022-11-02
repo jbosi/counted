@@ -1,8 +1,6 @@
 use crate::models::NewPayment;
-// use crate::models::PatchableExpense;
 use crate::models::{Expense, NewExpense};
 use actix_web::HttpResponse;
-use chrono::NaiveDate;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::{schema, DbPool};
@@ -17,9 +15,10 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<NewE
 	let payers = new_expense.payers.into_iter();
 	let debtors = new_expense.debtors.into_iter();
 
+	let expense: NewExpense = new_expense.into_inner();
 	// Créer la dépense
 	let created_expense = diesel::insert_into(expenses::table)
-			.values(&new_expense)
+			.values(&expense)
 			.get_result::<Expense>(&mut conn)
 			.expect("Error saving new post");
 

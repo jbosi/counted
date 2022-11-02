@@ -1,15 +1,16 @@
 use diesel::Queryable;
-use diesel_derive_enum::DbEnum;
 use super::schema::{users, expenses, payments};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate, NaiveDateTime};
+use diesel_derive_enum::DbEnum;
+use diesel::prelude::*;
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
 	pub id: i32,
 	pub name: String,
 	pub balance: Option<f64>,
-	pub created_at: NaiveDate
+	pub created_at: Option<NaiveDate>
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
@@ -21,7 +22,9 @@ pub struct Expense {
 	pub amount: f64,
 	pub description: String,
 	pub name: String,
-	pub expense_type: ExpenseType
+	pub expense_type: ExpenseType,
+	pub payers: Vec<UserAmount>,
+	pub debtors: Vec<UserAmount>,
 }
 
 #[derive(Queryable)]
@@ -40,7 +43,7 @@ pub struct NewUser {
 	pub balance: Option<f64>,
 }
 
-#[derive(Insertable, Queryable, Identifiable, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Insertable, Serialize, Deserialize, Debug)]
 #[table_name="expenses"]
 pub struct NewExpense {
 	pub name: String,
@@ -67,12 +70,16 @@ pub struct PatchableUser {
 	pub name: String
 }
 
-#[derive(DbEnum)]
+#[derive(Debug, PartialEq, DbEnum, Clone, Serialize, Deserialize)]
 pub enum ExpenseType {
 	Expense,
 	Transfer,
 	Gain
 }
+
+#[derive(diesel::sql_types::SqlType, diesel::query_builder::QueryId)]
+#[diesel(postgres_type(name = "expense_type"))]
+pub struct ExpenseTypeMapping;
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
 

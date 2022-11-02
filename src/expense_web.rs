@@ -1,3 +1,4 @@
+use crate::models::NewPayment;
 // use crate::models::PatchableExpense;
 use crate::models::{Expense, NewExpense};
 use actix_web::HttpResponse;
@@ -13,22 +14,20 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<NewE
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let new_expense = NewExpense {
-		name: new_expense.name.to_string(),
-		amount: new_expense.amount,
-		description: new_expense.description,
-		expense_type: new_expense.expense_type,
-		date: NaiveDate::from_ymd(2022, 1, 1),
-		author_id: Some(0),
-		paid_by_id: Some(0),
-		paid_for_id: Some(0),
-		project_id: Some(0)
-	};
+	let payers = new_expense.payers.into_iter();
+	let debtors = new_expense.debtors.into_iter();
 
+	// Créer la dépense
 	let created_expense = diesel::insert_into(expenses::table)
-		.values(&new_expense)
-		.get_result::<Expense>(&mut conn)
-		.expect("Error saving new post");
+			.values(&new_expense)
+			.get_result::<Expense>(&mut conn)
+			.expect("Error saving new post");
+
+	// ainsi que les paiements
+	let creatable_payments = payers.map(|p| NewPayment {
+		amount: p.amount,
+	});
+	
 	
 	web::Json(created_expense)
 }

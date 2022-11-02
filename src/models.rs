@@ -1,15 +1,15 @@
-
-use diesel::{data_types::PgTimestamp};
 use diesel::Queryable;
-use super::schema::{users, expenses};
+use diesel_derive_enum::DbEnum;
+use super::schema::{users, expenses, payments};
 use serde::{Serialize, Deserialize};
-use chrono::{NaiveDate};
+use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct User {
 	pub id: i32,
 	pub name: String,
 	pub balance: Option<f64>,
+	pub created_at: NaiveDate
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
@@ -28,14 +28,9 @@ pub struct Expense {
 pub struct Project {
 	pub id: i32,
 	pub name: String,
-	pub created_at: PgTimestamp,
+	pub created_at: NaiveDate,
 	pub total_expenses: f64,
 	pub currency: String
-}
-
-pub struct UserAmount {
-	pub user: i32,
-	pub amount: f64
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
@@ -45,12 +40,11 @@ pub struct NewUser {
 	pub balance: Option<f64>,
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
+#[derive(Insertable, Queryable, Identifiable, PartialEq, Serialize, Deserialize, Debug)]
 #[table_name="expenses"]
 pub struct NewExpense {
 	pub name: String,
 	pub amount: f64,
-	pub date: NaiveDate,
 	pub description: Option<String>,
 	pub expense_type: ExpenseType,
 
@@ -60,14 +54,43 @@ pub struct NewExpense {
 	pub project_id: i32,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+
+pub struct UserAmount {
+	pub user: i32,
+	pub amount: f64
+}
+
 #[derive(Deserialize,  Debug)]
 pub struct PatchableUser {
 	pub user_id: i32,
 	pub name: String
 }
 
+#[derive(DbEnum)]
 pub enum ExpenseType {
 	Expense,
 	Transfer,
 	Gain
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug)]
+
+pub struct Payment {
+	id: i32,
+	expense_id: i32,
+	user_id: i32,
+	is_debt: bool,
+	amount: f64,
+	created_at: NaiveDateTime
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug)]
+
+#[table_name="payments"]
+pub struct NewPayment {
+	pub expense_id: i32,
+	pub user_id: i32,
+	pub is_debt: bool,
+	pub amount: f64,
 }

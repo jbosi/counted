@@ -19,6 +19,8 @@ diesel::table! {
         description -> Nullable<Varchar>,
         name -> Varchar,
         expense_type -> ExpenseType,
+        payers -> Array<Nullable<Int4>>,
+        debtors -> Array<Nullable<Int4>>,
     }
 }
 
@@ -29,7 +31,7 @@ diesel::table! {
         user_id -> Int4,
         is_debt -> Bool,
         amount -> Float8,
-        created_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
     }
 }
 

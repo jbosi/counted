@@ -18,7 +18,5 @@ CREATE TABLE expenses (
   amount double precision NOT NULL,
   description character varying NULL,
   name character varying NOT NULL,
-  expense_type expense_type NOT NULL,
-  payers integer ARRAY NOT NULL,
-  debtors integer ARRAY NOT NULL
+  expense_type expense_type NOT NULL
 );

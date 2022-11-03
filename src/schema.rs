@@ -19,8 +19,6 @@ diesel::table! {
         description -> Nullable<Varchar>,
         name -> Varchar,
         expense_type -> ExpenseType,
-        payers -> Array<Nullable<Int4>>,
-        debtors -> Array<Nullable<Int4>>,
     }
 }
 

@@ -10,7 +10,7 @@ pub struct User {
 	pub id: i32,
 	pub name: String,
 	pub balance: Option<f64>,
-	pub created_at: Option<NaiveDate>
+	pub created_at: Option<NaiveDateTime>
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
@@ -20,11 +20,9 @@ pub struct Expense {
 	pub project_id: i32,
 	pub date: NaiveDate,
 	pub amount: f64,
-	pub description: String,
+	pub description: Option<String>,
 	pub name: String,
 	pub expense_type: ExpenseType,
-	pub payers: Vec<UserAmount>,
-	pub debtors: Vec<UserAmount>,
 }
 
 #[derive(Queryable)]
@@ -51,20 +49,30 @@ pub struct NewExpense {
 	pub description: Option<String>,
 	pub expense_type: ExpenseType,
 
+	pub author_id: i32,
+	pub project_id: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CreatableExpense {
+	pub name: String,
+	pub amount: f64,
+	pub description: Option<String>,
+	pub expense_type: ExpenseType,
+
 	pub payers: Vec<UserAmount>,
 	pub debtors: Vec<UserAmount>,
 	pub author_id: i32,
 	pub project_id: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserAmount {
-	pub user: i32,
+	pub user_id: i32,
 	pub amount: f64
 }
 
-#[derive(Deserialize,  Debug)]
+#[derive(Deserialize, Debug)]
 pub struct PatchableUser {
 	pub user_id: i32,
 	pub name: String
@@ -82,7 +90,6 @@ pub enum ExpenseType {
 pub struct ExpenseTypeMapping;
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
-
 pub struct Payment {
 	id: i32,
 	expense_id: i32,
@@ -92,8 +99,7 @@ pub struct Payment {
 	created_at: NaiveDateTime
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
-
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
 #[table_name="payments"]
 pub struct NewPayment {
 	pub expense_id: i32,

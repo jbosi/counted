@@ -1,5 +1,6 @@
-use crate::models::NewPayment;
+use crate::models::{NewPayment, CreatableExpense};
 use crate::models::{Expense, NewExpense};
+use crate::schema::payments;
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
@@ -7,26 +8,48 @@ use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
 
 #[post("/expenses")]
-pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<NewExpense>) -> impl Responder {
+pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
 	use schema::expenses;
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let payers = new_expense.payers.into_iter();
-	let debtors = new_expense.debtors.into_iter();
+	let payers = new_expense.payers.clone().into_iter();
+	let debtors = new_expense.debtors.clone().into_iter();
 
-	let expense: NewExpense = new_expense.into_inner();
-	// Créer la dépense
-	let created_expense = diesel::insert_into(expenses::table)
-			.values(&expense)
-			.get_result::<Expense>(&mut conn)
-			.expect("Error saving new post");
+	let expense: NewExpense = NewExpense {
+		name: new_expense.clone().name,
+		amount: new_expense.amount,
+		description: new_expense.clone().description,
+		expense_type: new_expense.clone().expense_type,
+		author_id: new_expense.author_id,
+		project_id: new_expense.project_id
+	};
 
-	// ainsi que les paiements
-	let creatable_payments = payers.map(|p| NewPayment {
+	let created_expense: Expense = diesel::insert_into(expenses::table)
+		.values(&expense)
+		.get_result::<Expense>(&mut conn)
+		.expect("Error saving new post");
+
+	let creatable_debtors: Vec<NewPayment> = debtors.map(|d| NewPayment {
+		amount: d.amount,
+		expense_id: created_expense.id,
+		user_id: d.user_id,
+		is_debt: true
+	}).collect();
+
+	let creatable_payors: Vec<NewPayment> = payers.map(|p| NewPayment {
 		amount: p.amount,
-	});
+		expense_id: created_expense.id,
+		user_id: p.user_id,
+		is_debt: false
+	}).collect();
+
+	let creatable_payments: Vec<NewPayment> = [creatable_debtors, creatable_payors].concat();
 	
+	diesel::insert_into(payments::table)
+		.values(&creatable_payments)
+		.execute(&mut conn)
+		.expect("Error adding payments");
 	
 	web::Json(created_expense)
 }
@@ -36,7 +59,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<NewE
 pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	use schema::expenses::dsl::*;
 
-	let conn = pool.get().expect("couldn't get db connection from pool");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let results = expenses.load::<Expense>(&mut conn)
 		.expect("Error while trying to get Expenses");

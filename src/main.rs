@@ -3,7 +3,6 @@ pub mod schema;
 pub mod user_web;
 pub mod expense_web;
 
-#[macro_use]
 extern crate diesel;
 
 use diesel::pg::PgConnection;

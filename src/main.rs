@@ -8,7 +8,6 @@ extern crate diesel;
 use diesel::pg::PgConnection;
 use expense_web::{create_expense, get_expense, delete_expense};
 use user_web::{get_users, create_user, update_user_name, delete_user};
-use std::env;
 use diesel::r2d2::ConnectionManager;
  
 
@@ -22,8 +21,8 @@ async fn hello() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-	let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-	let manager = ConnectionManager::<PgConnection>::new(database_url);
+	// let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+	let manager = ConnectionManager::<PgConnection>::new("postgres://jbosi:password@localhost/hcount");
 	
 	let pool = r2d2::Pool::builder()
 		.build(manager)

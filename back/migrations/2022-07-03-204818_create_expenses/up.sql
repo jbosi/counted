@@ -3,6 +3,7 @@
 CREATE TABLE projects (
   id integer PRIMARY KEY,
   name character varying NOT NULL,
+  users integer[] not null,
   created_at timestamp default current_timestamp,
   total_expenses double precision NOT NULL,
   currency VARCHAR(255)

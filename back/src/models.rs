@@ -1,5 +1,5 @@
 use diesel::Queryable;
-use super::schema::{users, expenses, payments};
+use super::schema::{users, expenses, payments, projects};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel_derive_enum::DbEnum;
@@ -31,7 +31,8 @@ pub struct Project {
 	pub name: String,
 	pub created_at: NaiveDate,
 	pub total_expenses: f64,
-	pub currency: String
+	pub currency: String,
+	pub users: Vec<i32>,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
@@ -106,4 +107,12 @@ pub struct NewPayment {
 	pub user_id: i32,
 	pub is_debt: bool,
 	pub amount: f64,
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug)]
+#[table_name="projects"]
+pub struct NewProject {
+	pub name: String,
+	pub users: Vec<i32>,
+	// pub currency: String
 }

@@ -37,10 +37,9 @@ diesel::table! {
     projects (id) {
         id -> Int4,
         name -> Varchar,
-        users -> Array<Int4>,
-        // created_at -> Timestamp,
-        // total_expenses -> Float8,
-        // currency -> Nullable<Varchar>,
+        users -> Array<Nullable<Int4>>,
+        created_at -> Timestamp,
+        currency -> Varchar,
     }
 }
 

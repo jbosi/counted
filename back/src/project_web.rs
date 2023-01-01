@@ -9,10 +9,16 @@ pub async fn create_project(pool: web::Data<DbPool>, new_project: web::Json<Crea
 	use schema::projects::dsl::*;
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
+	let new_users: Vec<Option<i32>> = new_project.users
+		.clone()
+		.into_iter()
+		.map(Some)
+		.collect();
+
 	let new_project = NewProject {
 		name: new_project.name.to_string(),
-		users: new_project.users.clone(),
-		// currency: Some("Euro".to_string()),
+		users: new_users,
+		currency: "Euro".to_string(),
 		// total_expenses: 0.0
 	};
 

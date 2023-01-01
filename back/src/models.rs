@@ -1,5 +1,5 @@
 use diesel::Queryable;
-use super::schema::{users, expenses, payments, projects};
+use super::schema::{users, expenses, payments, projects, project_users};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate, NaiveDateTime};
 use diesel_derive_enum::DbEnum;
@@ -100,27 +100,43 @@ pub struct NewPayment {
 }
 
 // Project
-#[derive(Queryable, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Project {
 	pub id: i32,
 	pub name: String,
-	// pub created_at: NaiveDateTime,
+	pub created_at: NaiveDateTime,
 	// pub total_expenses: f64,
-	// pub currency: Option<String>,
-	pub users: Vec<i32>,
+	pub currency: String,
+	pub users: Vec<Option<i32>>,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
 #[table_name="projects"]
 pub struct NewProject {
 	pub name: String,
+	pub users: Vec<Option<i32>>,
 	// pub total_expenses: f64,
-	// pub currency: Option<String>,
-	pub users: Vec<i32>,
+	pub currency: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CreatableProject {
 	pub name: String,
 	pub users: Vec<i32>,
+}
+
+// Project_users
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+pub struct ProjectUsers {
+	pub id: i32,
+	pub project_id: i32,
+	pub user_id: i32,
+	pub created_at: NaiveDateTime,
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
+#[table_name="project_users"]
+pub struct NewProjectUsers {
+	pub project_id: i32,
+	pub user_id: i32,
 }

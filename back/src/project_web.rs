@@ -1,21 +1,23 @@
-use crate::models::{Project, NewProject};
-use actix_web::HttpResponse;
-use diesel::prelude::*;
+use crate::models::{Project, NewProject, CreatableProject};
 use diesel::RunQueryDsl;
+use diesel::insert_into;
 use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post};
 
 #[post("/projects")]
-pub async fn create_project(pool: web::Data<DbPool>, new_project: web::Json<NewProject>) -> impl Responder {
+pub async fn create_project(pool: web::Data<DbPool>, new_project: web::Json<CreatableProject>) -> impl Responder {
+	use schema::projects::dsl::*;
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let new_project = NewProject {
 		name: new_project.name.to_string(),
-		users: new_project.users
+		users: new_project.users.clone(),
+		// currency: Some("Euro".to_string()),
+		// total_expenses: 0.0
 	};
 
-	let created_project = diesel::insert_into(schema::projects::table)
-		.values(&new_project)
+	let created_project = insert_into(projects)
+		.values(new_project)
 		.get_result::<Project>(&mut conn)
 		.expect("Error saving new post");
 	

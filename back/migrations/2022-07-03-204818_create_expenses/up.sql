@@ -1,12 +1,12 @@
 -- Your SQL goes here
 
 CREATE TABLE projects (
-  id integer PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name character varying NOT NULL,
-  users integer[] not null,
-  created_at timestamp default current_timestamp,
+  users integer[] NOT NULL,
+  created_at timestamp default current_timestamp NOT NULL,
   total_expenses double precision NOT NULL,
-  currency VARCHAR(255)
+  currency VARCHAR(255) NOT NULL
 );
 
 CREATE TYPE expense_type AS ENUM ('expense', 'transfer', 'gain');

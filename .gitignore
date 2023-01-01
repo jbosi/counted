@@ -1,3 +1,4 @@
 /front/target
 /front/dist
 /back/target
+**/**.code-workspace

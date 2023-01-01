@@ -2,11 +2,13 @@ pub mod models;
 pub mod schema;
 pub mod user_web;
 pub mod expense_web;
+pub mod project_web;
 
 extern crate diesel;
 
 use diesel::pg::PgConnection;
 use expense_web::{create_expense, get_expense, delete_expense};
+use project_web::{create_project, get_projects};
 use user_web::{get_users, create_user, update_user_name, delete_user};
 use diesel::r2d2::ConnectionManager;
  
@@ -39,6 +41,8 @@ async fn main() -> std::io::Result<()> {
 			.service(create_expense)
 			.service(get_expense)
 			.service(delete_expense)
+			.service(get_projects)
+			.service(create_project)
 	})
 		.bind(("127.0.0.1", 8080))?
 		.run()

@@ -25,16 +25,6 @@ pub struct Expense {
 	pub expense_type: ExpenseType,
 }
 
-#[derive(Queryable)]
-pub struct Project {
-	pub id: i32,
-	pub name: String,
-	pub created_at: NaiveDate,
-	pub total_expenses: f64,
-	pub currency: String,
-	pub users: Vec<i32>,
-}
-
 #[derive(Insertable, Serialize, Deserialize, Debug)]
 #[table_name="users"]
 pub struct NewUser {
@@ -109,10 +99,28 @@ pub struct NewPayment {
 	pub amount: f64,
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
+// Project
+#[derive(Queryable, Serialize, Deserialize, Debug, PartialEq)]
+pub struct Project {
+	pub id: i32,
+	pub name: String,
+	// pub created_at: NaiveDateTime,
+	// pub total_expenses: f64,
+	// pub currency: Option<String>,
+	pub users: Vec<i32>,
+}
+
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
 #[table_name="projects"]
 pub struct NewProject {
 	pub name: String,
+	// pub total_expenses: f64,
+	// pub currency: Option<String>,
 	pub users: Vec<i32>,
-	// pub currency: String
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CreatableProject {
+	pub name: String,
+	pub users: Vec<i32>,
 }

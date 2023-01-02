@@ -8,6 +8,11 @@ fn app() -> Html {
 		<div class={set_main_style()} id="main">
 			<div id="container">
 				<ProjectComponent />
+				<ProjectComponent />
+				<ProjectComponent />
+				<ProjectComponent />
+				<ProjectComponent />
+				<ProjectComponent />
 			</div>
 		</div>
 	}
@@ -24,9 +29,20 @@ fn ProjectComponent() -> Html {
 			<img src="img/daniel-mingook-kim.jpg" alt="floating umbrellas" class={css!("max-width: 50px; max-height: 50px;")}/>
 			<div>
 				<span>{ "This is a project" }</span>
-				<div>{ "Avatar list" }</div>
+				<div>
+					<AvatarComponent />
+					<AvatarComponent />
+					<AvatarComponent />
+				</div>
 			</div>
 		</div>
+	}
+}
+
+#[function_component()]
+fn AvatarComponent() -> Html {
+	html! {
+		<img src="img/avatar.png" alt="avatar" class="avatar"/>
 	}
 }
 
@@ -44,6 +60,12 @@ fn set_main_style() -> stylist::Style {
 				max-height: 926px;
 				height: 100vh;
 				width: 100vw;
+			}
+
+			.avatar {
+				width: 25px;
+				height: 25px;
+				border-radius: 50%;
 			}
 		"#
 	 ).expect("Failed to mount style")

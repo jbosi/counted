@@ -4,10 +4,10 @@ use stylist::style;
 
 #[function_component(App)]
 fn app() -> Html {
-	let main_style = set_main_style();
 	html! {
-		<div class={main_style} id="main">
+		<div class={set_main_style()} id="main">
 			<div id="container">
+				<ProjectComponent />
 			</div>
 		</div>
 	}
@@ -18,9 +18,15 @@ fn main() {
 }
 
 #[function_component()]
-fn main_container() -> Html {
+fn ProjectComponent() -> Html {
 	html! {
-		<h1>{ "Hello Céline <3" }</h1>
+		<div class={css!("display: flex; flex-direction: row; gap: 10px; margin: 10px;")}>
+			<img src="img/daniel-mingook-kim.jpg" alt="floating umbrellas" class={css!("max-width: 50px; max-height: 50px;")}/>
+			<div>
+				<span>{ "This is a project" }</span>
+				<div>{ "Avatar list" }</div>
+			</div>
+		</div>
 	}
 }
 
@@ -33,7 +39,7 @@ fn set_main_style() -> stylist::Style {
 			align-items: center;
 		
 			#container {
-				background-color: red;
+				background-color: lightgrey;
 				max-width: 428px;
 				max-height: 926px;
 				height: 100vh;

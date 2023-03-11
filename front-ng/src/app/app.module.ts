@@ -5,13 +5,17 @@ import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { CardModule } from 'primeng/card';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { SpeedDialModule } from 'primeng/speeddial';
 import { TagModule } from 'primeng/tag';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { CardComponent, HeaderComponent } from './components';
 
 @NgModule({
 	declarations: [
-		AppComponent
+		AppComponent,
+		HeaderComponent,
+		CardComponent
 	],
 	imports: [
 		BrowserModule,
@@ -20,7 +24,8 @@ import { AppComponent } from './app.component';
 		AvatarModule,
 		AvatarGroupModule,
 		ProgressBarModule,
-		TagModule
+		TagModule,
+		SpeedDialModule
 	],
 	providers: [],
 	bootstrap: [AppComponent]

@@ -10,6 +10,7 @@ import { TagModule } from 'primeng/tag';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CardComponent, HeaderComponent } from './components';
+import { FetchHttpClient } from './modules';
 
 @NgModule({
 	declarations: [
@@ -25,9 +26,9 @@ import { CardComponent, HeaderComponent } from './components';
 		AvatarGroupModule,
 		ProgressBarModule,
 		TagModule,
-		SpeedDialModule
+		SpeedDialModule,
 	],
-	providers: [],
+	providers: [FetchHttpClient],
 	bootstrap: [AppComponent]
 })
 export class AppModule { }

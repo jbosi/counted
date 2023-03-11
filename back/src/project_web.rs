@@ -1,3 +1,4 @@
+use crate::models::NewProjectUsers;
 use crate::models::{Project, NewProject, CreatableProject};
 use diesel::RunQueryDsl;
 use diesel::insert_into;
@@ -7,25 +8,33 @@ use actix_web::{web, get, HttpRequest, Responder, post};
 #[post("/projects")]
 pub async fn create_project(pool: web::Data<DbPool>, new_project: web::Json<CreatableProject>) -> impl Responder {
 	use schema::projects::dsl::*;
+	use schema::project_users::dsl::*;
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let new_users: Vec<Option<i32>> = new_project.users
+	let new_users = new_project.users
 		.clone()
-		.into_iter()
-		.map(Some)
-		.collect();
+		.into_iter();
 
 	let new_project = NewProject {
 		name: new_project.name.to_string(),
-		users: new_users,
 		currency: "Euro".to_string(),
 		// total_expenses: 0.0
 	};
 
-	let created_project = insert_into(projects)
+	let created_project: Project = insert_into(projects)
 		.values(new_project)
-		.get_result::<Project>(&mut conn)
-		.expect("Error saving new post");
+		.get_result(&mut conn)
+		.expect("Error while adding project");
+
+	let new_project_users: Vec<NewProjectUsers> = new_users.map(|new_user_id| NewProjectUsers {
+		project_id: created_project.id,
+		user_id: new_user_id
+	}).collect();
+
+	insert_into(project_users)
+		.values(&new_project_users)
+		.execute(&mut conn)
+		.expect("Error project_users");
 	
 	web::Json(created_project)
 }

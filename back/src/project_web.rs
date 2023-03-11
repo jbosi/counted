@@ -6,17 +6,17 @@ use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post};
 
 #[post("/projects")]
-pub async fn create_project(pool: web::Data<DbPool>, new_project: web::Json<CreatableProject>) -> impl Responder {
+pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {
 	use schema::projects::dsl::*;
 	use schema::project_users::dsl::*;
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let new_users = new_project.users
+	let new_users = creatable_project.users
 		.clone()
 		.into_iter();
 
 	let new_project = NewProject {
-		name: new_project.name.to_string(),
+		name: creatable_project.name.to_string(),
 		currency: "Euro".to_string(),
 		// total_expenses: 0.0
 	};

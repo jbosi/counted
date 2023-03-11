@@ -1,1 +1,57 @@
-<div>Hello</div>
+<div class="header-app">
+	<h1>Bonjour Jonathan</h1>
+</div>
+
+<div class="card-list">
+	<p-card>
+		<ng-template pTemplate="header">
+			<h2>Voyage en italie</h2>
+		</ng-template>
+		<h3 class="p-text-secondary">Remboursements</h3>
+		<p-progressBar [value]="25" [showValue]="false"></p-progressBar>
+		<ng-template pTemplate="footer">
+			<div class="card-footer">
+				<p-tag value="En cours" severity="primary" [rounded]="true"></p-tag>
+				<p-avatarGroup class="avatar-group">
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/asiyajavayant.png" shape="circle"></p-avatar>
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/onyamalimba.png" shape="circle"></p-avatar>
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/ionibowcher.png" shape="circle"></p-avatar>
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/xuxuefeng.png" shape="circle"></p-avatar>
+					<p-avatar label="+2" shape="circle" [style]="{'background-color':'#9c27b0', 'color': '#ffffff'}"></p-avatar>
+				</p-avatarGroup>
+			</div>
+		</ng-template>
+	</p-card>
+	<p-card>
+		<ng-template pTemplate="header">
+			<h2>Voyage en italie</h2>
+		</ng-template>
+		<h3 class="p-text-secondary">Remboursements</h3>
+		<p-progressBar [value]="60" [showValue]="false"></p-progressBar>
+		<ng-template pTemplate="footer">
+			<div class="card-footer">
+				<p-tag value="En cours" severity="primary" [rounded]="true"></p-tag>
+				<p-avatarGroup class="avatar-group">
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/xuxuefeng.png" shape="circle"></p-avatar>
+				</p-avatarGroup>
+			</div>
+		</ng-template>
+	</p-card>
+	<p-card>
+		<ng-template pTemplate="header">
+			<h2>Voyage en italie</h2>
+		</ng-template>
+		<h3 class="p-text-secondary">Remboursements</h3>
+		<p-progressBar [value]="100" [showValue]="false"></p-progressBar>
+		<ng-template pTemplate="footer">
+			<div class="card-footer">
+				<p-tag value="Cloturé" severity="danger" [rounded]="true"></p-tag>
+				<p-avatarGroup class="avatar-group">
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+					<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/xuxuefeng.png" shape="circle"></p-avatar>
+				</p-avatarGroup>
+			</div>
+		</ng-template>
+	</p-card>
+</div>

@@ -30,10 +30,15 @@ html {
 	padding: 0.25rem 0.8rem;
 }
 
-.p-card.p-component .p-card-body {
-	padding: 0 1.25rem 1.25rem 1.25rem;
 
-	.p-card-content {
-		padding: 0;
+.p-card.p-component {
+	border-radius: 12px;
+
+	.p-card-body {
+		padding: 0 1.25rem 1.25rem 1.25rem;
+	
+		.p-card-content {
+			padding: 0;
+		}
 	}
 }

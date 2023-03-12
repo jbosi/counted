@@ -70,6 +70,7 @@ pub struct PatchableUser {
 }
 
 #[derive(Debug, PartialEq, DbEnum, Clone, Serialize, Deserialize)]
+#[ExistingTypePath = "crate::schema::sql_types::ExpenseType"]
 pub enum ExpenseType {
 	Expense,
 	Transfer,

@@ -1,4 +1,4 @@
-use crate::models::{User, NewUser, PatchableUser};
+use crate::models::{User, NewUser, PatchableUser, CreatableUser};
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
@@ -6,12 +6,11 @@ use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
 
 #[post("/users")]
-pub async fn create_user(pool: web::Data<DbPool>, new_user: web::Json<NewUser>) -> impl Responder {
+pub async fn create_user(pool: web::Data<DbPool>, creatable_user: web::Json<CreatableUser>) -> impl Responder {
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let new_user = NewUser {
-		name: new_user.name.to_string(),
-		balance: new_user.balance
+		name: creatable_user.name.to_string(),
 	};
 
 	let created_user = diesel::insert_into(schema::users::table)

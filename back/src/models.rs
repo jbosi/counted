@@ -25,11 +25,15 @@ pub struct Expense {
 	pub expense_type: ExpenseType,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CreatableUser {
+	pub name: String
+}
+
 #[derive(Insertable, Serialize, Deserialize, Debug)]
 #[table_name="users"]
 pub struct NewUser {
-	pub name: String,
-	pub balance: Option<f64>,
+	pub name: String
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]

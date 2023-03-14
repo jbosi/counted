@@ -3,6 +3,7 @@ export interface IProject {
 	name: string,
 	created_at: string,
 	currency: string,
+	users: number[] // TODO userIds
 }
 
 export interface ICreatableProject {

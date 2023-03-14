@@ -8,7 +8,7 @@ import { IProject, IUser, ProjectsHttpClient, UsersHttpClient } from './modules'
 })
 export class AppComponent implements OnInit {
 	public title = 'front-ng';
-	public projects: IProject[] = [];
+	public projects: IProjectCardViewModel[] = [];
 	public users: IUser[] = [];
 
 	constructor(
@@ -17,11 +17,25 @@ export class AppComponent implements OnInit {
 	) {}
 
 	async ngOnInit(): Promise<void> {
-		this.projects = await this.projectHttpClient.getAsync();
-		this.users = await this.usersHttpClient.getAsync();
+		await this.getData()
 	}
 
 	public async addProjectAsync(): Promise<void> {
-		this.projectHttpClient.createAsync({ name: 'ProjectAvecUser1et2', users: [1, 2] });
+		await this.projectHttpClient.createAsync({ name: 'ProjectAvecUser1', users: [1] });
+		await this.getData()
 	}
+
+	private async getData(): Promise<void> {
+		this.users = await this.usersHttpClient.getAsync();
+		const projects: IProject[] = await this.projectHttpClient.getAsync();
+		
+		this.projects = projects.map(project => {
+			const users = this.users.filter(user => project.users.includes(user.id))
+			return { ...project, users  }
+		});
+	}
+}
+
+export interface IProjectCardViewModel extends Omit<IProject, 'users'> { // TODO change when userId
+	users: IUser[]
 }

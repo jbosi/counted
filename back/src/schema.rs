@@ -34,18 +34,10 @@ diesel::table! {
 }
 
 diesel::table! {
-    project_users (id) {
-        id -> Int4,
-        project_id -> Int4,
-        user_id -> Int4,
-        created_at -> Timestamp,
-    }
-}
-
-diesel::table! {
     projects (id) {
         id -> Int4,
         name -> Varchar,
+        users -> Array<Int4>,
         created_at -> Timestamp,
         currency -> Varchar,
     }
@@ -64,13 +56,10 @@ diesel::joinable!(expenses -> projects (project_id));
 diesel::joinable!(expenses -> users (author_id));
 diesel::joinable!(payments -> expenses (expense_id));
 diesel::joinable!(payments -> users (user_id));
-diesel::joinable!(project_users -> projects (project_id));
-diesel::joinable!(project_users -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     expenses,
     payments,
-    project_users,
     projects,
     users,
 );

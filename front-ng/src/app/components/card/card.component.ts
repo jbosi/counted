@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { IProject, IUser } from '../../modules';
+import { IProjectCardViewModel } from 'src/app/app.component';
+import { IUser } from '../../modules';
 
 @Component({
   selector: 'app-card',
@@ -7,6 +8,5 @@ import { IProject, IUser } from '../../modules';
   styleUrls: ['./card.component.scss']
 })
 export class CardComponent {
-	@Input() public users: IUser[] = [];
-	@Input() public project = {} as IProject;
+	@Input() public project = {} as IProjectCardViewModel;
 }

@@ -34,7 +34,7 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 	insert_into(project_users)
 		.values(&new_project_users)
 		.execute(&mut conn)
-		.expect("Error project_users");
+		.expect("Error while linking users to project");
 	
 	web::Json(created_project)
 }

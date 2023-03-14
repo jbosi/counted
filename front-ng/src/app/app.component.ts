@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FetchHttpClient } from './modules';
+import { IProject } from './modules';
+import { ProjectsHttpClient } from './modules/projects/projects.http-client';
 
 @Component({
   selector: 'app-root',
@@ -8,12 +9,15 @@ import { FetchHttpClient } from './modules';
 })
 export class AppComponent implements OnInit {
 	public title = 'front-ng';
+	public projects: IProject[] = [];
 
-	constructor(
-		private readonly http: FetchHttpClient
-	) {}
+	constructor(private readonly projectHttpClient: ProjectsHttpClient) {}
 
-	ngOnInit(): void {
-		this.http.get('/api/projects');
+	async ngOnInit(): Promise<void> {
+		this.projects = await this.projectHttpClient.getAsync();
+	}
+
+	public async addProjectAsync(): Promise<void> {
+		this.projectHttpClient.createAsync({ name: 'ProjectAvecUser1et2', users: [1, 2] });
 	}
 }

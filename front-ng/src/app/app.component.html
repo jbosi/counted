@@ -1,7 +1,9 @@
 <app-header></app-header>
 
 <div class="card-list">
-	<app-card></app-card>
-	<app-card></app-card>
-	<app-card></app-card>
+	<app-card *ngFor="let project of projects" [project]="project"></app-card>
+</div>
+
+<div>
+	<!-- <button pButton type="button" label="Ajouter un projet" class="p-button-outlined" (click)="addProjectAsync()"></button> -->
 </div>

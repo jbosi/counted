@@ -1,9 +1,1 @@
-<app-header></app-header>
-
-<div class="card-list">
-	<app-card *ngFor="let project of projects" [project]="project"></app-card>
-</div>
-
-<div>
-	<app-add-project-modal [users]="users" (projectAdded)="onProjectAddedAsync()"></app-add-project-modal>
-</div>
+<router-outlet></router-outlet>

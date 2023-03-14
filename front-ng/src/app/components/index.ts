@@ -1,4 +1,4 @@
-export * from "./add-project-modal.component.ts";
-export * from "./card";
-export * from "./header";
+export * from "../pages/projects/components/add-project-modal";
+export * from "../pages/projects/components/card";
+export * from "../pages/projects/components/header";
 

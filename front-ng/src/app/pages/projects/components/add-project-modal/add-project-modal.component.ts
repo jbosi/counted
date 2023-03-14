@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { ICreatableProject, IUser, ProjectsHttpClient } from 'src/app/modules';
+import { ICreatableProject, IUser, ProjectsHttpClient } from '../../../../modules';
 
 @Component({
   selector: 'app-add-project-modal',

@@ -10,8 +10,6 @@ html {
 
 .app {
 	display: flex;
-	flex-direction: column;
-	align-items: center;
 	margin: 0rem 1rem;
 }
 
@@ -48,4 +46,10 @@ html {
 
 .p-multiselect.p-component {
 	width: 100%;
+}
+
+
+// Hover de la carte
+p-card .p-card.p-component:hover {
+	background-color: var(--gray-800);
 }

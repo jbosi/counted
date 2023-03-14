@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IProjectCardViewModel } from 'src/app/app.component';
-import { IUser } from '../../modules';
+import { IProjectCardViewModel } from '../../projects.component';
 
 @Component({
   selector: 'app-card',

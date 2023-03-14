@@ -33,18 +33,21 @@ async fn main() -> std::io::Result<()> {
 	HttpServer::new(move || {
 		App::new()
 			.app_data(web::Data::new(pool.clone()))
-			.service(hello)
-			.service(create_user)
-			.service(get_users)
-			.service(update_user_name)
-			.service(delete_user)
-			.service(create_expense)
-			.service(get_expense)
-			.service(delete_expense)
-			.service(get_projects)
-			.service(create_project)
+			.service(
+				web::scope("/api")
+					.service(hello)
+					.service(create_user)
+					.service(get_users)
+					.service(update_user_name)
+					.service(delete_user)
+					.service(create_expense)
+					.service(get_expense)
+					.service(delete_expense)
+					.service(get_projects)
+					.service(create_project)
+		)
 	})
-		.bind(("127.0.0.1", 8080))?
+		.bind(("localhost", 8080))?
 		.run()
 		.await
 }

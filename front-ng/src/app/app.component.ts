@@ -20,6 +20,10 @@ export class AppComponent implements OnInit {
 		await this.getData()
 	}
 
+	async onProjectAddedAsync(): Promise<void> {
+		await this.getData()
+	}
+
 	public async addProjectAsync(): Promise<void> {
 		await this.projectHttpClient.createAsync({ name: 'ProjectAvecUser1', users: [1] });
 		await this.getData()

@@ -5,5 +5,5 @@
 </div>
 
 <div>
-	<button pButton type="button" label="Ajouter un projet" class="p-button-outlined" (click)="addProjectAsync()"></button>
+	<app-add-project-modal [users]="users" (projectAdded)="onProjectAddedAsync()"></app-add-project-modal>
 </div>

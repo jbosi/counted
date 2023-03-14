@@ -1,1 +1,44 @@
-/* You can add global styles to this file, and also import other style files */
+h1, h2, h3, h4, h5 {
+	margin: unset;
+}
+
+
+html {
+    font-size: 12px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.app {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0rem 1rem;
+}
+
+
+// Progressbar
+.p-progressbar-determinate.p-progressbar {
+	height: 0.5rem;
+}
+
+// Card
+.p-card-header {
+	padding: 1.25rem;
+}
+
+.p-tag.p-component {
+	padding: 0.25rem 0.8rem;
+}
+
+
+.p-card.p-component {
+	border-radius: 12px;
+
+	.p-card-body {
+		padding: 0 1.25rem 1.25rem 1.25rem;
+	
+		.p-card-content {
+			padding: 0;
+		}
+	}
+}

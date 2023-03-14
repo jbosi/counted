@@ -70,6 +70,7 @@ pub struct PatchableUser {
 }
 
 #[derive(Debug, PartialEq, DbEnum, Clone, Serialize, Deserialize)]
+#[ExistingTypePath = "crate::schema::sql_types::ExpenseType"]
 pub enum ExpenseType {
 	Expense,
 	Transfer,
@@ -105,16 +106,14 @@ pub struct Project {
 	pub id: i32,
 	pub name: String,
 	pub created_at: NaiveDateTime,
-	// pub total_expenses: f64,
 	pub currency: String,
-	pub users: Vec<Option<i32>>,
+	// pub total_expenses: f64,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
 #[table_name="projects"]
 pub struct NewProject {
 	pub name: String,
-	pub users: Vec<Option<i32>>,
 	// pub total_expenses: f64,
 	pub currency: String,
 }

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AddProjectModalComponent, CardComponent, HeaderComponent } from './components';
+import { AddProjectModalComponent, CardComponent, HeaderComponent, ProjectComponent } from './components';
 import { ProjectsComponent } from './projects.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -20,7 +20,12 @@ import { TagModule } from 'primeng/tag';
 const routes: Routes = [
 	{
 		path: '',
+		pathMatch: 'full',
 		component: ProjectsComponent
+	},
+	{
+		path: ':projectId',
+		component: ProjectComponent
 	}
 ]
 
@@ -45,7 +50,8 @@ const routes: Routes = [
 		ProjectsComponent,
 		HeaderComponent,
 		CardComponent,
-		AddProjectModalComponent
+		AddProjectModalComponent,
+		ProjectComponent
 	],
 })
 export class ProjectsModule { }

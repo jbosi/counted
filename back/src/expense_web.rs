@@ -1,5 +1,5 @@
-use crate::models::{NewPayment, CreatableExpense};
-use crate::models::{Expense, NewExpense};
+use crate::models::payment_model::{NewPayment};
+use crate::models::expense_model::{Expense, NewExpense, CreatableExpense};
 use crate::schema::payments;
 use actix_web::HttpResponse;
 use diesel::prelude::*;

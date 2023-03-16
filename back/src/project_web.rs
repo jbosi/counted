@@ -1,4 +1,4 @@
-use crate::models::{Project, NewProject, CreatableProject};
+use crate::models::project_model::{Project, NewProject, CreatableProject};
 use diesel::RunQueryDsl;
 use diesel::insert_into;
 use crate::{schema, DbPool};

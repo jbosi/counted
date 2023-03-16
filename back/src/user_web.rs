@@ -1,4 +1,4 @@
-use crate::models::{User, NewUser, PatchableUser, CreatableUser};
+use crate::models::user_model::{User, NewUser, PatchableUser, CreatableUser};
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;

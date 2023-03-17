@@ -5,11 +5,12 @@ use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::{schema, DbPool};
-use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
+use actix_web::{web, get, Responder, post, delete, patch};
 
-#[post("/expenses")]
-pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
+#[post("projects/{project_id}/expenses/")]
+pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<i32>) -> impl Responder {
 	use schema::expenses;
+	let path_project_id: i32 = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
@@ -22,7 +23,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		description: new_expense.clone().description,
 		expense_type: new_expense.clone().expense_type,
 		author_id: new_expense.author_id,
-		project_id: new_expense.project_id
+		project_id: path_project_id
 	};
 
 	let created_expense: Expense = diesel::insert_into(expenses::table)
@@ -54,21 +55,24 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	web::Json(created_expense)
 }
 
-
-#[get("/expenses")]
-pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
+// On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
+#[get("projects/{project_id}/expenses/")]
+pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> impl Responder {
 	use schema::expenses::dsl::*;
+	let path_project_id: i32 = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let results = expenses.load::<Expense>(&mut conn)
+	let expense_list = expenses
+		.filter(project_id.eq(path_project_id))
+		.load::<Expense>(&mut conn)
 		.expect("Error while trying to get Expenses");
-
-	web::Json(results)
+	
+	web::Json(expense_list)
 }
 
 
-// #[patch("/expenses")]
+// #[patch("projects/{project_id}/expenses/{expense_id}")]
 // pub async fn update_expense(pool: web::Data<DbPool>, payload: web::Json<PatchableExpense>) -> impl Responder {
 // 	use schema::expenses::dsl::{expenses, date, amount, description, expense_type, name};
 
@@ -82,7 +86,7 @@ pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Res
 // 	web::Json(updated_user)
 // }
 
-#[delete("/expenses/{expense_id}")]
+#[delete("projects/{project_id}/expenses/{expense_id}")]
 pub async fn delete_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) -> HttpResponse {
 	use schema::expenses::dsl::*;
 

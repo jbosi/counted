@@ -41,7 +41,18 @@ pub struct CreatableExpense {
 	pub payers: Vec<UserAmount>,
 	pub debtors: Vec<UserAmount>,
 	pub author_id: i32,
-	pub project_id: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PatchableExpense {
+	pub name: Option<String>,
+	pub amount: Option<f64>,
+	pub description: Option<String>,
+	pub expense_type: Option<ExpenseType>,
+
+	pub payers: Option<Vec<UserAmount>>,
+	pub debtors: Option<Vec<UserAmount>>,
+	pub author_id: i32,
 }
 
 #[derive(Debug, PartialEq, DbEnum, Clone, Serialize, Deserialize)]

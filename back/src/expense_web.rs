@@ -1,5 +1,5 @@
 use crate::models::payment_model::{NewPayment};
-use crate::models::expense_model::{Expense, NewExpense, CreatableExpense};
+use crate::models::expense_model::{Expense, NewExpense, CreatableExpense, PatchableExpense};
 use crate::schema::payments;
 use actix_web::HttpResponse;
 use diesel::prelude::*;
@@ -73,13 +73,29 @@ pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> impl 
 
 
 // #[patch("projects/{project_id}/expenses/{expense_id}")]
-// pub async fn update_expense(pool: web::Data<DbPool>, payload: web::Json<PatchableExpense>) -> impl Responder {
-// 	use schema::expenses::dsl::{expenses, date, amount, description, expense_type, name};
+// pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
+// 	use schema::expenses::dsl::*;
 
-// 	let conn = pool.get().expect("couldn't get db connection from pool");
+// 	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
 
-// 	let updated_user = diesel::update(expenses.find(payload.expense_id))
-// 		.set(balance.eq(payload.amount))
+// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+// 	let updated_user = diesel::update(expenses.find(path_expense_id))
+// 		.set({
+// 			if (Some(payload.amount)) {
+// 				amount.eq(payload.amount)
+// 			} if (Some(payload.name)) {
+// 				name.eq(payload.name)
+// 			} if (Some(payload.description)) {
+// 				description.eq(payload.description)
+// 			} if (Some(payload.expense_type)) {
+// 				description.eq(payload.expense_type)
+// 			} if (Some(payload.debtors)) {
+// 				description.eq(payload.debtors)
+// 			} if (Some(payload.payers)) {
+// 				description.eq(payload.payers)
+// 			}
+// 		})
 // 		.execute(&conn)
 // 		.expect("Error while updating user amount");
 
@@ -87,12 +103,14 @@ pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> impl 
 // }
 
 #[delete("projects/{project_id}/expenses/{expense_id}")]
-pub async fn delete_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) -> HttpResponse {
+pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>) -> HttpResponse {
 	use schema::expenses::dsl::*;
+
+	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	diesel::delete(expenses.find(expense_id.into_inner()))
+	diesel::delete(expenses.find(path_expense_id))
 		.execute(&mut conn)
 		.expect("Error deleting expense");
 

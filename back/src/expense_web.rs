@@ -80,7 +80,7 @@ pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl
 // 	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
 
 // 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
+// // https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
 // 	let updated_user = diesel::update(expenses.find(path_expense_id))
 // 		.set({
 // 			if (Some(payload.amount)) {
@@ -104,10 +104,10 @@ pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl
 // }
 
 #[delete("projects/{project_id}/expenses/{expense_id}")]
-pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>) -> HttpResponse {
+pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<(Uuid, i32)>) -> HttpResponse {
 	use schema::expenses::dsl::*;
 
-	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
+	let (path_project_id, path_expense_id): (Uuid, i32) = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 

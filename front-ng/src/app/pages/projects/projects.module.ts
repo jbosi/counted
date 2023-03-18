@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AddProjectModalComponent, CardComponent, HeaderComponent, ProjectComponent } from './components';
+import { AddProjectModalComponent, CardComponent, HeaderComponent } from './components';
 import { ProjectsComponent } from './projects.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -25,7 +25,7 @@ const routes: Routes = [
 	},
 	{
 		path: ':projectId',
-		component: ProjectComponent
+		loadChildren: () => import('./pages/project').then(m => m.ProjectModule)
 	}
 ]
 
@@ -51,7 +51,6 @@ const routes: Routes = [
 		HeaderComponent,
 		CardComponent,
 		AddProjectModalComponent,
-		ProjectComponent
 	],
 })
 export class ProjectsModule { }

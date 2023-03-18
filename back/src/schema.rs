@@ -13,7 +13,7 @@ diesel::table! {
     expenses (id) {
         id -> Int4,
         author_id -> Int4,
-        project_id -> Int4,
+        project_id -> Uuid,
         date -> Date,
         amount -> Float8,
         description -> Nullable<Varchar>,
@@ -35,7 +35,7 @@ diesel::table! {
 
 diesel::table! {
     projects (id) {
-        id -> Int4,
+        id -> Uuid,
         name -> Varchar,
         users -> Array<Int4>,
         created_at -> Timestamp,

@@ -1,4 +1,5 @@
 use diesel::Queryable;
+use uuid::Uuid;
 use crate::schema::{expenses};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate};
@@ -11,7 +12,7 @@ use super::user_model::UserAmount;
 pub struct Expense {
 	pub id: i32,
 	pub author_id: i32,
-	pub project_id: i32,
+	pub project_id: Uuid,
 	pub date: NaiveDate,
 	pub amount: f64,
 	pub description: Option<String>,
@@ -28,7 +29,7 @@ pub struct NewExpense {
 	pub expense_type: ExpenseType,
 
 	pub author_id: i32,
-	pub project_id: i32,
+	pub project_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

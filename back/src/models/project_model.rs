@@ -1,4 +1,5 @@
 use diesel::Queryable;
+use uuid::Uuid;
 use crate::schema::{projects};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDateTime};
@@ -7,7 +8,7 @@ use diesel::prelude::*;
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Project {
-	pub id: i32,
+	pub id: Uuid,
 	pub name: String,
 	pub users: Vec<i32>, // TODO user_ids
 	pub created_at: NaiveDateTime,

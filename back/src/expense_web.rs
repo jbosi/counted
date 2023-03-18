@@ -4,13 +4,14 @@ use crate::schema::payments;
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
+use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete, patch};
 
 #[post("projects/{project_id}/expenses/")]
-pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<i32>) -> impl Responder {
+pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses;
-	let path_project_id: i32 = path.into_inner();
+	let path_project_id: Uuid = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
@@ -57,9 +58,9 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 
 // On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
 #[get("projects/{project_id}/expenses/")]
-pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> impl Responder {
+pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses::dsl::*;
-	let path_project_id: i32 = path.into_inner();
+	let path_project_id: Uuid = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 

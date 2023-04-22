@@ -4,13 +4,13 @@ h1, h2, h3, h4, h5 {
 
 
 html {
-    font-size: 12px;
+	font-size: 12px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-.app {
+body {
 	display: flex;
-	margin: 0rem 1rem;
+	justify-content: center;
 }
 
 

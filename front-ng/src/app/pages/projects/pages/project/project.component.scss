@@ -1,15 +1,23 @@
 :host {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	width: 100%;
+	padding: 1rem 3rem;
 }
 
-.card-list {
+.expense-list {
 	display: flex;
 	flex-direction: column;
-	gap: 0.7rem;
-	margin: 0 2rem;
-	max-width: 450px;
-	width: 100%;
+	gap: 1.5rem;
+	align-items: center;
+}
+
+.summary {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: #2a323d;
+	box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+	border-radius: 12px;
+	padding: 0.5rem 1rem;
+	margin-bottom: 2rem;
 }

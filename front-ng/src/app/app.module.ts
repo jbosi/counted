@@ -8,16 +8,14 @@ import { HeaderComponent } from './components';
 import { FetchHttpClient } from './modules';
 
 @NgModule({
-	declarations: [
-		AppComponent,
-		HeaderComponent,
-	],
-	imports: [
-		BrowserModule,
-		BrowserAnimationsModule,
-		AppRoutingModule,
-	],
-	providers: [FetchHttpClient],
-	bootstrap: [AppComponent]
+    declarations: [AppComponent],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        HeaderComponent
+    ],
+    providers: [FetchHttpClient],
+    bootstrap: [AppComponent]
 })
 export class AppModule { }

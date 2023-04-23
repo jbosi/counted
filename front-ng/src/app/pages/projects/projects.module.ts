@@ -30,26 +30,24 @@ const routes: Routes = [
 ]
 
 @NgModule({
-	imports: [
-		CommonModule,
-		RouterModule.forChild(routes),
-		CardModule,
-		AvatarModule,
-		AvatarGroupModule,
-		ProgressBarModule,
-		TagModule,
-		SpeedDialModule,
-		ButtonModule,
-		DialogModule,
-		InputTextModule,
-		FormsModule,
-		ReactiveFormsModule,
-		MultiSelectModule
-	],
-	declarations: [
-		ProjectsComponent,
-		CardComponent,
-		AddProjectModalComponent,
-	],
+    imports: [
+        CommonModule,
+        RouterModule.forChild(routes),
+        CardModule,
+        AvatarModule,
+        AvatarGroupModule,
+        ProgressBarModule,
+        TagModule,
+        SpeedDialModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MultiSelectModule,
+        ProjectsComponent,
+        CardComponent,
+        AddProjectModalComponent
+    ]
 })
 export class ProjectsModule { }

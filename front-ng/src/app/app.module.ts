@@ -10,7 +10,7 @@ import { FetchHttpClient } from './modules';
 @NgModule({
 	declarations: [
 		AppComponent,
-		HeaderComponent
+		HeaderComponent,
 	],
 	imports: [
 		BrowserModule,

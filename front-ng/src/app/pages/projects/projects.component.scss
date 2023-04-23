@@ -1,15 +1,15 @@
-:host {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 100%;
-}
+// :host {
+// 	display: flex;
+// 	flex-direction: column;
+// 	align-items: center;
+// 	width: 100%;
+// }
 
 .card-list {
 	display: flex;
 	flex-direction: column;
 	gap: 0.7rem;
-	margin: 0 2rem;
+	// margin: 0 2rem;
 	max-width: 450px;
 	width: 100%;
 }

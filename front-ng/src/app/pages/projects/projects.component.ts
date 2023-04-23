@@ -1,10 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { IProject, IUser, ProjectsHttpClient, UsersHttpClient } from '../../modules';
+import { AddProjectModalComponent } from './components/add-project-modal/add-project-modal.component';
+import { CardComponent } from './components/card/card.component';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'app-projects',
-  templateUrl: './projects.component.html',
-  styleUrls: ['./projects.component.scss']
+    selector: 'app-projects',
+    templateUrl: './projects.component.html',
+    styleUrls: ['./projects.component.scss'],
+    standalone: true,
+    imports: [NgFor, CardComponent, AddProjectModalComponent]
 })
 export class ProjectsComponent implements OnInit {
 	public projects: IProjectCardViewModel[] = [];

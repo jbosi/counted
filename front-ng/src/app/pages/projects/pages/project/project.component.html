@@ -1,1 +1,24 @@
-<div>OK</div>
+<app-sub-header></app-sub-header>
+
+<div class="summary">
+	<div class="summary-personal">
+		<span>Mon total</span>
+		<span>625€</span>
+	</div>
+	<div class="summary-global">
+		<span>Total global</span>
+		<span>3000€</span>
+	</div>
+</div>
+
+<div class="expense-list">
+	<app-expense></app-expense>
+	<app-expense></app-expense>
+	
+	<app-expense></app-expense>
+	<app-expense></app-expense>
+</div>
+
+<app-add-expense-modal [users]="users" (expenseAdded)="onExpenseAddedAsync()"></app-add-expense-modal>
+
+{{ expenses | json }}

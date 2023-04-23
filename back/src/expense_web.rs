@@ -2,13 +2,14 @@ use crate::models::payment_model::{NewPayment};
 use crate::models::expense_model::{Expense, NewExpense, CreatableExpense, PatchableExpense};
 use crate::schema::payments;
 use actix_web::HttpResponse;
+use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete, patch};
 
-#[post("projects/{project_id}/expenses/")]
+#[post("projects/{project_id}/expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses;
 	let path_project_id: Uuid = path.into_inner();
@@ -18,9 +19,11 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	let payers = new_expense.payers.clone().into_iter();
 	let debtors = new_expense.debtors.clone().into_iter();
 
+
 	let expense: NewExpense = NewExpense {
 		name: new_expense.clone().name,
 		amount: new_expense.amount,
+		date: Utc::now().date_naive(),
 		description: new_expense.clone().description,
 		expense_type: new_expense.clone().expense_type,
 		author_id: new_expense.author_id,
@@ -57,7 +60,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 }
 
 // On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
-#[get("projects/{project_id}/expenses/")]
+#[get("projects/{project_id}/expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses::dsl::*;
 	let path_project_id: Uuid = path.into_inner();

@@ -18,15 +18,15 @@ const routes: Routes = [
 ]
 
 @NgModule({
-    imports: [
-        CommonModule,
-        RouterModule.forChild(routes),
-        CardModule,
-        AvatarModule,
-        AvatarGroupModule,
-        ButtonModule,
-        ProjectComponent,
-        ExpenseComponent
-    ]
+	imports: [
+		CommonModule,
+		RouterModule.forChild(routes),
+		CardModule,
+		AvatarModule,
+		AvatarGroupModule,
+		ButtonModule,
+		ProjectComponent,
+		ExpenseComponent,
+	]
 })
 export class ProjectModule { }

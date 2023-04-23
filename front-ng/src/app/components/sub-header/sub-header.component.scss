@@ -1,7 +1,11 @@
-.header-app {
-	height: 110px;
-	column-gap: 1rem;
-	align-items: center;
-	justify-content: center;
+
+.sub-header {
 	display: flex;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.sub-header-button {
+	flex-grow: 1;
 }

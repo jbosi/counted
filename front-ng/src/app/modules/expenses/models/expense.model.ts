@@ -14,3 +14,19 @@ export enum ExpenseType {
 	Transfer,
 	Gain
 }
+
+export interface ICreatableExpense {
+	name: string,
+	amount: number,
+	expense_type: ExpenseType,
+	
+	payers: IUserAmount[],
+	debtors: IUserAmount[],
+	author_id: number,
+	description?: string,
+}
+
+export interface IUserAmount {
+	user_id: number,
+	amount: number
+}

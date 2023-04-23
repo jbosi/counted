@@ -7,11 +7,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 
 @Component({
-    selector: 'app-add-project-modal',
-    templateUrl: './add-project-modal.component.html',
-    styleUrls: ['./add-project-modal.component.scss'],
-    standalone: true,
-    imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule]
+	selector: 'app-add-project-modal',
+	templateUrl: './add-project-modal.component.html',
+	styleUrls: ['./add-project-modal.component.scss'],
+	standalone: true,
+	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule]
 })
 export class AddProjectModalComponent implements OnInit {
 	@Output() public projectAdded = new EventEmitter<void>();

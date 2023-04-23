@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete, patch};
 
-#[post("projects/{project_id}/expenses/")]
+#[post("projects/{project_id}/expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses;
 	let path_project_id: Uuid = path.into_inner();
@@ -57,7 +57,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 }
 
 // On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
-#[get("projects/{project_id}/expenses/")]
+#[get("projects/{project_id}/expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
 	use schema::expenses::dsl::*;
 	let path_project_id: Uuid = path.into_inner();

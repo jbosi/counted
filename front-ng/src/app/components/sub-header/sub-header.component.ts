@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
 	standalone: true,
 	imports: [
 		ButtonModule,
-		RouterModule
+		AvatarModule
 	],
 })
 export class SubHeaderComponent {}

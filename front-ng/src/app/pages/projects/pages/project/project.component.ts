@@ -2,9 +2,10 @@ import { JsonPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ExpensesHttpClient, IExpense } from 'src/app/modules/expenses';
 import { SubHeaderComponent } from '../../../../components';
-import { ExpenseComponent } from './components/expense/expense.component';
+import { ExpensesHttpClient, IExpense, IUser, UsersHttpClient } from '../../../../modules';
+import { ExpenseComponent } from './components';
+import { AddExpenseModalComponent } from './components/add-project-expense';
 
 @Component({
 	selector: 'app-project',
@@ -14,15 +15,18 @@ import { ExpenseComponent } from './components/expense/expense.component';
 	imports: [
 		ExpenseComponent,
 		SubHeaderComponent,
+		AddExpenseModalComponent,
 		JsonPipe
 	]
 })
 export class ProjectComponent implements OnInit {
+	public users: IUser[] = [];
 	public expenses: IExpense[] = [];
 
 	constructor(
 		private readonly activatedRoute: ActivatedRoute,
-		private readonly expensesHttpClient: ExpensesHttpClient
+		private readonly expensesHttpClient: ExpensesHttpClient,
+		private readonly usersHttpClient: UsersHttpClient
 	) {}
 	
 	// ngOnInit(): void {
@@ -32,7 +36,16 @@ export class ProjectComponent implements OnInit {
 	// }
 	
 	async ngOnInit(): Promise<void> {
+		this.expenses = await this.getExpensesAsync();
+		this.users = await this.usersHttpClient.getAsync();
+	}
+
+	public async onExpenseAddedAsync(): Promise<void> {
+		this.expenses = await this.getExpensesAsync();
+	}
+
+	private async getExpensesAsync(): Promise<IExpense[]> {
 		const params: Params = await firstValueFrom(this.activatedRoute.params);
-		this.expenses = await this.expensesHttpClient.getAsync((params as { projectId: string }).projectId);
+		return await this.expensesHttpClient.getAsync((params as { projectId: string }).projectId);
 	}
 }

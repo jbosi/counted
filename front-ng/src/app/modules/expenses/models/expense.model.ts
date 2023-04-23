@@ -10,9 +10,9 @@ export interface IExpense {
 }
 
 export enum ExpenseType {
-	Expense,
-	Transfer,
-	Gain
+	Expense = 'Expense',
+	Transfer = 'Transfer',
+	Gain = 'Gain'
 }
 
 export interface ICreatableExpense {

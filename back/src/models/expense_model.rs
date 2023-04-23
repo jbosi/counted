@@ -25,6 +25,7 @@ pub struct Expense {
 pub struct NewExpense {
 	pub name: String,
 	pub amount: f64,
+	pub date: NaiveDate,
 	pub description: Option<String>,
 	pub expense_type: ExpenseType,
 

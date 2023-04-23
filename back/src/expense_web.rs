@@ -2,6 +2,7 @@ use crate::models::payment_model::{NewPayment};
 use crate::models::expense_model::{Expense, NewExpense, CreatableExpense, PatchableExpense};
 use crate::schema::payments;
 use actix_web::HttpResponse;
+use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use uuid::Uuid;
@@ -18,9 +19,11 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	let payers = new_expense.payers.clone().into_iter();
 	let debtors = new_expense.debtors.clone().into_iter();
 
+
 	let expense: NewExpense = NewExpense {
 		name: new_expense.clone().name,
 		amount: new_expense.amount,
+		date: Utc::now().date_naive(),
 		description: new_expense.clone().description,
 		expense_type: new_expense.clone().expense_type,
 		author_id: new_expense.author_id,

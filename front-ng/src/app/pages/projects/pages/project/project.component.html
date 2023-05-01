@@ -12,13 +12,7 @@
 </div>
 
 <div class="expense-list">
-	<app-expense></app-expense>
-	<app-expense></app-expense>
-	
-	<app-expense></app-expense>
-	<app-expense></app-expense>
+	<app-expense *ngFor="let expense of expenses" [expense]="expense"></app-expense>
 </div>
 
 <app-add-expense-modal [users]="users" (expenseAdded)="onExpenseAddedAsync()"></app-add-expense-modal>
-
-{{ expenses | json }}

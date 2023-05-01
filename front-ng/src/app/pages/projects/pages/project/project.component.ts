@@ -1,4 +1,4 @@
-import { JsonPipe } from '@angular/common';
+import { JsonPipe, NgFor } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -16,7 +16,8 @@ import { AddExpenseModalComponent } from './components/add-project-expense';
 		ExpenseComponent,
 		SubHeaderComponent,
 		AddExpenseModalComponent,
-		JsonPipe
+		JsonPipe,
+		NgFor
 	]
 })
 export class ProjectComponent implements OnInit {
@@ -28,12 +29,6 @@ export class ProjectComponent implements OnInit {
 		private readonly expensesHttpClient: ExpensesHttpClient,
 		private readonly usersHttpClient: UsersHttpClient
 	) {}
-	
-	// ngOnInit(): void {
-	// 	this.activatedRoute.params.subscribe((p) => {
-	// 		const value = p as { projectId: number };
-	// 	})
-	// }
 	
 	async ngOnInit(): Promise<void> {
 		this.expenses = await this.getExpensesAsync();

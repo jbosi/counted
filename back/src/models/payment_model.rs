@@ -5,14 +5,14 @@ use chrono::{NaiveDateTime};
 use diesel::prelude::*;
 
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Payment {
-	id: i32,
-	expense_id: i32,
-	user_id: i32,
-	is_debt: bool,
-	amount: f64,
-	created_at: NaiveDateTime
+	pub id: i32,
+	pub expense_id: i32,
+	pub user_id: i32,
+	pub is_debt: bool,
+	pub amount: f64,
+	pub created_at: NaiveDateTime
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]

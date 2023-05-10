@@ -6,7 +6,7 @@ use chrono::{NaiveDate};
 use diesel_derive_enum::DbEnum;
 use diesel::prelude::*;
 
-use super::user_model::UserAmount;
+use super::{user_model::UserAmount, payment_model::Payment};
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Expense {
@@ -18,6 +18,11 @@ pub struct Expense {
 	pub description: Option<String>,
 	pub name: String,
 	pub expense_type: ExpenseType,
+}
+
+pub struct ExpenseWPayment {
+	pub expense: Expense,
+	pub payment: Vec<Payment>
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]

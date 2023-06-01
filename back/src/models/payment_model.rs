@@ -30,16 +30,13 @@ pub struct NewPayment {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct ExpensePayments {
 	pub id: i32,
-	// pub expense_id: i32,
 	pub author_id: i32,
 	pub project_id: Uuid,
 	pub date: NaiveDate,
 	pub amount: f64,
-	pub total_amount: f64,
 	pub description: Option<String>,
 	pub name: String,
 	pub expense_type: ExpenseType,
-	pub user_id: i32,
-	pub is_debt: bool,
-	pub created_at: NaiveDateTime
+	pub created_at: NaiveDateTime,
+	pub payments: Vec<Payment>
 }

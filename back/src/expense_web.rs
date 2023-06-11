@@ -87,7 +87,12 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>
 
 	let expense_list = expenses
 		.filter(project_id.eq(path_project_id))
-		// .inner_join(payments.on(expense_id.eq(schema::expenses::id)))
+
+	// let expense_list = expenses
+	// 	.filter(project_id.eq(path_project_id))
+	// 	.inner_join(payments.on(expense_id.eq(schema::expenses::id)))
+	// 	.group_by(schema::expenses::id)
+	// 	.select((date, schema::payments::amount))
 		// .select((
 		// 	schema::expenses::id,
 		// 	schema::expenses::author_id,
@@ -106,10 +111,30 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>
 		.expect("Error while trying to get Expenses");
 
 	let payments_list = payments
-		// .filter(expense_list.iter().any(|e| expense_id.eq(e.id)))
-		.filter(expense_id.eq_any(expenses.select(schema::expenses::id)))
+		// .group_by(expense_id);
+		// .filter(expense_id.eq_any(expenses.select(schema::expenses::id)))
+		// .select((expense_id, amount))
 		.load::<Payment>(&mut conn)
 		.expect("Error while trying to get Payment");
+
+	let expense_payments: Vec<ExpensePayments> = expense_list
+		.iter()
+		.map(|expense| ExpensePayments {
+			author_id: expense.author_id,
+			id: expense.id,
+			amount: expense.amount,
+			date: expense.date,
+			description: expense.description.clone(),
+			expense_type: expense.expense_type.clone(),
+			name: expense.name.clone(),
+			project_id: expense.project_id,
+			payments: payments_list
+				.clone()
+				.into_iter()
+				.filter(|&payment| payment.expense_id == expense.id)
+				.collect::<Vec<Payment>>()
+		})
+		.collect();
 
 	// let expense_id_list: Vec<i32> = expense_list
 	// 	.iter()
@@ -132,7 +157,7 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>
 		// 		p: payment_list.
 		// })
 		// .collect();
-	web::Json(payments_list)
+	web::Json(expense_payments)
 }
 
 // #[patch("projects/{project_id}/expenses/{expense_id}")]

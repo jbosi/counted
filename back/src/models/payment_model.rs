@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use super::expense_model::ExpenseType;
 
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Payment {
 	pub id: i32,
 	pub expense_id: i32,
@@ -27,7 +27,7 @@ pub struct NewPayment {
 	pub amount: f64,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct ExpensePayments {
 	pub id: i32,
 	pub author_id: i32,
@@ -37,6 +37,6 @@ pub struct ExpensePayments {
 	pub description: Option<String>,
 	pub name: String,
 	pub expense_type: ExpenseType,
-	pub created_at: NaiveDateTime,
+	// pub created_at: NaiveDateTime,
 	pub payments: Vec<Payment>
 }

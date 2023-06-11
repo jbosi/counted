@@ -1,18 +1,18 @@
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { IExpensePaymentsViewModel } from '@hcount/modules';
 import { AvatarModule } from 'primeng/avatar';
-import { IExpense } from 'src/app/modules';
 
 @Component({
 	selector: 'app-expense',
 	templateUrl: './expense.component.html',
 	styleUrls: ['./expense.component.scss'],
 	standalone: true,
-	imports: [AvatarModule, NgIf],
+	imports: [AvatarModule, CommonModule],
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpenseComponent {
-	@Input() public expense!: IExpense;
+	@Input() public expensePayment!: IExpensePaymentsViewModel;
 
 	constructor() {}
 }

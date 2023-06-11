@@ -1,8 +1,13 @@
-<div *ngIf="expense != null" class="expense">
+<div *ngIf="expensePayment != null" class="expense">
 	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
 	<div class="expenseName">
-		<label>{{ expense.name }}</label>
-		<span>Payé par Léo</span>
+		<label>{{ expensePayment.name }}</label>
+		<span>Payé par
+			<ng-container *ngFor="let payor of expensePayment.payors; let index = index">
+				<ng-container *ngIf="index + 1 < expensePayment.payors.length">{{ payor.user_name }}, </ng-container>
+				<ng-container *ngIf="index + 1 == expensePayment.payors.length">{{ payor.user_name }}</ng-container>
+			</ng-container>
+		</span>
 	</div>
-	<div class="expenseAmount">{{ expense.amount }} €</div>
+	<div class="expenseAmount">{{ expensePayment.amount }} €</div>
 </div>

@@ -1,4 +1,4 @@
-<div *ngIf="expensePayment != null" class="expense">
+<div *ngIf="expensePayment != null" class="expense" [routerLink]="[expensePayment.id]">
 	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
 	<div class="expenseName">
 		<label>{{ expensePayment.name }}</label>

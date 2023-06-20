@@ -1,0 +1,22 @@
+:host {
+	width: 100%;
+}
+
+.expensePayment {
+	display: flex;
+	gap: 1.25rem;
+	align-items: flex-end;
+	background: #2a323d;
+	box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+	border-radius: 12px;
+	padding: 0.5rem 1rem;
+	justify-content: space-between;
+
+	.expenseName {
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+	}
+	.expenseAmount {
+	}
+}

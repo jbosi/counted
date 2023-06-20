@@ -1,0 +1,25 @@
+<div>{{ expensePayment?.name }}</div>
+<div>Dépense de {{ expensePayment?.amount }}€</div>
+<div *ngIf="expensePayment?.description">{{ expensePayment?.description }}</div>
+
+<!-- <h2>Répartition du paiement</h2> -->
+<h2>Payé par</h2>
+<div *ngFor="let payor of expensePayment?.payors" class="expensePayment">
+	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+	<span>{{ payor.user_name }}</span>
+	<span>A payé</span>
+	<span>{{ payor.amount }}€</span>
+</div>
+<div>
+	<span *ngFor="let payor of expensePayment?.payors">{{ payor.user_name }}, </span>
+	<span>ont payé pour </span>
+	<span *ngFor="let debtor of expensePayment?.debtors">{{ debtor.user_name }}, </span>
+</div>
+<!-- <h2>Répartition de la dette</h2> -->
+<h2>Pour</h2>
+<div *ngFor="let debtor of expensePayment?.debtors" class="expensePayment">
+	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+	<span>{{ debtor.user_name }}</span>
+	<span>Doit</span>
+	<span>{{ debtor.amount }}€</span>
+</div>

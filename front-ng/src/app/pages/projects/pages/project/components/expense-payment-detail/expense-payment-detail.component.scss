@@ -1,8 +1,11 @@
 :host {
 	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
 }
 
-.expensePayment {
+.expensePaymentDetail {
 	display: flex;
 	gap: 1.25rem;
 	align-items: flex-end;
@@ -10,13 +13,24 @@
 	box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
 	border-radius: 12px;
 	padding: 0.5rem 1rem;
-	justify-content: space-between;
 
 	.expenseName {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
 	}
-	.expenseAmount {
-	}
+}
+
+.expensePaymentDetail-payed-by, .expensePaymentDetail-payed-for {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+.expensePaymentDetail-header {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+.expensePaymentDetail-header-title {
+	text-align: center;
 }

@@ -1,0 +1,30 @@
+<p-dialog header="Ajouter des utilisateurs" [(visible)]="display" [style]="{ width: '50vw', height: '600px' }">
+	<form (ngSubmit)="createUsersAsync()" class="form-container" [formGroup]="form">
+		<div formArrayName="users">
+			<ng-container *ngFor="let user of users.controls; let i = index">
+				<div class="form-element">
+					<label>Nom de l'utilisateur</label>
+					<div class="form-element-group" [formGroup]="user">
+						<input class="form-element-group-input" type="text" pInputText formControlName="name"/>
+						<p-button (click)="deleteCandidateUser(i)" styleClass="p-button-rounded p-button-outlined">Supprimer</p-button>
+					</div>
+				</div>
+			</ng-container>
+		</div>
+		<p-button (click)="addCandidateUser()" styleClass="p-button-rounded p-button-outlined">Ajouter</p-button>
+
+		<h2>Utilisateurs existants</h2>
+	
+		<ul>
+			<li *ngFor="let existingUser of existingUsers">
+				<span>{{ existingUser?.name }}</span>
+				<p-button (click)="deleteExistingUserAsync(existingUser.id)" styleClass="p-button-rounded p-button-outlined">Supprimer</p-button>
+			</li>
+		</ul>
+
+		<button pButton type="submit" class="p-button-outlined" label="Enregistrer"></button>
+	</form>
+
+</p-dialog>
+
+<p-button (click)="showDialog()" class="sub-header-button" styleClass="p-button-rounded p-button-outlined" icon="pi pi-plus"></p-button>

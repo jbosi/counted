@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { IUser, UsersHttpClient } from '../../modules';
+import { AddUsersModalComponent } from './modals';
 
 @Component({
 	selector: 'app-sub-header',
@@ -10,7 +11,8 @@ import { IUser, UsersHttpClient } from '../../modules';
 	standalone: true,
 	imports: [
 		ButtonModule,
-		AvatarModule
+		AvatarModule,
+		AddUsersModalComponent
 	],
 })
 export class SubHeaderComponent implements OnInit {
@@ -23,7 +25,7 @@ export class SubHeaderComponent implements OnInit {
 		this.users = await this.usersHttpClient.getAsync();
 	}
 
-	public async onExpenseAddedAsync(): Promise<void> {
-		
+	public async onUsersAddedAsync(): Promise<void> {
+		this.users = await this.usersHttpClient.getAsync();
 	}
 }

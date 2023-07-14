@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FetchHttpClient } from '../fetch';
-import { IUser, ICreatableUser } from './models';
+import { ICreatableUsers, IUser } from './models';
 
 const API_URL = '/api/users';
 
@@ -13,7 +13,11 @@ export class UsersHttpClient {
 		return this.http.get(API_URL);
 	}
 
-	public createAsync(candidate: ICreatableUser): Promise<IUser> {
+	public async createAsync(candidate: ICreatableUsers): Promise<IUser> {
 		return this.http.post(API_URL, candidate);
+	}
+
+	public async deleteAsync(userId: number): Promise<void> {
+		return this.http.delete(`${API_URL}/${userId}`);
 	}
 }

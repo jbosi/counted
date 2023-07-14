@@ -8,3 +8,5 @@ export interface IUser {
 export interface ICreatableUser {
 	name: string
 }
+
+export type ICreatableUsers = ICreatableUser[]

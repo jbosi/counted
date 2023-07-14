@@ -1,18 +1,21 @@
 use diesel::Queryable;
+use uuid::Uuid;
 use crate::schema::{payments};
 use serde::{Serialize, Deserialize};
-use chrono::{NaiveDateTime};
+use chrono::{NaiveDateTime, NaiveDate};
 use diesel::prelude::*;
 
+use super::expense_model::ExpenseType;
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Payment {
-	id: i32,
-	expense_id: i32,
-	user_id: i32,
-	is_debt: bool,
-	amount: f64,
-	created_at: NaiveDateTime
+	pub id: i32,
+	pub expense_id: i32,
+	pub user_id: i32,
+	pub is_debt: bool,
+	pub amount: f64,
+	pub created_at: NaiveDateTime
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
@@ -22,4 +25,18 @@ pub struct NewPayment {
 	pub user_id: i32,
 	pub is_debt: bool,
 	pub amount: f64,
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+pub struct ExpensePayments {
+	pub id: i32,
+	pub author_id: i32,
+	pub project_id: Uuid,
+	pub date: NaiveDate,
+	pub amount: f64,
+	pub description: Option<String>,
+	pub name: String,
+	pub expense_type: ExpenseType,
+	// pub created_at: NaiveDateTime,
+	pub payments: Vec<Payment>
 }

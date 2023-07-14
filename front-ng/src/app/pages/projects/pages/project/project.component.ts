@@ -1,11 +1,12 @@
-import { JsonPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
+import { IExpensePaymentsViewModel, IUser } from '@hcount/modules';
 import { firstValueFrom } from 'rxjs';
 import { SubHeaderComponent } from '../../../../components';
-import { ExpensesHttpClient, IExpense, IUser, UsersHttpClient } from '../../../../modules';
 import { ExpenseComponent } from './components';
 import { AddExpenseModalComponent } from './components/add-project-expense';
+import { ProjectApplication } from './project.application';
 
 @Component({
 	selector: 'app-project',
@@ -16,36 +17,29 @@ import { AddExpenseModalComponent } from './components/add-project-expense';
 		ExpenseComponent,
 		SubHeaderComponent,
 		AddExpenseModalComponent,
-		JsonPipe
+		CommonModule,
 	]
 })
 export class ProjectComponent implements OnInit {
 	public users: IUser[] = [];
-	public expenses: IExpense[] = [];
+	public expensePayments: IExpensePaymentsViewModel[] = [];
+	public projectId!: string;
 
 	constructor(
 		private readonly activatedRoute: ActivatedRoute,
-		private readonly expensesHttpClient: ExpensesHttpClient,
-		private readonly usersHttpClient: UsersHttpClient
+		private readonly projectApplication: ProjectApplication
 	) {}
 	
-	// ngOnInit(): void {
-	// 	this.activatedRoute.params.subscribe((p) => {
-	// 		const value = p as { projectId: number };
-	// 	})
-	// }
-	
 	async ngOnInit(): Promise<void> {
-		this.expenses = await this.getExpensesAsync();
-		this.users = await this.usersHttpClient.getAsync();
+		const params: Params = await firstValueFrom(this.activatedRoute.params);
+		this.projectId = (params as { projectId: string }).projectId;
+		
+		this.users = await this.projectApplication.getUsersAsync();
+
+		this.expensePayments = await this.projectApplication.getExpensePaymentsAsync(this.projectId);
 	}
 
 	public async onExpenseAddedAsync(): Promise<void> {
-		this.expenses = await this.getExpensesAsync();
-	}
-
-	private async getExpensesAsync(): Promise<IExpense[]> {
-		const params: Params = await firstValueFrom(this.activatedRoute.params);
-		return await this.expensesHttpClient.getAsync((params as { projectId: string }).projectId);
+		this.expensePayments = await this.projectApplication.getExpensePaymentsAsync(this.projectId);
 	}
 }

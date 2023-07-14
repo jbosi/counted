@@ -1,6 +1,7 @@
-use crate::models::payment_model::{NewPayment};
+use crate::models::payment_model::{NewPayment, Payment, ExpensePayments};
 use crate::models::expense_model::{Expense, NewExpense, CreatableExpense, PatchableExpense};
 use crate::schema::payments;
+use crate::schema::projects::id;
 use actix_web::HttpResponse;
 use chrono::{NaiveDate, Utc};
 use diesel::prelude::*;
@@ -75,6 +76,89 @@ pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl
 	web::Json(expense_list)
 }
 
+#[get("projects/{project_id}/expensepayments")]
+pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
+	use schema::expenses::dsl::*;
+	use schema::payments::dsl::*;
+
+	let path_project_id: Uuid = path.into_inner();
+
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+	let expense_list = expenses
+		.filter(project_id.eq(path_project_id))
+
+	// let expense_list = expenses
+	// 	.filter(project_id.eq(path_project_id))
+	// 	.inner_join(payments.on(expense_id.eq(schema::expenses::id)))
+	// 	.group_by(schema::expenses::id)
+	// 	.select((date, schema::payments::amount))
+		// .select((
+		// 	schema::expenses::id,
+		// 	schema::expenses::author_id,
+		// 	schema::expenses::project_id,
+		// 	schema::expenses::date,
+		// 	schema::expenses::amount,
+		// 	schema::payments::amount,
+		// 	schema::expenses::description,
+		// 	schema::expenses::name,
+		// 	schema::expenses::expense_type,
+		// 	schema::payments::user_id,
+		// 	schema::payments::is_debt,
+		// 	schema::payments::created_at,
+		// ))
+		.load::<Expense>(&mut conn)
+		.expect("Error while trying to get Expenses");
+
+	let payments_list = payments
+		// .group_by(expense_id);
+		// .filter(expense_id.eq_any(expenses.select(schema::expenses::id)))
+		// .select((expense_id, amount))
+		.load::<Payment>(&mut conn)
+		.expect("Error while trying to get Payment");
+
+	let expense_payments: Vec<ExpensePayments> = expense_list
+		.iter()
+		.map(|expense| ExpensePayments {
+			author_id: expense.author_id,
+			id: expense.id,
+			amount: expense.amount,
+			date: expense.date,
+			description: expense.description.clone(),
+			expense_type: expense.expense_type.clone(),
+			name: expense.name.clone(),
+			project_id: expense.project_id,
+			payments: payments_list
+				.clone()
+				.into_iter()
+				.filter(|&payment| payment.expense_id == expense.id)
+				.collect::<Vec<Payment>>()
+		})
+		.collect();
+
+	// let expense_id_list: Vec<i32> = expense_list
+	// 	.iter()
+	// 	.map(|e| e.id)
+	// 	.collect();
+
+	// let payment_list = payments
+	// 	.filter(expense_id.eq_any(expense_id_list))
+	// 	.load::<Payment>(&mut conn)
+	// 	.expect("Error while trying to get Payments");
+	// // .filter(expense_id_list.contains(schema::payments::columns::expense_id.));
+	// let expense_with_payments: ExpenseWithPayments = expense_list
+	// 	.iter()
+	// 	.map(|e| ExpenseWithPayments {
+	// 		expense: e,
+	// 		payment: payment_list.iter().filter(|p| p.expense_id.eq(&e.id)).collect()
+	// 	})
+		// .map(|e| ExpenseWithPayments {
+		// 		expense: e,
+		// 		p: payment_list.
+		// })
+		// .collect();
+	web::Json(expense_payments)
+}
 
 // #[patch("projects/{project_id}/expenses/{expense_id}")]
 // pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {

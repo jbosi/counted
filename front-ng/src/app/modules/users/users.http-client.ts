@@ -8,6 +8,7 @@ const API_URL = '/api/users';
 export class UsersHttpClient {
 	constructor(private http: FetchHttpClient) { }
 	
+	// TODO: scope to project
 	public getAsync(): Promise<IUser[]> {
 		return this.http.get(API_URL);
 	}

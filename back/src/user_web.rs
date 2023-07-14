@@ -6,16 +6,16 @@ use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post, delete, patch};
 
 #[post("/users")]
-pub async fn create_user(pool: web::Data<DbPool>, creatable_user: web::Json<CreatableUser>) -> impl Responder {
+pub async fn create_user(pool: web::Data<DbPool>, creatable_users: web::Json<Vec<CreatableUser>>) -> impl Responder {
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let new_user = NewUser {
-		name: creatable_user.name.to_string(),
-	};
+	let new_users: Vec<NewUser> = creatable_users.iter().map(|creatable_user| NewUser {
+		name: creatable_user.name.to_string()
+	}).collect();
 
 	let created_user = diesel::insert_into(schema::users::table)
-		.values(&new_user)
-		.get_result::<User>(&mut conn)
+		.values(&new_users)
+		.get_results::<User>(&mut conn)
 		.expect("Error saving new post");
 	
 	web::Json(created_user)

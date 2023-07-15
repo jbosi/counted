@@ -1,10 +1,11 @@
 <div *ngIf="expensePayment != null" class="expense" [routerLink]="[expensePayment.id]">
-	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+	<span class="pi pi-money-bill"></span>
 	<div class="expenseContent">
 		<label>{{ expensePayment.name }}</label>
-		<div class="expenseContent-avatars">Payé par
+		<div class="expenseContent-avatars">
+			<span class="expenseContent-avatars-label">Payé par</span>
 			<ng-container *ngFor="let payor of expensePayment.payors">
-				<app-avatar-initials class="expenseContent-avatars-item" [size]="25" [userName]="payor.user_name"></app-avatar-initials>
+				<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="payor.user_name"></app-avatar-initials>
 			</ng-container>
 		</div>
 	</div>

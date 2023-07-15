@@ -19,8 +19,7 @@
 <section class="expensePaymentDetail-payed-by">
 	<h2>Payé par</h2>
 	<div *ngFor="let payor of expensePayment?.payors" class="expensePaymentDetail">
-		<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
-		<span>{{ payor.user_name }}</span>
+		<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="payor.user_name"></app-avatar-initials>
 		<span>A payé</span>
 		<span>{{ payor.amount }}€</span>
 	</div>
@@ -29,8 +28,7 @@
 <section class="expensePaymentDetail-payed-for">
 	<h2>Pour</h2>
 	<div *ngFor="let debtor of expensePayment?.debtors" class="expensePaymentDetail">
-		<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
-		<span>{{ debtor.user_name }}</span>
+		<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="debtor.user_name"></app-avatar-initials>
 		<span>Doit</span>
 		<span>{{ debtor.amount }}€</span>
 	</div>

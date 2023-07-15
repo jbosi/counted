@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { IExpensePaymentsViewModel, RouterParamService } from '@hcount/modules';
-import { AvatarModule } from 'primeng/avatar';
+import { AvatarInitialsComponent, IExpensePaymentsViewModel, RouterParamService } from '@hcount/modules';
 import { ProjectApplication } from '../../project.application';
 
 @Component({
@@ -10,7 +9,7 @@ import { ProjectApplication } from '../../project.application';
 	templateUrl: './expense-payment-detail.component.html',
 	styleUrls: ['./expense-payment-detail.component.scss'],
 	standalone: true,
-	imports: [AvatarModule, CommonModule, RouterModule],
+	imports: [AvatarInitialsComponent, CommonModule, RouterModule],
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensePaymentDetailComponent implements OnInit {

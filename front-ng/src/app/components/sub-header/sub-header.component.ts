@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
-import { IUser, UsersHttpClient } from '../../modules';
+import { AvatarInitialsComponent, IUser, UsersHttpClient } from '../../modules';
 import { AddUsersModalComponent } from './modals';
+import { CommonModule } from '@angular/common';
 
 @Component({
 	selector: 'app-sub-header',
@@ -12,7 +13,9 @@ import { AddUsersModalComponent } from './modals';
 	imports: [
 		ButtonModule,
 		AvatarModule,
-		AddUsersModalComponent
+		AddUsersModalComponent,
+		AvatarInitialsComponent,
+		CommonModule
 	],
 })
 export class SubHeaderComponent implements OnInit {

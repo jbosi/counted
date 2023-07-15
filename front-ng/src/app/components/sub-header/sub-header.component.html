@@ -1,7 +1,5 @@
-<div class="sub-header">
-	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
-	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
-	<p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+<div class="subHeader">
+	<app-avatar-initials class="subHeader-avatars" *ngFor="let user of users" [userName]="user.name"></app-avatar-initials>
 </div>
 
 <div>

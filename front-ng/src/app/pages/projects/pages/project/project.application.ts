@@ -35,17 +35,17 @@ export class ProjectApplication {
 	private forgeExpensePaymentsViewModel(expensePayment: IExpensePayments, users: IUser[]): IExpensePaymentsViewModel {
 		const payments: IPaymentViewModel[] = expensePayment.payments
 				.map(payment => {
-					const user: IUser = users.find(u => u.id === payment.user_id) as IUser
+					const user: IUser | undefined = users.find(u => u.id === payment.user_id)
 					return {
 						amount: payment.amount,
 						id: payment.id,
 						is_debt: payment.is_debt,
-						user_name: user.name
+						user_name: user?.name ?? 'Error while fetching user'
 					}
 				})
 
 			return {
-				amount: expensePayment.amount,
+				amount: expensePayment.amount,	
 				date: expensePayment.date,
 				expense_type: expensePayment.expense_type,
 				id: expensePayment.id,

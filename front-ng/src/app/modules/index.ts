@@ -1,3 +1,4 @@
+export * from "./avatar-initials";
 export * from "./expense-payments";
 export * from "./expenses";
 export * from "./fetch";

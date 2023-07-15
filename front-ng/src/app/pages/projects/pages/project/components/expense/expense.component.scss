@@ -12,10 +12,17 @@
 	padding: 0.5rem 1rem;
 	justify-content: space-between;
 
-	.expenseName {
+	.expenseContent {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
+	}
+	.expenseContent-avatars {
+		display: flex;
+		flex-direction: row;
+	}
+	.expenseContent-avatars-item {
+		margin-left: -0.5rem;
 	}
 	.expenseAmount {
 	}

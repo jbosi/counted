@@ -51,10 +51,9 @@ diesel::table! {
 }
 
 diesel::table! {
-    user_projects (id) {
-        id -> Uuid,
-        user_id -> Int4,
+    user_projects (project_id, user_id) {
         project_id -> Uuid,
+        user_id -> Int4,
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::models::project_model::{Project, NewProject, CreatableProject};
+use crate::models::user_project_model::NewUserProjects;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
 use diesel::insert_into;
@@ -10,11 +11,11 @@ use crate::diesel::ExpressionMethods;
 #[post("/projects")]
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {
 	use schema::projects::dsl::*;
+	use schema::user_projects::dsl::*;
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let new_project = NewProject {
 		name: creatable_project.name.to_string(),
-		users: creatable_project.users.clone(),
 		currency: "Euro".to_string(),
 		// total_expenses: 0.0
 	};
@@ -23,6 +24,17 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 		.values(new_project)
 		.get_result(&mut conn)
 		.expect("Error while adding project");
+
+	let user_project_values: Vec<NewUserProjects> = creatable_project.users.clone()
+		.into_iter()
+		.map(|u_id| NewUserProjects { project_id: created_project.id, user_id: u_id })
+		.collect();
+
+	insert_into(user_projects)
+		.values(user_project_values)
+		.execute(&mut conn)
+		.expect("Error while adding project and users to the join table");
+
 
 	web::Json(created_project)
 }

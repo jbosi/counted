@@ -1,5 +1,6 @@
 use crate::models::project_model::Project;
 use crate::models::user_model::{User, NewUser, PatchableUser, CreatableUser};
+use crate::models::user_project_model::UserProjects;
 use actix_web::HttpResponse;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
@@ -30,11 +31,9 @@ pub async fn create_user(pool: web::Data<DbPool>, creatable_users: web::Json<Vec
 
 #[get("/users")]
 pub async fn get_users(pool: web::Data<DbPool>) -> impl Responder {
-	use self::users::dsl::*;
-
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let results = users.load::<User>(&mut conn)
+	let results = users::table.load::<User>(&mut conn)
 		.expect("Error while trying to get Users");
 
 	web::Json(results)
@@ -42,38 +41,23 @@ pub async fn get_users(pool: web::Data<DbPool>) -> impl Responder {
 
 #[get("/users/projects/{project_id}")]
 pub async fn get_users_by_project_id(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
-	use self::projects::dsl::*;
-	use self::user_projects::dsl::*;
-	use self::users::dsl::*;
-
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let path_project_id: Uuid = path.into_inner();
 
-	let users_by_project: Vec<(Project, User)> = user_projects
-		.inner_join(projects)
-		.inner_join(users)
-		.filter(self::user_projects::project_id.eq(path_project_id))
-		.get_results(&mut conn)
+	let target_project = projects::table
+		.filter(projects::id.eq(path_project_id))
+		.select(Project::as_select())
+		.get_result(&mut conn)
 		.expect("Error while trying to get Project");
 
-	// let users_by_project = UserProject::belonging_to(&project)
-	// 	.inner_join();
-
-	// let project: Project = projects
-	// 	.inner_join(schema::users::table.on(schema::users::id.eq(schema::projects::users)))
-	// 	.find(project_id)
-	// 	.first::<Project>(&mut conn)
-	// 	.expect("Error while trying to get Project");
-
-	let query = schema::users::table;
-	// FAIRE UN INNER JOIN ? https://docs.rs/diesel/latest/diesel/associations/
-
-	let results: Vec<User> = query
-		.load::<User>(&mut conn)
+	let users_in_project: Vec<User> = UserProjects::belonging_to(&target_project)
+		.inner_join(users::table)
+		.select(User::as_select())
+		.load(&mut conn)
 		.expect("Error while trying to get Users");
 
-	web::Json(results)
+	web::Json(users_in_project)
 }
 
 #[patch("/users")]

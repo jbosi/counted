@@ -7,10 +7,8 @@ use diesel::RunQueryDsl;
 use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete, patch};
-use diesel::Queryable;
 use crate::schema::{users, projects};
 use diesel::BelongingToDsl;
-use super::schema::user_projects;
 
 #[post("/users")]
 pub async fn create_user(pool: web::Data<DbPool>, creatable_users: web::Json<Vec<CreatableUser>>) -> impl Responder {
@@ -87,11 +85,3 @@ pub async fn delete_user(pool: web::Data<DbPool>, user_id: web::Path<i32>) -> Ht
 		HttpResponse::Ok().finish()
 }
 
-#[derive(Identifiable, Queryable, Associations)]
-#[diesel(belongs_to(User))]
-#[diesel(primary_key(id))]
-struct UserProject {
-	id: Uuid,
-	project_id: Uuid,
-	user_id: i32,
-}

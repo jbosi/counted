@@ -9,7 +9,7 @@ extern crate diesel;
 use diesel::pg::PgConnection;
 use expense_web::{create_expense, get_expense, delete_expense, get_expense_payments};
 use project_web::{create_project, get_projects};
-use user_web::{get_users, create_user, update_user_name, delete_user};
+use user_web::{get_users, create_user, update_user_name, delete_user, get_users_by_project_id};
 use diesel::r2d2::ConnectionManager;
  
 
@@ -46,6 +46,7 @@ async fn main() -> std::io::Result<()> {
 					.service(get_projects)
 					.service(create_project)
 					.service(get_expense_payments)
+					.service(get_users_by_project_id)
 		)
 	})
 		.bind(("localhost", 8080))?

@@ -6,21 +6,21 @@ use chrono::{NaiveDateTime};
 use diesel::prelude::*;
 
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable)]
 pub struct Project {
 	pub id: Uuid,
 	pub name: String,
-	pub users: Vec<i32>, // TODO user_ids
+	// pub users: Vec<i32>, // TODO user_ids
 	pub created_at: NaiveDateTime,
 	pub currency: String,
 	// pub total_expenses: f64,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
-#[table_name="projects"]
+#[diesel(table_name = projects)]
 pub struct NewProject {
 	pub name: String,
-	pub users: Vec<i32>,
+	// pub users: Vec<i32>,
 	// pub total_expenses: f64,
 	pub currency: String,
 }

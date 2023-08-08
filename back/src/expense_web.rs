@@ -1,14 +1,13 @@
 use crate::models::payment_model::{NewPayment, Payment, ExpensePayments};
-use crate::models::expense_model::{Expense, NewExpense, CreatableExpense, PatchableExpense};
+use crate::models::expense_model::{Expense, NewExpense, CreatableExpense};
 use crate::schema::payments;
-use crate::schema::projects::id;
 use actix_web::HttpResponse;
-use chrono::{NaiveDate, Utc};
+use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use uuid::Uuid;
 use crate::{schema, DbPool};
-use actix_web::{web, get, Responder, post, delete, patch};
+use actix_web::{web, get, Responder, post, delete};
 
 #[post("projects/{project_id}/expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<Uuid>) -> impl Responder {

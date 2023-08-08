@@ -7,4 +7,11 @@
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+	.card-footer-avatars {
+		display: flex;
+		flex-direction: row;
+		.card-footer-avatars-item {
+			margin-right: -0.5rem;
+		}
+	}
 }

@@ -25,8 +25,8 @@ pub struct ExpenseWPayment {
 	pub payment: Vec<Payment>
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug)]
-#[table_name="expenses"]
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(table_name = expenses)]
 pub struct NewExpense {
 	pub name: String,
 	pub amount: f64,

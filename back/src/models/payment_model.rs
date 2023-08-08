@@ -19,7 +19,7 @@ pub struct Payment {
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
-#[table_name="payments"]
+#[diesel(table_name = payments)]
 pub struct NewPayment {
 	pub expense_id: i32,
 	pub user_id: i32,

@@ -12,9 +12,13 @@ export class ProjectApplication {
 		return this.usersHttpClient.getAsync();
 	}
 
+	public async getUsersByProjectIdAsync(projectId: string): Promise<IUser[]> {
+		return this.usersHttpClient.getUsersByProjectIdAsync(projectId);
+	}
+
 	public async getExpensePaymentsAsync(projectId: string): Promise<IExpensePaymentsViewModel[]> {
 		const expensePayments: IExpensePayments[] = await this.expensePaymentsHttpClient.getAsync(projectId);
-		const users = await this.getUsersAsync();
+		const users = await this.getUsersByProjectIdAsync(projectId);
 
 		return expensePayments.map(ep => this.forgeExpensePaymentsViewModel(ep, users));
 	}
@@ -26,7 +30,7 @@ export class ProjectApplication {
 			return;
 		}
 
-		const users = await this.getUsersAsync();
+		const users = await this.getUsersByProjectIdAsync(projectId);
 		
 		return this.forgeExpensePaymentsViewModel(expensePayments, users);
 	}

@@ -18,7 +18,7 @@ pub struct CreatableUser {
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
-#[table_name="users"]
+#[diesel(table_name = users)]
 pub struct NewUser {
 	pub name: String
 }

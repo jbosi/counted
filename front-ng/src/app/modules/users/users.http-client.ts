@@ -20,4 +20,8 @@ export class UsersHttpClient {
 	public async deleteAsync(userId: number): Promise<void> {
 		return this.http.delete(`${API_URL}/${userId}`);
 	}
+
+	public async getUsersByProjectIdAsync(projectId: string): Promise<IUser[]> {
+		return this.http.get(`${API_URL}/projects/${projectId}`)
+	}
 }

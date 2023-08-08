@@ -1,12 +1,14 @@
-use crate::models::project_model::{Project, NewProject, CreatableProject};
-use crate::models::user_project_model::NewUserProjects;
-use diesel::QueryDsl;
+use crate::models::project_model::{Project, NewProject, CreatableProject, ProjectDto};
+use crate::models::user_model::User;
+use crate::models::user_project_model::{NewUserProjects, UserProjects};
+use crate::schema::{users, projects};
+use diesel::{QueryDsl, SelectableHelper};
 use diesel::RunQueryDsl;
 use diesel::insert_into;
-use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post};
 use crate::diesel::ExpressionMethods;
+use diesel::BelongingToDsl;
 
 #[post("/projects")]
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {
@@ -42,28 +44,53 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 
 #[get("/projects")]
 pub async fn get_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	use schema::projects::dsl::*;
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let results = projects.load::<Project>(&mut conn)
-		.expect("Error while trying to get Projects");
+	// For now retrieving all users
+	let all_users = users::table
+		.select(User::as_select())
+		.load::<User>(&mut conn)
+		.expect("Error while trying to get Users");
 
-	web::Json(results)
+	let projects_for_user: Vec<(Project, User)> = UserProjects::belonging_to(&all_users)
+		.inner_join(projects::table)
+		.select((Project::as_select(), UserProjects::as_select()))
+		.load::<(Project, User)>(&mut conn)
+		.expect("Error while trying to get Users");
+
+	let fullProjects: Vec<ProjectDto> = projects_for_user
+		.grouped_by(&all_users)
+		.into_iter()
+		.zip(projects_for_user)
+		.map(|(p, u)| ProjectDto {
+			id: p.id,
+			created_at: p.created_at,
+			currency: p.currency,
+			name: p.name,
+			users: u
+		});
+
+	web::Json(fullProjects)
 }
 
-// #[get("/projects/{project_id}/users")]
-// pub async fn get_project_users(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
-// 	use schema::projects::dsl::*;
+#[get("/projects/users/{user_id}")]
+pub async fn get_projects_by_user_id(pool: web::Data<DbPool>, path: web::Path<i32>) -> impl Responder {
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-// 	let project_id: Uuid = path.into_inner();
+	let path_user_id: i32 = path.into_inner();
 
-// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
+	let target_project = users::table
+		.filter(users::id.eq(path_user_id))
+		.select(User::as_select())
+		.get_result(&mut conn)
+		.expect("Error while trying to get Project");
 
-// 	let results = projects
-// 		.filter(id.eq(project_id))
-// 		.load::<Project>(&mut conn)
-// 		.expect("Error while trying to get Projects");
+	let projects_for_user: Vec<Project> = UserProjects::belonging_to(&target_project)
+		.inner_join(projects::table)
+		.select(Project::as_select())
+		.load(&mut conn)
+		.expect("Error while trying to get Users");
 
-// 	web::Json(results)
-// }
+	web::Json(projects_for_user)
+}

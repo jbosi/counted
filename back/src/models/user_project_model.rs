@@ -6,7 +6,7 @@ use crate::schema::user_projects;
 use crate::models::user_model::User;
 use crate::models::project_model::Project;
 
-#[derive(Identifiable, Selectable, Queryable, Associations, Debug)]
+#[derive(Identifiable, Selectable, Queryable, Associations, Debug, Serialize, Deserialize, Clone)]
 #[diesel(belongs_to(Project))]
 #[diesel(belongs_to(User))]
 #[diesel(table_name = user_projects)]

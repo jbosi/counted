@@ -9,6 +9,7 @@ use crate::{schema, DbPool};
 use actix_web::{web, get, HttpRequest, Responder, post};
 use crate::diesel::ExpressionMethods;
 use diesel::BelongingToDsl;
+use diesel::prelude::*;
 
 #[post("/projects")]
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {
@@ -47,31 +48,86 @@ pub async fn get_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Re
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
+	// let users_list = users::table
+	// 	.get_results::<User>(&mut conn)
+	// 	.expect("Error while trying to get Users");
+
 	// For now retrieving all users
-	let all_users = users::table
-		.select(User::as_select())
-		.load::<User>(&mut conn)
-		.expect("Error while trying to get Users");
+	// let all_users = users::table
+	// 	.select(User::as_select())	
+	// 	.load::<User>(&mut conn)
+	// 	.expect("Error while trying to get Users");
 
-	let projects_for_user: Vec<(Project, User)> = UserProjects::belonging_to(&all_users)
-		.inner_join(projects::table)
-		.select((Project::as_select(), UserProjects::as_select()))
-		.load::<(Project, User)>(&mut conn)
-		.expect("Error while trying to get Users");
+	// let projects_for_user: Vec<(Project, UserProjects)> = UserProjects::belonging_to(&users_list)
+	// 	.inner_join(projects::table)
+	// 	.select((Project::as_select(), UserProjects::as_select()))
+	// 	.load::<(Project, UserProjects)>(&mut conn)?
+	// 	.grouped_by(&users_list);
+		// .expect("Error while trying to get Users");
 
-	let fullProjects: Vec<ProjectDto> = projects_for_user
+	// let test = projects_for_user
+	// .group_by(&users_list);
+
+let projects_list = projects::table
+    .load::<Project>(&mut conn)
+	.expect("Error while trying to get Users");
+
+
+let users_list = users::table
+	.load::<User>(&mut conn)
+	.expect("Error while trying to get Users");
+
+
+let all_users = users::table
+    .select(User::as_select())
+    .load::<User>(&mut conn)
+	.expect("Error while trying to get Users");
+
+
+let users: Vec<(UserProjects, User)> = UserProjects::belonging_to(&projects_list)
+    .inner_join(users::table)
+    .select((UserProjects::as_select(), User::as_select()))
+    .load::<(UserProjects, User)>(&mut conn)
+	.expect("Error while trying to get Users");
+
+
+	let full_projects: Vec<ProjectDto> = users
 		.grouped_by(&all_users)
 		.into_iter()
-		.zip(projects_for_user)
-		.map(|(p, u)| ProjectDto {
+		.zip(projects_list)
+		.map(|(g, p)| ProjectDto {
 			id: p.id,
 			created_at: p.created_at,
 			currency: p.currency,
 			name: p.name,
-			users: u
-		});
+			users: g.into_iter().map(|(_up, u)| u.id).collect()
+		})
+		.collect();
 
-	web::Json(fullProjects)
+	// let all_users = users::table
+	// 	.select(User::as_select())	
+	// 	.load::<User>(&mut conn)
+	// 	.expect("Error while trying to get Users");
+
+	// let projects_for_user: Vec<(Project, User)> = UserProjects::belonging_to(&all_users)
+	// 	.inner_join(projects::table)
+	// 	.select((Project::as_select(), User::as_select()))
+	// 	.load::<(Project, User)>(&mut conn)
+	// 	.expect("Error while trying to get Users");
+
+	// let full_projects: Vec<ProjectDto> = projects_for_user
+	// 	.grouped_by(&all_users)
+	// 	.into_iter()
+	// 	.map(|(p, u)| ProjectDto {
+	// 		id: p.id,
+	// 		created_at: p.created_at,
+	// 		currency: p.currency,
+	// 		name: p.name,
+	// 		users: u
+	// 	})
+	// 	.collect();
+
+	web::Json(full_projects)
 }
 
 #[get("/projects/users/{user_id}")]

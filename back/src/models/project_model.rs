@@ -6,7 +6,7 @@ use chrono::{NaiveDateTime};
 use diesel::prelude::*;
 
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable, Copy, PartialEq)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable, PartialEq, Clone)]
 pub struct Project {
 	pub id: Uuid,
 	pub name: String,

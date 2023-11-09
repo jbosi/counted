@@ -44,6 +44,7 @@ pub struct CreatableExpense {
 	pub amount: f64,
 	pub description: Option<String>,
 	pub expense_type: ExpenseType,
+	pub project_id: Uuid;
 
 	pub payers: Vec<UserAmount>,
 	pub debtors: Vec<UserAmount>,

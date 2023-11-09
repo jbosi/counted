@@ -4,7 +4,7 @@ import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } f
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { ICreatableUsers, IUser, UsersHttpClient } from '../../../../modules';
+import { ICreatableUsers, IUser, RouterParamService, UsersHttpClient } from '../../../../modules';
 
 @Component({
 	selector: 'app-add-users-modal',
@@ -29,7 +29,8 @@ export class AddUsersModalComponent implements OnInit {
 
 	public display: boolean = false;
 	constructor(
-		private readonly usersHttpClient: UsersHttpClient
+		private readonly usersHttpClient: UsersHttpClient,
+		private readonly routerParamService: RouterParamService
 	) {}
 
 	ngOnInit(): void {
@@ -51,10 +52,13 @@ export class AddUsersModalComponent implements OnInit {
 			return;
 		}
 
+		const project_id: string | undefined = this.routerParamService.getParam('projectId');
+
 		const candidates: ICreatableUsers = rawUsers
-			?.map(user => ({ name: user.name }));
+			?.map(user => ({ name: user.name, project_id }));
 		
-		await this.usersHttpClient.createAsync(candidates);
+		await this.usersHttpClient.createAsync(candidates)
+			.catch(e => console.error(e));
 
 		this.display = false;
 		this.usersAdded.next();

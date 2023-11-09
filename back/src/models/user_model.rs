@@ -1,4 +1,5 @@
 use diesel::Queryable;
+use uuid::Uuid;
 use crate::schema::{users};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDateTime};
@@ -12,9 +13,19 @@ pub struct User {
 	pub created_at: Option<NaiveDateTime>
 }
 
+#[derive(Queryable, Serialize, Deserialize, Debug)]
+pub struct UserDto {
+	pub id: i32,
+	pub name: String,
+	pub user_ids: Vec<Uuid>,
+	pub balance: Option<f64>,
+	pub created_at: Option<NaiveDateTime>
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CreatableUser {
-	pub name: String
+	pub name: String,
+	pub project_id: Option<Uuid>
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug)]
@@ -31,6 +42,5 @@ pub struct UserAmount {
 
 #[derive(Deserialize, Debug)]
 pub struct PatchableUser {
-	pub user_id: i32,
 	pub name: String
 }

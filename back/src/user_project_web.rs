@@ -6,14 +6,13 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::diesel::ExpressionMethods;
-use crate::models::project_model::{CreatableProject, NewProject, Project};
+use crate::models::project_model::{CreatableProject, NewProject, Project, UserProjectDto};
 use crate::models::user_model::User;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
-use crate::query_strings::project_query_string::ProjectQueryParams;
+use crate::query_strings::user_projects_query_string::UserProjectsQueryParams;
 use crate::schema::{projects, users};
 
-#[post("/projects")]
+#[post("/user-projects")]
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {
 	use schema::projects::dsl::*;
 	use schema::user_projects::dsl::*;
@@ -22,7 +21,6 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 	let new_project = NewProject {
 		name: creatable_project.name.to_string(),
 		currency: "Euro".to_string(),
-		// total_expenses: 0.0
 	};
 
 	let created_project: Project = insert_into(projects)
@@ -44,33 +42,39 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 }
 
 
-#[get("/projects")]
-pub async fn get_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	let params = web::Query::<ProjectQueryParams>::from_query(_req.query_string()).unwrap();
+#[get("/user-projects")]
+pub async fn get_user_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
+	let params = web::Query::<UserProjectsQueryParams>::from_query(_req.query_string()).unwrap();
+
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let projects: Vec<Project>;
+	let projects: Vec<Project> = projects::table
+		.load::<Project>(&mut conn)
+		.expect("Error while trying to get UserProjects - project step");
 
-	match params.user_id {
-		None => {
-			projects = projects::table
-				.load::<Project>(&mut conn)
-				.expect("Error while trying to get Users");
-		}
-		Some(user_id) => {
-			let target_project = users::table
-				.filter(users::id.eq(user_id))
-				.select(User::as_select())
-				.get_result(&mut conn)
-				.expect("Error while trying to get Project");
+	let users: Vec<User> = users::table
+		.select(User::as_select())
+		.load::<User>(&mut conn)
+		.expect("Error while trying to get UserProjects - user step");
 
-			projects = UserProjects::belonging_to(&target_project)
-				.inner_join(projects::table)
-				.select(Project::as_select())
-				.load(&mut conn)
-				.expect("Error while trying to get Users for project");
-		}
-	}
+	let user_by_user_project: Vec<(UserProjects, User)> = UserProjects::belonging_to(&projects)
+		.inner_join(users::table)
+		.select((UserProjects::as_select(), User::as_select()))
+		.load::<(UserProjects, User)>(&mut conn)
+		.expect("Error while trying to get UserProjects - userproject step ");
 
-	web::Json(projects)
+	let full_projects: Vec<UserProjectDto> = user_by_user_project
+		.grouped_by(&users)
+		.into_iter()
+		.zip(projects)
+		.map(|(g, p)| UserProjectDto {
+			id: p.id,
+			created_at: p.created_at,
+			currency: p.currency,
+			name: p.name,
+			users: g.into_iter().map(|(_up, u)| u.id).collect()
+		})
+		.collect();
+
+	web::Json(full_projects)
 }

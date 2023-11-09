@@ -22,3 +22,9 @@ pub struct NewUserProjects {
 	pub project_id: Uuid,
 	pub user_id: i32,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CreatableUserProject {
+	pub project_id: Uuid,
+	pub user_id: i32,
+}

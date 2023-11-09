@@ -1,18 +1,18 @@
 use crate::models::payment_model::{NewPayment, Payment, ExpensePayments};
 use crate::models::expense_model::{Expense, NewExpense, CreatableExpense};
 use crate::schema::payments;
-use actix_web::HttpResponse;
+use actix_web::{HttpRequest, HttpResponse};
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete};
+use crate::query_strings::expenses_query_string::ExpensesQueryParams;
 
-#[post("projects/{project_id}/expenses")]
-pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>, path: web::Path<Uuid>) -> impl Responder {
+#[post("expenses")]
+pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
 	use schema::expenses;
-	let path_project_id: Uuid = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
@@ -27,7 +27,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		description: new_expense.clone().description,
 		expense_type: new_expense.clone().expense_type,
 		author_id: new_expense.author_id,
-		project_id: path_project_id
+		project_id: new_expense.project_id
 	};
 
 	let created_expense: Expense = diesel::insert_into(expenses::table)
@@ -60,59 +60,35 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 }
 
 // On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
-#[get("projects/{project_id}/expenses")]
-pub async fn get_expense(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
+#[get("expenses")]
+pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
+	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
 	use schema::expenses::dsl::*;
-	let path_project_id: Uuid = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let expense_list = expenses
-		.filter(project_id.eq(path_project_id))
+		.filter(project_id.eq(params.project_id))
 		.load::<Expense>(&mut conn)
 		.expect("Error while trying to get Expenses");
 	
 	web::Json(expense_list)
 }
 
-#[get("projects/{project_id}/expensepayments")]
-pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>) -> impl Responder {
+#[get("expensepayments")]
+pub async fn get_expense_payments(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	use schema::expenses::dsl::*;
 	use schema::payments::dsl::*;
-
-	let path_project_id: Uuid = path.into_inner();
+	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
 	let expense_list = expenses
-		.filter(project_id.eq(path_project_id))
-
-	// let expense_list = expenses
-	// 	.filter(project_id.eq(path_project_id))
-	// 	.inner_join(payments.on(expense_id.eq(schema::expenses::id)))
-	// 	.group_by(schema::expenses::id)
-	// 	.select((date, schema::payments::amount))
-		// .select((
-		// 	schema::expenses::id,
-		// 	schema::expenses::author_id,
-		// 	schema::expenses::project_id,
-		// 	schema::expenses::date,
-		// 	schema::expenses::amount,
-		// 	schema::payments::amount,
-		// 	schema::expenses::description,
-		// 	schema::expenses::name,
-		// 	schema::expenses::expense_type,
-		// 	schema::payments::user_id,
-		// 	schema::payments::is_debt,
-		// 	schema::payments::created_at,
-		// ))
+		.filter(project_id.eq(params.project_id))
 		.load::<Expense>(&mut conn)
 		.expect("Error while trying to get Expenses");
 
 	let payments_list = payments
-		// .group_by(expense_id);
-		// .filter(expense_id.eq_any(expenses.select(schema::expenses::id)))
-		// .select((expense_id, amount))
 		.load::<Payment>(&mut conn)
 		.expect("Error while trying to get Payment");
 
@@ -135,31 +111,10 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>
 		})
 		.collect();
 
-	// let expense_id_list: Vec<i32> = expense_list
-	// 	.iter()
-	// 	.map(|e| e.id)
-	// 	.collect();
-
-	// let payment_list = payments
-	// 	.filter(expense_id.eq_any(expense_id_list))
-	// 	.load::<Payment>(&mut conn)
-	// 	.expect("Error while trying to get Payments");
-	// // .filter(expense_id_list.contains(schema::payments::columns::expense_id.));
-	// let expense_with_payments: ExpenseWithPayments = expense_list
-	// 	.iter()
-	// 	.map(|e| ExpenseWithPayments {
-	// 		expense: e,
-	// 		payment: payment_list.iter().filter(|p| p.expense_id.eq(&e.id)).collect()
-	// 	})
-		// .map(|e| ExpenseWithPayments {
-		// 		expense: e,
-		// 		p: payment_list.
-		// })
-		// .collect();
 	web::Json(expense_payments)
 }
 
-// #[patch("projects/{project_id}/expenses/{expense_id}")]
+// #[patch("expenses/{expense_id}")]
 // pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
 // 	use schema::expenses::dsl::*;
 
@@ -189,11 +144,11 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, path: web::Path<Uuid>
 // 	web::Json(updated_user)
 // }
 
-#[delete("projects/{project_id}/expenses/{expense_id}")]
-pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<(Uuid, i32)>) -> HttpResponse {
+#[delete("expenses/{expense_id}")]
+pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> HttpResponse {
 	use schema::expenses::dsl::*;
 
-	let (path_project_id, path_expense_id): (Uuid, i32) = path.into_inner();
+	let path_expense_id: i32 = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 

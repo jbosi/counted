@@ -1,12 +1,13 @@
-use diesel::Queryable;
-use uuid::Uuid;
-use crate::schema::{expenses};
-use serde::{Serialize, Deserialize};
-use chrono::{NaiveDate};
-use diesel_derive_enum::DbEnum;
+use chrono::NaiveDate;
 use diesel::prelude::*;
+use diesel::Queryable;
+use diesel_derive_enum::DbEnum;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use super::{user_model::UserAmount, payment_model::Payment};
+use crate::models::payment_model::Payment;
+use crate::models::user_model::UserAmount;
+use crate::schema::expenses;
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Expense {
@@ -44,7 +45,7 @@ pub struct CreatableExpense {
 	pub amount: f64,
 	pub description: Option<String>,
 	pub expense_type: ExpenseType,
-	pub project_id: Uuid;
+	pub project_id: Uuid,
 
 	pub payers: Vec<UserAmount>,
 	pub debtors: Vec<UserAmount>,

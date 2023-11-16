@@ -1,13 +1,13 @@
-use crate::models::payment_model::{NewPayment, Payment, ExpensePayments};
-use crate::models::expense_model::{Expense, NewExpense, CreatableExpense};
+use crate::models::payment_model::{NewPayment, Payment, ExpenseDto};
 use crate::schema::payments;
 use actix_web::{HttpRequest, HttpResponse};
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use uuid::Uuid;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete};
+use uuid::Uuid;
+use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
 use crate::query_strings::expenses_query_string::ExpensesQueryParams;
 
 #[post("expenses")]
@@ -42,14 +42,14 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		is_debt: true
 	}).collect();
 
-	let creatable_payors: Vec<NewPayment> = payers.map(|p| NewPayment {
+	let creatable_payers: Vec<NewPayment> = payers.map(|p| NewPayment {
 		amount: p.amount,
 		expense_id: created_expense.id,
 		user_id: p.user_id,
 		is_debt: false
 	}).collect();
 
-	let creatable_payments: Vec<NewPayment> = [creatable_debtors, creatable_payors].concat();
+	let creatable_payments: Vec<NewPayment> = [creatable_debtors, creatable_payers].concat();
 	
 	diesel::insert_into(payments::table)
 		.values(&creatable_payments)
@@ -60,41 +60,52 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 }
 
 // On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
+// #[get("expenses")]
+// pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
+// 	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
+// 	use schema::expenses::dsl::*;
+//
+// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
+//
+// 	let expense_list = expenses
+// 		.filter(project_id.eq(params.project_id))
+// 		.load::<Expense>(&mut conn)
+// 		.expect("Error while trying to get Expenses");
+//
+// 	web::Json(expense_list)
+// }
+
 #[get("expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
-	use schema::expenses::dsl::*;
-
-	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
-	let expense_list = expenses
-		.filter(project_id.eq(params.project_id))
-		.load::<Expense>(&mut conn)
-		.expect("Error while trying to get Expenses");
-	
-	web::Json(expense_list)
-}
-
-#[get("expensepayments")]
-pub async fn get_expense_payments(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	use schema::expenses::dsl::*;
 	use schema::payments::dsl::*;
 	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let expense_list = expenses
-		.filter(project_id.eq(params.project_id))
+	let mut expense_list = expenses
 		.load::<Expense>(&mut conn)
 		.expect("Error while trying to get Expenses");
+	// match params.project_id {
+	// 	None => {
+	// 		expense_list = expenses.filter(project_id.eq(params.project_id))
+	// 			.load::<Expense>(&mut conn)
+	// 			.expect("Error while trying to get Expenses");
+	// 	}
+	// 	Some(_) => {
+	// 		expense_list = expenses
+	// 			.load::<Expense>(&mut conn)
+	// 			.expect("Error while trying to get Expenses");
+	// 	}
+	// };
 
 	let payments_list = payments
 		.load::<Payment>(&mut conn)
 		.expect("Error while trying to get Payment");
 
-	let expense_payments: Vec<ExpensePayments> = expense_list
+	let expense_dto: Vec<ExpenseDto> = expense_list
 		.iter()
-		.map(|expense| ExpensePayments {
+		.map(|expense| ExpenseDto {
 			author_id: expense.author_id,
 			id: expense.id,
 			amount: expense.amount,
@@ -111,7 +122,7 @@ pub async fn get_expense_payments(pool: web::Data<DbPool>, _req: HttpRequest) ->
 		})
 		.collect();
 
-	web::Json(expense_payments)
+	web::Json(expense_dto)
 }
 
 // #[patch("expenses/{expense_id}")]

@@ -1,12 +1,11 @@
-use diesel::Queryable;
-use uuid::Uuid;
-use crate::schema::{payments};
-use serde::{Serialize, Deserialize};
-use chrono::{NaiveDateTime, NaiveDate};
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
+use diesel::Queryable;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use crate::expenses::domain::expense_model::ExpenseType;
 
-use super::expense_model::ExpenseType;
-
+use crate::schema::payments;
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Payment {
@@ -28,7 +27,7 @@ pub struct NewPayment {
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
-pub struct ExpensePayments {
+pub struct ExpenseDto {
 	pub id: i32,
 	pub author_id: i32,
 	pub project_id: Uuid,

@@ -9,7 +9,7 @@ use crate::models::payment_model::Payment;
 use crate::models::user_model::UserAmount;
 use crate::schema::expenses;
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable)]
 pub struct Expense {
 	pub id: i32,
 	pub author_id: i32,

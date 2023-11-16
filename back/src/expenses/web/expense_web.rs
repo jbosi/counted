@@ -83,21 +83,22 @@ pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Res
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-	let mut expense_list = expenses
-		.load::<Expense>(&mut conn)
-		.expect("Error while trying to get Expenses");
-	// match params.project_id {
-	// 	None => {
-	// 		expense_list = expenses.filter(project_id.eq(params.project_id))
-	// 			.load::<Expense>(&mut conn)
-	// 			.expect("Error while trying to get Expenses");
-	// 	}
-	// 	Some(_) => {
-	// 		expense_list = expenses
-	// 			.load::<Expense>(&mut conn)
-	// 			.expect("Error while trying to get Expenses");
-	// 	}
-	// };
+	let mut expense_list: Vec<Expense>;
+	match params.project_id {
+		None => {
+			expense_list = expenses
+				.load::<Expense>(&mut conn)
+				.expect("Error while trying to get Expenses");
+		}
+		Some(project_id_unwrapped) => {
+			let expense_item = expenses
+				.filter(project_id.eq(project_id_unwrapped))
+				.select(Expense::as_select())
+				.get_result(&mut conn)
+				.expect("Error while trying to get Expenses");
+			expense_list = Vec::from([expense_item]);
+		}
+	};
 
 	let payments_list = payments
 		.load::<Payment>(&mut conn)

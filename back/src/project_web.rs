@@ -52,11 +52,9 @@ pub async fn get_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Re
 	let projects: Vec<Project>;
 
 	match params.user_id {
-		None => {
-			projects = projects::table
-				.load::<Project>(&mut conn)
-				.expect("Error while trying to get Users");
-		}
+		None => projects = projects::table
+			.load::<Project>(&mut conn)
+			.expect("Error while trying to get Users"),
 		Some(user_id) => {
 			let target_project = users::table
 				.filter(users::id.eq(user_id))

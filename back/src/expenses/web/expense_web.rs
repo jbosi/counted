@@ -1,4 +1,3 @@
-use crate::models::payment_model::{NewPayment, Payment, ExpenseDto};
 use crate::schema::payments;
 use actix_web::{HttpRequest, HttpResponse};
 use chrono::Utc;
@@ -6,8 +5,11 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::{schema, DbPool};
 use actix_web::{web, get, Responder, post, delete};
+use actix_web::web::Query;
 use uuid::Uuid;
+use crate::expenses::application::expense_application::get_expenses_app;
 use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
+use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
 use crate::query_strings::expenses_query_string::ExpensesQueryParams;
 
 #[post("expenses")]
@@ -77,51 +79,9 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 
 #[get("expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	use schema::expenses::dsl::*;
-	use schema::payments::dsl::*;
-	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
+	let params: Query<ExpensesQueryParams> = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
 
-	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
-	let mut expense_list: Vec<Expense>;
-	match params.project_id {
-		None => {
-			expense_list = expenses
-				.load::<Expense>(&mut conn)
-				.expect("Error while trying to get Expenses");
-		}
-		Some(project_id_unwrapped) => {
-			let expense_item = expenses
-				.filter(project_id.eq(project_id_unwrapped))
-				.select(Expense::as_select())
-				.get_result(&mut conn)
-				.expect("Error while trying to get Expenses");
-			expense_list = Vec::from([expense_item]);
-		}
-	};
-
-	let payments_list = payments
-		.load::<Payment>(&mut conn)
-		.expect("Error while trying to get Payment");
-
-	let expense_dto: Vec<ExpenseDto> = expense_list
-		.iter()
-		.map(|expense| ExpenseDto {
-			author_id: expense.author_id,
-			id: expense.id,
-			amount: expense.amount,
-			date: expense.date,
-			description: expense.description.clone(),
-			expense_type: expense.expense_type.clone(),
-			name: expense.name.clone(),
-			project_id: expense.project_id,
-			payments: payments_list
-				.clone()
-				.into_iter()
-				.filter(|&payment| payment.expense_id == expense.id)
-				.collect::<Vec<Payment>>()
-		})
-		.collect();
+	let expense_dto: Vec<ExpenseDto> = get_expenses_app(pool, params).await;
 
 	web::Json(expense_dto)
 }

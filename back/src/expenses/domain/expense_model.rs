@@ -5,7 +5,6 @@ use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::models::payment_model::Payment;
 use crate::models::user_model::UserAmount;
 use crate::schema::expenses;
 
@@ -19,11 +18,6 @@ pub struct Expense {
 	pub description: Option<String>,
 	pub name: String,
 	pub expense_type: ExpenseType,
-}
-
-pub struct ExpenseWPayment {
-	pub expense: Expense,
-	pub payment: Vec<Payment>
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]

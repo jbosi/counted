@@ -6,6 +6,7 @@ pub mod project_web;
 mod query_strings;
 mod user_project_web;
 mod expenses;
+mod payments;
 #[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
 extern crate diesel;

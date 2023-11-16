@@ -3,8 +3,8 @@ use diesel::prelude::*;
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::expenses::domain::expense_model::ExpenseType;
 
+use crate::expenses::domain::expense_model::ExpenseType;
 use crate::schema::payments;
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy)]

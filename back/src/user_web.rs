@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::models::project_model::Project;
+use crate::projects::domain::project_model::Project;
 use crate::models::user_model::{CreatableUser, NewUser, PatchableUser, User};
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
 use crate::query_strings::users_query_string::UsersQueryParams;

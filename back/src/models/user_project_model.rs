@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::schema::user_projects;
 use crate::models::user_model::User;
-use crate::models::project_model::Project;
+use crate::projects::domain::project_model::Project;
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug, Serialize, Deserialize, Clone)]
 #[diesel(belongs_to(Project))]

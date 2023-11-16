@@ -1,26 +1,26 @@
+extern crate diesel;
+
+use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
+use diesel::pg::PgConnection;
+use diesel::r2d2::ConnectionManager;
+
+use user_web::{create_users, delete_user, get_users, update_user_name};
+
+use crate::projects::web::project_web::{create_project, get_projects};
+use crate::expenses::web::expense_web::{create_expense, delete_expense, get_expense};
+use crate::user_project_web::get_user_projects;
+
 pub mod models;
 pub mod schema;
 pub mod user_web;
-// pub mod expense_web;
-pub mod project_web;
 mod query_strings;
 mod user_project_web;
 mod expenses;
+mod projects;
 mod payments;
 #[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
-extern crate diesel;
-
-use diesel::pg::PgConnection;
-use project_web::{create_project, get_projects};
-use user_web::{get_users, create_users, update_user_name, delete_user};
-use diesel::r2d2::ConnectionManager;
- 
-
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
-use crate::expenses::web::expense_web::{create_expense, delete_expense, get_expense};
-use crate::user_project_web::get_user_projects;
 
 #[get("/")]
 async fn hello() -> impl Responder {

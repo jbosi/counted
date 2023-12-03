@@ -1,20 +1,25 @@
-pub mod models;
-pub mod schema;
-pub mod user_web;
-pub mod expense_web;
-pub mod project_web;
-
 extern crate diesel;
 
+use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
 use diesel::pg::PgConnection;
-use expense_web::{create_expense, get_expense, delete_expense, get_expense_payments};
-use project_web::{create_project, get_projects};
-use user_web::{get_users, create_user, update_user_name, delete_user};
 use diesel::r2d2::ConnectionManager;
- 
+
+use crate::users::web::user_web::{create_users, delete_user, get_users, update_user_name};
+use crate::projects::web::project_web::{create_project, get_projects};
+use crate::expenses::web::expense_web::{create_expense, delete_expense, get_expense};
+use crate::user_project_web::get_user_projects;
+
+pub mod models;
+pub mod schema;
+mod query_strings;
+mod user_project_web;
+mod expenses;
+mod users;
+mod projects;
+mod payments;
+#[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -36,7 +41,7 @@ async fn main() -> std::io::Result<()> {
 			.service(
 				web::scope("/api")
 					.service(hello)
-					.service(create_user)
+					.service(create_users)
 					.service(get_users)
 					.service(update_user_name)
 					.service(delete_user)
@@ -44,8 +49,10 @@ async fn main() -> std::io::Result<()> {
 					.service(get_expense)
 					.service(delete_expense)
 					.service(get_projects)
+					.service(get_user_projects)
 					.service(create_project)
-					.service(get_expense_payments)
+					// .service(get_expense_payments)
+					// .service(get_users_by_project_id)
 		)
 	})
 		.bind(("localhost", 8080))?

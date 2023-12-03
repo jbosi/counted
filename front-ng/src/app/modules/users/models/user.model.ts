@@ -6,7 +6,8 @@ export interface IUser {
 }
 
 export interface ICreatableUser {
-	name: string
+	name: string,
+	project_id?: string;
 }
 
 export type ICreatableUsers = ICreatableUser[]

@@ -1,11 +1,10 @@
 
-.sub-header {
+.subHeader {
 	display: flex;
-	justify-content: space-between;
-	gap: 1rem;
+	justify-content: flex-end;
 	margin-bottom: 1.5rem;
 }
 
-.sub-header-button {
-	flex-grow: 1;
+.subHeader-avatars {
+	margin-left: -0.5rem;
 }

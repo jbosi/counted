@@ -3,7 +3,6 @@
 CREATE TABLE projects (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name character varying NOT NULL,
-  users integer[] NOT NULL,
   created_at timestamp default current_timestamp NOT NULL,
 --   total_expenses double precision NOT NULL,
   currency VARCHAR(255) NOT NULL

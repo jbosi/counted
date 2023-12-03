@@ -12,11 +12,32 @@
 	padding: 0.5rem 1rem;
 	justify-content: space-between;
 
-	.expenseName {
+	.expenseContent {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
 	}
+	.expenseContent-avatars {
+		display: flex;
+		flex-direction: row;
+		.expenseContent-avatars-label {
+			margin-right: 1rem;
+		}
+	}
+	.expenseContent-avatars-item {
+		margin-left: -0.5rem;
+	}
 	.expenseAmount {
 	}
+}
+
+.pi-money-bill {
+	align-self: center;
+	border-radius: 50%;
+	background-color: #363c43;;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }

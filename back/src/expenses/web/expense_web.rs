@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::expenses::application::expense_application::get_expenses_app;
 use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
-use crate::query_strings::expenses_query_string::ExpensesQueryParams;
+use crate::query_strings::expense_query_string::ExpenseQueryParams;
 
 #[post("expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
@@ -79,7 +79,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 
 #[get("expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	let params: Query<ExpensesQueryParams> = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
+	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(_req.query_string()).unwrap();
 
 	let expense_dto: Vec<ExpenseDto> = get_expenses_app(pool, params).await;
 

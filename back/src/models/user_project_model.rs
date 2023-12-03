@@ -1,10 +1,10 @@
 use diesel::prelude::*;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use serde::{Serialize, Deserialize};
 
-use crate::schema::user_projects;
-use crate::models::user_model::User;
 use crate::projects::domain::project_model::Project;
+use crate::schema::user_projects;
+use crate::users::domain::user_model::User;
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug, Serialize, Deserialize, Clone)]
 #[diesel(belongs_to(Project))]

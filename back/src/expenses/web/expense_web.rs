@@ -1,16 +1,16 @@
-use crate::schema::payments;
 use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{delete, get, post, Responder, web};
+use actix_web::web::Query;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use crate::{schema, DbPool};
-use actix_web::{web, get, Responder, post, delete};
-use actix_web::web::Query;
-use uuid::Uuid;
+
+use crate::{DbPool, schema};
 use crate::expenses::application::expense_application::get_expenses_app;
 use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
+use crate::schema::payments;
 
 #[post("expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {

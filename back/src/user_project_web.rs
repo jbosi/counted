@@ -6,11 +6,11 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::models::user_model::User;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
 use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, UserProjectDto};
 use crate::query_strings::user_projects_query_string::UserProjectsQueryParams;
 use crate::schema::{projects, users};
+use crate::users::domain::user_model::User;
 
 #[post("/user-projects")]
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>) -> impl Responder {

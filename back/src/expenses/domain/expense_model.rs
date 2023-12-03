@@ -5,8 +5,8 @@ use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::models::user_model::UserAmount;
 use crate::schema::expenses;
+use crate::users::domain::user_model::UserAmount;
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable)]
 pub struct Expense {

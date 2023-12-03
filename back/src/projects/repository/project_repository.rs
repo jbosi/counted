@@ -7,11 +7,11 @@ use diesel::prelude::*;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
-use crate::models::user_model::User;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
 use crate::projects::domain::project_model::{NewProject, Project, CreatableProject};
 use crate::query_strings::project_query_string::ProjectQueryParams;
 use crate::schema::{projects, users};
+use crate::users::domain::user_model::User;
 
 pub async fn get_projects(pool: web::Data<DbPool>, params: Query<ProjectQueryParams>) -> Vec<Project> {
     let mut conn = pool.get().expect("couldn't get db connection from pool");

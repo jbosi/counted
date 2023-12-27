@@ -41,6 +41,15 @@ pub async fn get_users(pool: web::Data<DbPool>, params: Query<UserQueryParams>) 
     return user_list;
 }
 
+pub async fn get_user(pool: web::Data<DbPool>, user_id: i32) -> User {
+    let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+    return users::table
+        .find(user_id)
+        .get_result(&mut conn)
+        .expect("Error while trying to get Project");
+}
+
 pub async fn create_users(pool: web::Data<DbPool>, creatable_users: web::Json<Vec<CreatableUser>>, new_users: Vec<NewUser>) -> Vec<User> {
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 

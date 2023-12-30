@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use utoipa::ToSchema;
 
 use crate::expenses::domain::expense_model::ExpenseType;
 use crate::schema::payments;
@@ -26,7 +27,7 @@ pub struct NewPayment {
 	pub amount: f64,
 }
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, ToSchema)]
 pub struct ExpenseDto {
 	pub id: i32,
 	pub author_id: i32,

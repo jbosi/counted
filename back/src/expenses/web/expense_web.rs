@@ -4,7 +4,6 @@ use actix_web::web::Query;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use utoipa::path;
 
 use crate::{DbPool, schema};
 use crate::expenses::application::expense_application::get_expenses_app;
@@ -77,17 +76,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 //
 // 	web::Json(expense_list)
 // }
-#[utoipa::path(
-	get,
-	path = "/pets/{id}",
-	responses(
-		(status = 200, description = "Expenses found"),
-		(status = NOT_FOUND, description = "no project id or no expenses found for that project id")
-	),
-	params(
-		("project_id" = Uuid, Path, description = "get expenses"),
-	)
-)]
+
 #[get("expenses")]
 pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(_req.query_string()).unwrap();

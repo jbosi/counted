@@ -4,8 +4,9 @@ use crate::schema::{users};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDateTime};
 use diesel::prelude::*;
+use utoipa::ToSchema;
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable, Selectable, PartialEq, Clone)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Identifiable, Selectable, PartialEq, Clone, ToSchema)]
 pub struct User {
 	pub id: i32,
 	pub name: String,

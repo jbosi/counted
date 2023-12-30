@@ -1,14 +1,12 @@
 use actix_web::HttpRequest;
 use actix_web::{get, Responder, web};
-use utoipa::path;
+use uuid::Uuid;
 
 use crate::{DbPool, schema};
 use crate::payments::application::payment_application::get_payments_app;
 use crate::payments::domain::payment_model::Payment;
 
 #[utoipa::path(
-	get,
-	path = "/payments",
 	responses(
 		(status = 200, description = "Payments found"),
 	),

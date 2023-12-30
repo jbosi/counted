@@ -14,7 +14,14 @@ pub async fn create_users(pool: web::Data<DbPool>, creatable_users: web::Json<Ve
 	web::Json(created_users)
 }
 
-
+#[utoipa::path(
+	responses(
+		(status = 200, description = "Users list", body = Vec<User>),
+	),
+	params(
+		("UserQueryParams", description = "filter by project id"),
+	)
+)]
 #[get("/users")]
 pub async fn get_users(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
 	let params = web::Query::<UserQueryParams>::from_query(_req.query_string()).unwrap();
@@ -24,6 +31,14 @@ pub async fn get_users(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Respo
 	web::Json(users)
 }
 
+#[utoipa::path(
+	responses(
+		(status = 200, description = "Get User", body = User),
+	),
+	params(
+		("user_id", description = "get requested user id"),
+	)
+)]
 #[get("/users/{user_id}")]
 pub async fn get_user(pool: web::Data<DbPool>, user_id: web::Path<i32>) -> impl Responder {
 	let user: User = get_user_app(pool, user_id.into_inner()).await;

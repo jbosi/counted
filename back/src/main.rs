@@ -7,16 +7,17 @@ use utoipa::{
 	openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 	Modify, OpenApi,
 };
-use utoipa_rapidoc::RapiDoc;
-use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::users::web::user_web::{create_users, delete_user, get_users, update_user_name};
-use crate::projects::web::project_web::{create_project, get_projects};
-use crate::expenses::web::expense_web::{create_expense, delete_expense, get_expense};
-use crate::user_project_web::get_user_projects;
-use crate::payments::web::get_payments;
-use crate::payments::domain::payment_model::Payment;
+use crate::{
+	projects::web::project_web::{create_project, get_projects},
+	users::web::user_web::{create_users, delete_user, get_users, update_user_name},
+	expenses::web::expense_web::{create_expense, delete_expense, get_expense},
+	user_project_web::get_user_projects,
+	payments::web::payment_web::get_payments,
+	payments::domain::payment_model::Payment,
+	users::domain::user_model::User
+};
 
 
 pub mod models;
@@ -27,6 +28,7 @@ mod expenses;
 mod users;
 mod projects;
 mod payments;
+
 #[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -45,10 +47,13 @@ async fn main() -> std::io::Result<()> {
 	#[derive(OpenApi)]
 	#[openapi(
 		paths(
-			get_payments,
+			payments::web::payment_web::get_payments,
+			users::web::user_web::get_users,
+			users::web::user_web::get_user,
 		),
 		components(
-			schemas(Payment)
+			schemas(Payment),
+			schemas(User)
 		),
 	)]
 	struct ApiDoc;

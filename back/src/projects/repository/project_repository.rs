@@ -4,6 +4,7 @@ use diesel::{insert_into, RunQueryDsl};
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
 use diesel::prelude::*;
+use uuid::Uuid;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
@@ -62,4 +63,13 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
         .expect("Error while adding project and users to the join table");
 
     return created_project;
+}
+
+pub async fn get_project(pool: web::Data<DbPool>, project_id: Uuid) -> Project {
+    let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+    return projects::table
+        .find(project_id)
+        .get_result(&mut conn)
+        .expect("Error while trying to get Project");
 }

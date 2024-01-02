@@ -18,6 +18,7 @@ use crate::{
 	payments::domain::payment_model::Payment,
 	users::domain::user_model::User
 };
+use crate::users::web::user_web::get_user;
 
 
 pub mod models;
@@ -70,14 +71,18 @@ async fn main() -> std::io::Result<()> {
 					.service(hello)
 					.service(create_users)
 					.service(get_users)
+					.service(get_user)
 					.service(update_user_name)
 					.service(delete_user)
+
 					.service(create_expense)
 					.service(get_expense)
 					.service(delete_expense)
+
+					.service(create_project)
 					.service(get_projects)
 					.service(get_user_projects)
-					.service(create_project)
+
 					.service(get_payments)
 					// .service(get_expense_payments)
 					// .service(get_users_by_project_id)

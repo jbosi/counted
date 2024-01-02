@@ -3,7 +3,6 @@ use actix_web::web::Query;
 use diesel::RunQueryDsl;
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-use diesel::prelude::*;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;

@@ -3,13 +3,12 @@ use actix_web::web::Query;
 use diesel::{insert_into, RunQueryDsl};
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-use diesel::prelude::*;
 use uuid::Uuid;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
-use crate::projects::domain::project_model::{NewProject, Project, CreatableProject};
+use crate::projects::domain::project_model::{CreatableProject, NewProject, Project};
 use crate::query_strings::project_query_string::ProjectQueryParams;
 use crate::schema::{projects, users};
 use crate::users::domain::user_model::User;

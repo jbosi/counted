@@ -4,22 +4,20 @@ use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use utoipa::{
-	openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-	Modify, OpenApi,
+	OpenApi,
 };
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
-	projects::web::project_web::{create_project, get_projects},
-	users::web::user_web::{create_users, delete_user, get_users, update_user_name},
 	expenses::web::expense_web::{create_expense, delete_expense, get_expense},
-	user_project_web::get_user_projects,
-	payments::web::payment_web::get_payments,
 	payments::domain::payment_model::Payment,
-	users::domain::user_model::User
+	payments::web::payment_web::get_payments,
+	projects::web::project_web::{create_project, get_projects},
+	user_project_web::get_user_projects,
+	users::domain::user_model::User,
+	users::web::user_web::{create_users, delete_user, get_users, update_user_name}
 };
 use crate::users::web::user_web::get_user;
-
 
 pub mod models;
 pub mod schema;

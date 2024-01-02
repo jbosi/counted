@@ -1,6 +1,5 @@
 use actix_web::web;
 use actix_web::web::Query;
-use diesel::prelude::*;
 
 use crate::DbPool;
 use crate::query_strings::user_query_string::UserQueryParams;

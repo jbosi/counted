@@ -1,5 +1,4 @@
 use actix_web::web;
-use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};

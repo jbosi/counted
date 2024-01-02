@@ -1,11 +1,10 @@
 use actix_web::web;
 use actix_web::web::Query;
-use diesel::prelude::*;
 use uuid::Uuid;
 
 use crate::DbPool;
 use crate::projects::domain::project_model::{CreatableProject, NewProject, Project};
-use crate::projects::repository::project_repository::{create_project, get_projects, get_project};
+use crate::projects::repository::project_repository::{create_project, get_project, get_projects};
 use crate::query_strings::project_query_string::ProjectQueryParams;
 
 pub async fn get_projects_app(pool: web::Data<DbPool>, params: Query<ProjectQueryParams>) -> Vec<Project> {

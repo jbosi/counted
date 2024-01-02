@@ -1,6 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse};
 use actix_web::{delete, get, patch, post, Responder, web};
-use diesel::prelude::*;
 
 use crate::DbPool;
 use crate::query_strings::user_query_string::UserQueryParams;

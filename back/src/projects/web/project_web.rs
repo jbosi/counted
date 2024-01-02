@@ -1,9 +1,8 @@
 use actix_web::{get, HttpRequest, post, Responder, web};
-use diesel::prelude::*;
 use uuid::Uuid;
 
 use crate::DbPool;
-use crate::projects::application::project_application::{create_project_app, get_projects_app, get_project_app};
+use crate::projects::application::project_application::{create_project_app, get_project_app, get_projects_app};
 use crate::projects::domain::project_model::{CreatableProject, Project};
 use crate::query_strings::project_query_string::ProjectQueryParams;
 

@@ -1,6 +1,5 @@
 use actix_web::web;
 use actix_web::web::Query;
-use diesel::prelude::*;
 
 use crate::DbPool;
 use crate::expenses::domain::expense_model::Expense;

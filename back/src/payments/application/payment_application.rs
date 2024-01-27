@@ -7,6 +7,6 @@ use crate::payments::domain::payment_query_params::PaymentQueryParams;
 use crate::payments::repository::payment_repository::get_payments;
 
 pub async fn get_payments_app(pool: web::Data<DbPool>, params: Query<PaymentQueryParams>) -> Vec<Payment> {
-    let payments: Vec<Payment> = get_payments(pool).await;
+    let payments: Vec<Payment> = get_payments(pool, params).await;
     return payments;
 }

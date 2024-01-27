@@ -1,6 +1,7 @@
 extern crate diesel;
 
-use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
+use actix_web::{App, get, HttpResponse, HttpServer, Responder, web, Error};
+use actix_web::dev::ServiceRequest;
 use diesel::pg::PgConnection;
 use diesel::r2d2::ConnectionManager;
 use utoipa::{
@@ -27,6 +28,7 @@ mod expenses;
 mod users;
 mod projects;
 mod payments;
+mod authentication;
 
 #[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
@@ -35,6 +37,28 @@ type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 #[get("/")]
 async fn hello() -> impl Responder {
 	HttpResponse::Ok().body("Hello world!")
+}
+
+
+// use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
+// use actix_web_httpauth::extractors::AuthenticationError;
+// use actix_web_httpauth::middleware::HttpAuthentication;
+
+async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, Error> {
+	let config = req
+		.app_data::<Config>()
+		.map(|data| data.get_ref().clone())
+		.unwrap_or_else(Default::default);
+	match authentication::validate_token(credentials.token()) {
+		Ok(res) => {
+			if res == true {
+				Ok(req)
+			} else {
+				Err(AuthenticationError::from(config).into())
+			}
+		}
+		Err(_) => Err(AuthenticationError::from(config).into()),
+	}
 }
 
 #[actix_web::main]
@@ -63,6 +87,7 @@ async fn main() -> std::io::Result<()> {
 
 	HttpServer::new(move || {
 		App::new()
+			.wrap(HttpAuthentication::bearer(validator))
 			.app_data(web::Data::new(pool.clone()))
 			.service(
 				web::scope("/api")

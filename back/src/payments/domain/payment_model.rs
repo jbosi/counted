@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 use crate::expenses::domain::expense_model::ExpenseType;
 use crate::schema::payments;
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy, ToSchema)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, ToSchema, Identifiable, Selectable)]
 pub struct Payment {
 	pub id: i32,
 	pub expense_id: i32,

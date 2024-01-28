@@ -10,7 +10,7 @@ use crate::payments::domain::payment_model::{ExpenseDto, Payment};
 use crate::payments::domain::payment_query_params::PaymentQueryParams;
 
 pub async fn get_expenses_app(pool: web::Data<DbPool>, params: Query<ExpenseQueryParams>) -> Vec<ExpenseDto> {
-    let expenses: Vec<Expense> = get_expenses(pool.clone(), params).await;
+    let expenses: Vec<Expense> = get_expenses(pool.clone(), params.clone()).await;
     let payments_params: Query<PaymentQueryParams> = Query(
         PaymentQueryParams {
             user_id: params.user_id

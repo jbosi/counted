@@ -1,6 +1,7 @@
 use actix_web::web;
 use actix_web::web::Query;
 use diesel::{QueryDsl, RunQueryDsl};
+use diesel::prelude::*;
 
 use crate::{DbPool, schema};
 use crate::payments::domain::payment_model::Payment;
@@ -18,9 +19,9 @@ pub async fn get_payments(pool: web::Data<DbPool>, params: Query<PaymentQueryPar
                 .load::<Payment>(&mut conn)
                 .expect("Error while trying to get Payment");
         }
-        Some(user_id) => {
+        Some(user_id_unwrapped) => {
             payments_list = payments
-                .filter(payments::user_id.eq(user_id))
+                .filter(user_id.eq(user_id_unwrapped))
                 .load::<Payment>(&mut conn)
                 .expect("Error while trying to get Payment");
         }

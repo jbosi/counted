@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ExpenseQueryParams {
     pub project_id: Option<Uuid>,
     pub user_id: Option<i32>

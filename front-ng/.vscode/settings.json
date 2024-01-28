@@ -40,5 +40,6 @@
   "editor.renderWhitespace": "all",
   "diffEditor.ignoreTrimWhitespace": false,
   "debug.allowBreakpointsEverywhere": true,
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "editor.indentSize": "tabSize"
 }

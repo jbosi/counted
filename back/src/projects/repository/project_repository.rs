@@ -3,12 +3,12 @@ use actix_web::web::Query;
 use diesel::{insert_into, RunQueryDsl};
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-use diesel::prelude::*;
+use uuid::Uuid;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
-use crate::projects::domain::project_model::{NewProject, Project, CreatableProject};
+use crate::projects::domain::project_model::{CreatableProject, NewProject, Project};
 use crate::query_strings::project_query_string::ProjectQueryParams;
 use crate::schema::{projects, users};
 use crate::users::domain::user_model::User;
@@ -62,4 +62,13 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
         .expect("Error while adding project and users to the join table");
 
     return created_project;
+}
+
+pub async fn get_project(pool: web::Data<DbPool>, project_id: Uuid) -> Project {
+    let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+    return projects::table
+        .find(project_id)
+        .get_result(&mut conn)
+        .expect("Error while trying to get Project");
 }

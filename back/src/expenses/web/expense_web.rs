@@ -78,8 +78,8 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 // }
 
 #[get("expenses")]
-pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(_req.query_string()).unwrap();
+pub async fn get_expense(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
+	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(req.query_string()).unwrap();
 
 	let expense_dto: Vec<ExpenseDto> = get_expenses_app(pool, params).await;
 

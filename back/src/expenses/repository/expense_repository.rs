@@ -12,15 +12,15 @@ pub async fn get_expenses(pool: web::Data<DbPool>, params: Query<ExpenseQueryPar
 
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 
-    let expense_list: Vec<Expense> = match params.project_id {
-        None => expenses
-            .load::<Expense>(&mut conn)
-            .expect("Error while trying to get Expenses"),
-        Some(project_id_unwrapped) => expenses
-            .filter(project_id.eq(project_id_unwrapped))
-            .load::<Expense>(&mut conn)
-            .expect("Error while trying to get Expenses"),
-    };
+    let mut query = expenses.into_boxed();
+
+    if let Some(project_id_unwrapped) = params.project_id {
+        query = query.filter(project_id.eq(project_id_unwrapped))
+    }
+
+    let expense_list: Vec<Expense> = query
+        .load::<Expense>(&mut conn)
+        .expect("Error while trying to get Expenses");
 
     return expense_list;
 }

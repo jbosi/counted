@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::schema::expenses;
 use crate::users::domain::user_model::UserAmount;
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Selectable, Identifiable, PartialEq)]
 pub struct Expense {
 	pub id: i32,
 	pub author_id: i32,

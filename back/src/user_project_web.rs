@@ -8,7 +8,6 @@ use diesel::RunQueryDsl;
 use crate::{DbPool, schema};
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
 use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, UserProjectDto};
-use crate::query_strings::user_projects_query_string::UserProjectsQueryParams;
 use crate::schema::{projects, users};
 use crate::users::domain::user_model::User;
 
@@ -44,7 +43,7 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 
 #[get("/user-projects")]
 pub async fn get_user_projects(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-	let params = web::Query::<UserProjectsQueryParams>::from_query(_req.query_string()).unwrap();
+	// let params = web::Query::<UserProjectsQueryParams>::from_query(_req.query_string()).unwrap();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 

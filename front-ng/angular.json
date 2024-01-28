@@ -67,11 +67,11 @@
 				"serve": {
 					"builder": "@angular-devkit/build-angular:dev-server",
 					"configurations": {
-						"production": {
-							"browserTarget": "front-ng:build:production"
+            "production": {
+              "buildTarget": "front-ng:build:production"
 						},
-						"development": {
-							"browserTarget": "front-ng:build:development"
+            "development": {
+              "buildTarget": "front-ng:build:development"
 						}
 					},
 					"defaultConfiguration": "development",

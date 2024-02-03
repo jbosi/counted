@@ -1,6 +1,5 @@
 use actix_web::web;
 use actix_web::web::Query;
-use diesel::query_builder::AsQuery;
 use itertools::Itertools;
 use uuid::Uuid;
 

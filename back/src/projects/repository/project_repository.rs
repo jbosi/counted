@@ -3,8 +3,6 @@ use actix_web::web::Query;
 use diesel::{insert_into, RunQueryDsl};
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-use diesel::prelude::*;
-use diesel::query_builder::AsQuery;
 use uuid::Uuid;
 
 use crate::{DbPool, schema};

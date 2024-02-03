@@ -5,5 +5,6 @@ export * from "./fetch";
 export * from "./payments";
 export * from "./projects";
 export * from "./router";
+export * from "./user-projects";
 export * from "./users";
 

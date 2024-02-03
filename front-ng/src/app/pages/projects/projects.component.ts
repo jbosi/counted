@@ -5,11 +5,11 @@ import { CardComponent } from './components/card/card.component';
 import { NgFor } from '@angular/common';
 
 @Component({
-    selector: 'app-projects',
-    templateUrl: './projects.component.html',
-    styleUrls: ['./projects.component.scss'],
-    standalone: true,
-    imports: [NgFor, CardComponent, AddProjectModalComponent]
+	selector: 'app-projects',
+	templateUrl: './projects.component.html',
+	styleUrls: ['./projects.component.scss'],
+	standalone: true,
+	imports: [NgFor, CardComponent, AddProjectModalComponent]
 })
 export class ProjectsComponent implements OnInit {
 	public projects: IProjectCardViewModel[] = [];

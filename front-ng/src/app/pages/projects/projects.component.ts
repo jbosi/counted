@@ -1,7 +1,6 @@
 import { NgFor } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { UserProjectsHttpClient } from 'src/app/modules/user-projects';
-import { IProject, IUser, UsersHttpClient } from '../../modules';
+import { IProject, IUser, ProjectsHttpClient, UsersHttpClient } from '../../modules';
 import { AddProjectModalComponent } from './components/add-project-modal/add-project-modal.component';
 import { CardComponent } from './components/card/card.component';
 
@@ -17,7 +16,7 @@ export class ProjectsComponent implements OnInit {
 	public users: IUser[] = [];
 
 	constructor(
-		private readonly userProjectsHttpClient: UserProjectsHttpClient,
+		private readonly projectsHttpClient: ProjectsHttpClient,
 		private readonly usersHttpClient: UsersHttpClient
 	) {}
 
@@ -30,13 +29,13 @@ export class ProjectsComponent implements OnInit {
 	}
 
 	public async addProjectAsync(): Promise<void> {
-		await this.userProjectsHttpClient.createAsync({ name: 'ProjectAvecUser1', users: [1] });
+		await this.projectsHttpClient.createAsync({ name: 'ProjectAvecUser1', users: [1] });
 		await this.getData()
 	}
 
 	private async getData(): Promise<void> {
 		this.users = await this.usersHttpClient.getAsync();
-		const projects: IProject[] = await this.userProjectsHttpClient.getAsync(1);
+		const projects: IProject[] = await this.projectsHttpClient.getAsync(1);
 		
 		this.projects = projects.map(project => {
 			const users = this.users.filter(user => project.users.includes(user.id))

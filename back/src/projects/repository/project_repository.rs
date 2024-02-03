@@ -3,9 +3,9 @@ use actix_web::web::Query;
 use diesel::{insert_into, RunQueryDsl};
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-use uuid::Uuid;
-use diesel::query_builder::AsQuery;
 use diesel::prelude::*;
+use diesel::query_builder::AsQuery;
+use uuid::Uuid;
 
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
@@ -53,11 +53,11 @@ pub async fn get_projects_and_user_projects_for_user(pool: web::Data<DbPool>, pa
     let mut conn = pool.get().expect("couldn't get db connection from pool");
 
     return users::table.inner_join(user_projects::table.inner_join(projects::table))
-    // .left_outer_join(users::table.on(users::id.eq(user_projects::user_id)))
-    .filter(users::id.eq(params.user_id.unwrap()))
-    .select((UserProjects::as_select(), Project::as_select()))
-    .load::<(UserProjects, Project)>(&mut conn)
-    .expect("Error while trying to get UserProjects - user_projects step ");
+        // .left_outer_join(users::table.on(users::id.eq(user_projects::user_id)))
+        .filter(users::id.eq(params.user_id.unwrap()))
+        .select((UserProjects::as_select(), Project::as_select()))
+        .load::<(UserProjects, Project)>(&mut conn)
+        .expect("Error while trying to get UserProjects - user_projects step ");
 }
 
 pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Json<CreatableProject>, new_project: NewProject) -> Project {

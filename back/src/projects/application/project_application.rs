@@ -19,13 +19,13 @@ pub async fn get_projects_app(pool: web::Data<DbPool>, params: Query<ProjectQuer
     let projects_group = projects_and_user_projects_for_user
         // .grouped_by(&users)
         .into_iter()
-        .group_by(|(up, p)| p.id);
+        .group_by(|(_up, p)| p.id);
     // .zip(projects)
 
     for (p_id, user_projects) in &projects_group {
         let current_project = all_projects.iter().find(|p| p.id == p_id).unwrap().clone();
         let users: Vec<i32> = user_projects
-            .map(|(up, p)| up.user_id)
+            .map(|(up, _p)| up.user_id)
             .collect();
 
         projects_dto.push(ProjectDto {

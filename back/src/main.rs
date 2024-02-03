@@ -19,7 +19,6 @@ use crate::users::web::user_web::get_user;
 pub mod models;
 pub mod schema;
 mod query_strings;
-mod user_project_web;
 mod expenses;
 mod users;
 mod projects;

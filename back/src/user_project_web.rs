@@ -13,8 +13,7 @@ use itertools::{GroupBy, Itertools};
 
 use crate::{DbPool, schema};
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
-use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, UserProjectDto};
-use crate::query_strings::user_projects_query_string::UserProjectsQueryParams;
+use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, ProjectDto};
 use crate::schema::{projects, user_projects, users};
 use crate::schema::user_projects::project_id;
 use crate::users::domain::user_model::User;
@@ -49,66 +48,66 @@ pub async fn create_project(pool: web::Data<DbPool>, creatable_project: web::Jso
 }
 
 
-#[get("/user-projects")]
-pub async fn get_user_projects(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
-	let params = web::Query::<UserProjectsQueryParams>::from_query(req.query_string()).unwrap();
-
-	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
-	let projects: Vec<Project> = projects::table
-		.load::<Project>(&mut conn)
-		.expect("Error while trying to get UserProjects - project step");
-
-	let users: Vec<User> = users::table
-		.load::<User>(&mut conn)
-		.expect("Error while trying to get UserProjects - user step");
-
-	// let user_by_user_projects: (User, Vec<UserProjects>) =
-
-	// let user_by_user_project: Vec<(UserProjects, User)> = UserProjects::belonging_to(&projects)
-	// 	.left_outer_join(users::table.on(users::id.eq()))
-	// 	.filter(users::id.eq(params.user_id))
-	// 	.select((UserProjects::as_select(), User::as_select()))
-	// 	.load::<(UserProjects, User)>(&mut conn)
-	// 	.expect("Error while trying to get UserProjects - userproject step ");
-
-	let projects_and_user_projects_for_user: Vec<(UserProjects, Project)> = users::table
-		.inner_join(user_projects::table.inner_join(projects::table))
-		// .left_outer_join(users::table.on(users::id.eq(user_projects::user_id)))
-		.filter(users::id.eq(params.user_id))
-		.select((UserProjects::as_select(), Project::as_select()))
-		.load::<(UserProjects, Project)>(&mut conn)
-		.expect("Error while trying to get UserProjects - user_projects step ");
-
-	// let user_ids_by_project_id: HashMap<Uuid, Vec<i32>> = projects_and_user_projects_for_user
-	// 	.iter()
-	// 	.fold(HashMap::new(), |mut acc, (up, p)| acc.insert(p.id, [up.user_id]))
-	// 	.collect();
-
-	// let user_ids_by_project_id: HashMap<Uuid, Vec<i32>> = projects_and_user_projects_for_user
-	// 	.fold(HashMap::new(), |mut acc, (up, p)| acc.insert(p.id, [up.user_id]))
-	// 	.collect();
-
-	let projects_group = projects_and_user_projects_for_user
-		// .grouped_by(&users)
-		.into_iter()
-		.group_by(|(up, p)| p.id);
-		// .zip(projects)
-
-	let mut full_projects: Vec<UserProjectDto> = Vec::new();
-
-	for (p_id, user_projects) in &projects_group {
-		let current_project = projects.iter().find(|p| p.id == p_id).unwrap();
-		let users: Vec<i32> = user_projects.collect();
-
-		full_projects.push(UserProjectDto {
-			id: current_project.id,
-			created_at: current_project.created_at,
-			currency: current_project.currency,
-			name: current_project.name,
-			users: users
-		})
-	}
-
-	web::Json(full_projects)
-}
+// #[get("/user-projects")]
+// pub async fn get_user_projects(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
+// 	let params = web::Query::<UserProjectsQueryParams>::from_query(req.query_string()).unwrap();
+//
+// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
+//
+// 	let projects: Vec<Project> = projects::table
+// 		.load::<Project>(&mut conn)
+// 		.expect("Error while trying to get UserProjects - project step");
+//
+// 	let users: Vec<User> = users::table
+// 		.load::<User>(&mut conn)
+// 		.expect("Error while trying to get UserProjects - user step");
+//
+// 	// let user_by_user_projects: (User, Vec<UserProjects>) =
+//
+// 	// let user_by_user_project: Vec<(UserProjects, User)> = UserProjects::belonging_to(&projects)
+// 	// 	.left_outer_join(users::table.on(users::id.eq()))
+// 	// 	.filter(users::id.eq(params.user_id))
+// 	// 	.select((UserProjects::as_select(), User::as_select()))
+// 	// 	.load::<(UserProjects, User)>(&mut conn)
+// 	// 	.expect("Error while trying to get UserProjects - userproject step ");
+//
+// 	let projects_and_user_projects_for_user: Vec<(UserProjects, Project)> = users::table
+// 		.inner_join(user_projects::table.inner_join(projects::table))
+// 		// .left_outer_join(users::table.on(users::id.eq(user_projects::user_id)))
+// 		.filter(users::id.eq(params.user_id))
+// 		.select((UserProjects::as_select(), Project::as_select()))
+// 		.load::<(UserProjects, Project)>(&mut conn)
+// 		.expect("Error while trying to get UserProjects - user_projects step ");
+//
+// 	// let user_ids_by_project_id: HashMap<Uuid, Vec<i32>> = projects_and_user_projects_for_user
+// 	// 	.iter()
+// 	// 	.fold(HashMap::new(), |mut acc, (up, p)| acc.insert(p.id, [up.user_id]))
+// 	// 	.collect();
+//
+// 	// let user_ids_by_project_id: HashMap<Uuid, Vec<i32>> = projects_and_user_projects_for_user
+// 	// 	.fold(HashMap::new(), |mut acc, (up, p)| acc.insert(p.id, [up.user_id]))
+// 	// 	.collect();
+//
+// 	let projects_group = projects_and_user_projects_for_user
+// 		// .grouped_by(&users)
+// 		.into_iter()
+// 		.group_by(|(up, p)| p.id);
+// 		// .zip(projects)
+//
+// 	let mut full_projects: Vec<ProjectDto> = Vec::new();
+//
+// 	for (p_id, user_projects) in &projects_group {
+// 		let current_project = projects.iter().find(|p| p.id == p_id).unwrap();
+// 		let users: Vec<i32> = user_projects.collect();
+//
+// 		full_projects.push(ProjectDto {
+// 			id: current_project.id,
+// 			created_at: current_project.created_at,
+// 			currency: current_project.currency,
+// 			name: current_project.name,
+// 			users: users
+// 		})
+// 	}
+//
+// 	web::Json(full_projects)
+// }

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ExpensePaymentsHttpClient, IExpensePayments, IExpensePaymentsViewModel, IPaymentViewModel, IUser, UsersHttpClient } from '@hcount/modules';
+import { ExpensesHttpClient, IExpenseDto, IExpensePayments, IExpensesViewModel, IPaymentViewModel, IUser, UsersHttpClient } from '@hcount/modules';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectApplication {
 	constructor(
-		private readonly expensePaymentsHttpClient: ExpensePaymentsHttpClient,
+		private readonly expensesHttpClient: ExpensesHttpClient,
 		private readonly usersHttpClient: UsersHttpClient
 	) {}
 
@@ -16,15 +16,15 @@ export class ProjectApplication {
 		return this.usersHttpClient.getUsersByProjectIdAsync(projectId);
 	}
 
-	public async getExpensePaymentsAsync(projectId: string): Promise<IExpensePaymentsViewModel[]> {
-		const expensePayments: IExpensePayments[] = await this.expensePaymentsHttpClient.getAsync(projectId);
+	public async getExpensesAsync(projectId: string): Promise<IExpensesViewModel[]> {
+		const expensePayments: IExpenseDto[] = await this.expensesHttpClient.getAsync(projectId);
 		const users = await this.getUsersByProjectIdAsync(projectId);
 
 		return expensePayments.map(ep => this.forgeExpensePaymentsViewModel(ep, users));
 	}
 
-	public async getExpensePaymentAsync(projectId: string, expensePaymentId: number): Promise<IExpensePaymentsViewModel | undefined> {
-		const expensePayments: IExpensePayments | undefined = await this.expensePaymentsHttpClient.getByIdAsync(projectId, expensePaymentId);
+	public async getExpenseAsync(projectId: string, expenseId: number): Promise<IExpensesViewModel | undefined> {
+		const expensePayments: IExpenseDto | undefined = await this.expensesHttpClient.getByIdAsync(expenseId);
 
 		if (expensePayments == null) {
 			return;
@@ -36,7 +36,7 @@ export class ProjectApplication {
 	}
 
 
-	private forgeExpensePaymentsViewModel(expensePayment: IExpensePayments, users: IUser[]): IExpensePaymentsViewModel {
+	private forgeExpensePaymentsViewModel(expensePayment: IExpensePayments, users: IUser[]): IExpensesViewModel {
 		const payments: IPaymentViewModel[] = expensePayment.payments
 				.map(payment => {
 					const user: IUser | undefined = users.find(u => u.id === payment.user_id)

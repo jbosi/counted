@@ -1,18 +1,25 @@
 import { Injectable } from '@angular/core';
-import { FetchHttpClient } from '../fetch';
-import { ICreatableExpense, IExpense } from './models';
+import { FetchHttpClient, HttpFetchParams } from '../fetch';
+import { ICreatableExpense, IExpenseDto } from './models';
 
-const API_URL = '/api/projects';
+const API_URL = '/api/expenses';
 
 @Injectable({ providedIn: 'root' })
 export class ExpensesHttpClient {
 	constructor(private http: FetchHttpClient) { }
 	
-	public getAsync(projectId: string): Promise<IExpense[]> {
-		return this.http.get(`${API_URL}/${projectId}/expenses`);
+	public getAsync(projectId: string): Promise<IExpenseDto[]> {
+		const params: HttpFetchParams = new Map([
+			['project_id', projectId]
+		])
+		return this.http.get(`${API_URL}`, params);
 	}
 
-	public createAsync(projectId: string, candidate: ICreatableExpense): Promise<IExpense> {
-		return this.http.post(`${API_URL}/${projectId}/expenses`, candidate);
+	public getByIdAsync(expenseId: number): Promise<IExpenseDto> {
+		return this.http.get(`${API_URL}/${expenseId}`);
+	}
+
+	public createAsync(candidate: ICreatableExpense): Promise<IExpenseDto> {
+		return this.http.post(`${API_URL}`, candidate);
 	}
 }

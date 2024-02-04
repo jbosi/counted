@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { AvatarInitialsComponent, IExpensePaymentsViewModel, RouterParamService } from '@hcount/modules';
+import { AvatarInitialsComponent, IExpensesViewModel, RouterParamService } from '@hcount/modules';
 import { ProjectApplication } from '../../project.application';
 
 @Component({
@@ -13,7 +13,7 @@ import { ProjectApplication } from '../../project.application';
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpensePaymentDetailComponent implements OnInit {
-	public expensePayment!: IExpensePaymentsViewModel | undefined;
+	public expensePayment!: IExpensesViewModel | undefined;
 
 	constructor(
 		private readonly projectApplication: ProjectApplication,
@@ -30,7 +30,7 @@ export class ExpensePaymentDetailComponent implements OnInit {
 			return;
 		}
 		
-		this.expensePayment = await this.projectApplication.getExpensePaymentAsync(projectId, expensePaymentId);
+		this.expensePayment = await this.projectApplication.getExpenseAsync(projectId, expensePaymentId);
 		this.cdr.markForCheck();
 	}
 }

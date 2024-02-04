@@ -50,6 +50,9 @@ export class AddExpenseModalComponent implements OnInit {
 	}
 
 	public async onSubmitAsync(): Promise<void> {
+		const params: Params = await firstValueFrom(this.activatedRoute.params);
+		const projectId = (params as { projectId: string })?.projectId
+
 		const amount: number = this.form.value?.amount as number;
 		const payers: number[] = this.form?.value?.payers as number[];
 		const debtors: number[] = this.form?.value?.debtors as number[];
@@ -59,14 +62,13 @@ export class AddExpenseModalComponent implements OnInit {
 			expense_type: this.form?.value?.expenseType?.[0],
 			debtors: debtors?.map(id => ({ amount: amount / (debtors.length), user_id: id })),
 			payers: payers?.map(id => ({ amount: amount / (payers.length), user_id: id })),
+			project_id: projectId,
 			description: this.form?.value?.description,
-			author_id: 1, // TODO
+			author_id: 1, // TODO set in backend
 		} as ICreatableExpense
 
-		const params: Params = await firstValueFrom(this.activatedRoute.params);
-		const projectId = (params as { projectId: string })?.projectId
-
-		await this.expensesHttpClient.createAsync(projectId, candidate);
+		await this.expensesHttpClient.createAsync(candidate)
+			.catch(e => console.error(e));
 
 		this.display = false;
 		this.expenseAdded.next();

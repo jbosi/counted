@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { AvatarInitialsComponent, IExpensePaymentsViewModel } from '@hcount/modules';
+import { AvatarInitialsComponent, IExpensesViewModel } from '@hcount/modules';
 import { AvatarModule } from 'primeng/avatar';
 @Component({
 	selector: 'app-expense',
@@ -12,5 +12,5 @@ import { AvatarModule } from 'primeng/avatar';
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpenseComponent {
-	@Input() public expensePayment!: IExpensePaymentsViewModel;
+	@Input() public expensePayment!: IExpensesViewModel;
 }

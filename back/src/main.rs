@@ -11,7 +11,6 @@ use crate::{
 	payments::domain::payment_model::Payment,
 	payments::web::payment_web::get_payments,
 	projects::web::project_web::{create_project, get_projects},
-	user_project_web::get_user_projects,
 	users::domain::user_model::User,
 	users::web::user_web::{create_users, delete_user, get_users, update_user_name}
 };
@@ -20,14 +19,13 @@ use crate::users::web::user_web::get_user;
 pub mod models;
 pub mod schema;
 mod query_strings;
-mod user_project_web;
 mod expenses;
 mod users;
 mod projects;
 mod payments;
 // mod authentication;
 
-#[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
+// #[path = "../tests/user_projects/user_projects_web_test.rs"] mod user_projects_web_test;
 
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -101,7 +99,6 @@ async fn main() -> std::io::Result<()> {
 
 					.service(create_project)
 					.service(get_projects)
-					.service(get_user_projects)
 
 					.service(get_payments)
 					// .service(get_expense_payments)

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FetchHttpClient } from '../fetch';
+import { FetchHttpClient, HttpFetchParams } from '../fetch';
 import { ICreatableUsers, IUser } from './models';
 
 const API_URL = '/api/users';
@@ -22,6 +22,10 @@ export class UsersHttpClient {
 	}
 
 	public async getUsersByProjectIdAsync(projectId: string): Promise<IUser[]> {
-		return this.http.get(`${API_URL}/projects/${projectId}`)
+		const params: HttpFetchParams = new Map([
+			['project_id', projectId]
+		])
+
+		return this.http.get(`${API_URL}`, params);
 	}
 }

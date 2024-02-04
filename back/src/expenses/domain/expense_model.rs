@@ -37,13 +37,12 @@ pub struct NewExpense {
 pub struct CreatableExpense {
 	pub name: String,
 	pub amount: f64,
-	pub description: Option<String>,
 	pub expense_type: ExpenseType,
 	pub project_id: Uuid,
-
 	pub payers: Vec<UserAmount>,
 	pub debtors: Vec<UserAmount>,
 	pub author_id: i32,
+	pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

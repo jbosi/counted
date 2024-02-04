@@ -1,7 +1,7 @@
 import { ExpenseType } from "../../expenses";
 import { IPaymentViewModel } from "../../payments";
 
-export interface IExpensePaymentsViewModel {
+export interface IExpensesViewModel {
 	id: number,
 	date: string,
 	amount: number,

@@ -17,7 +17,7 @@ pub struct Project {
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
-pub struct UserProjectDto {
+pub struct ProjectDto {
 	pub id: Uuid,
 	pub name: String,
 	pub users: Vec<i32>, // TODO user_ids

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { IExpensePaymentsViewModel, IUser, RouterParamService } from '@hcount/modules';
+import { IExpensesViewModel, IUser, RouterParamService } from '@hcount/modules';
 import { firstValueFrom } from 'rxjs';
 import { SubHeaderComponent } from '../../../../components';
 import { ExpenseComponent } from './components';
@@ -22,7 +22,7 @@ import { ProjectApplication } from './project.application';
 })
 export class ProjectComponent implements OnInit {
 	public users: IUser[] = [];
-	public expensePayments: IExpensePaymentsViewModel[] = [];
+	public expensePayments: IExpensesViewModel[] = [];
 	public projectId!: string;
 
 	constructor(
@@ -41,10 +41,10 @@ export class ProjectComponent implements OnInit {
 		
 		this.users = await this.projectApplication.getUsersByProjectIdAsync(this.projectId);
 
-		this.expensePayments = await this.projectApplication.getExpensePaymentsAsync(this.projectId);
+		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
 	}
 
 	public async onExpenseAddedAsync(): Promise<void> {
-		this.expensePayments = await this.projectApplication.getExpensePaymentsAsync(this.projectId);
+		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
 	}
 }

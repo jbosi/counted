@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
 import { IExpensesViewModel, IUser, RouterParamService } from '@hcount/modules';
-import { firstValueFrom } from 'rxjs';
 import { SubHeaderComponent } from '../../../../components';
 import { ExpenseComponent } from './components';
 import { AddExpenseModalComponent } from './components/add-project-expense';
@@ -24,6 +22,7 @@ export class ProjectComponent implements OnInit {
 	public users: IUser[] = [];
 	public expensePayments: IExpensesViewModel[] = [];
 	public projectId!: string;
+	public globalTotal: number = 0;
 
 	constructor(
 		private readonly projectApplication: ProjectApplication,
@@ -42,6 +41,8 @@ export class ProjectComponent implements OnInit {
 		this.users = await this.projectApplication.getUsersByProjectIdAsync(this.projectId);
 
 		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
+
+		this.globalTotal = this.expensePayments.map(ep => ep.amount).reduce((acc, ep) => acc + ep, 0);
 	}
 
 	public async onExpenseAddedAsync(): Promise<void> {

@@ -1,11 +1,12 @@
-import { Injectable } from '@angular/core';
-import { ExpensesHttpClient, IExpenseDto, IExpensePayments, IExpensesViewModel, IPaymentViewModel, IUser, UsersHttpClient } from '@hcount/modules';
+import { Inject, Injectable } from '@angular/core';
+import { ExpensesHttpClient, IExpenseDto, IExpensePayments, IExpensesViewModel, IPaymentViewModel, IPrincipal, IUser, PRINCIPAL, UsersHttpClient } from '@hcount/modules';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectApplication {
 	constructor(
 		private readonly expensesHttpClient: ExpensesHttpClient,
-		private readonly usersHttpClient: UsersHttpClient
+		private readonly usersHttpClient: UsersHttpClient,
+		@Inject(PRINCIPAL) private readonly principal: IPrincipal
 	) {}
 
 	public async getUsersAsync(): Promise<IUser[]> {

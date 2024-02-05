@@ -8,10 +8,15 @@ const API_URL = '/api/projects';
 export class ProjectsHttpClient {
 	constructor(private http: FetchHttpClient) { }
 	
-	public getAsync(user_id: number): Promise<IProject[]> {
+	public getAsync(user_id: number, project_id?: string): Promise<IProject[]> {
 		const params: HttpFetchParams = new Map([
 			['user_id', user_id]
 		])
+
+		if (project_id != null && project_id !== '') {
+			params.set('project_id', project_id)
+		}
+
 		return this.http.get(API_URL, params);
 	}
 

@@ -15,4 +15,4 @@
 	<app-expense *ngFor="let expensePayment of expensePayments" [expensePayment]="expensePayment"></app-expense>
 </div>
 
-<app-add-expense-modal [users]="users" (expenseAdded)="onExpenseAddedAsync()"></app-add-expense-modal>
+<app-add-expense-modal *ngIf="users.length > 0" [users]="users" (expenseAdded)="onExpenseAddedAsync()"></app-add-expense-modal>

@@ -42,6 +42,7 @@ export class ProjectComponent implements OnInit {
 
 		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
 
+		// TODO should be computed and use from backend
 		this.globalTotal = this.expensePayments.map(ep => ep.amount).reduce((acc, ep) => acc + ep, 0);
 	}
 

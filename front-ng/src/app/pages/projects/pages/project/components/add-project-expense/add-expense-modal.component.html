@@ -17,12 +17,24 @@
 		
 		<div class="form-element">
 			<label>Payé par</label>
-			<p-multiSelect [options]="users" formControlName="payers" optionLabel="name" optionValue="id"></p-multiSelect>
+			
+			<ng-container formArrayName="payers">
+				<ng-container *ngFor="let payerControl of payersControl.controls; let i = index">
+					<!-- <p-checkbox [label]="user?.name" name="payors" [value]="user?.id" [formControl]="payerControl"></p-checkbox> -->
+					<p-checkbox [label]="users[i].name" name="payors" [formControl]="payerControl"></p-checkbox>
+				</ng-container>
+			</ng-container>
 		</div>
 		
 		<div class="form-element">
 			<label>Pour</label>
-			<p-multiSelect [options]="users" formControlName="debtors" optionLabel="name" optionValue="id"></p-multiSelect>
+
+			<ng-container formArrayName="debtors">
+				<ng-container *ngFor="let debtorControl of debtorsControl.controls; let i = index">
+					<!-- <p-checkbox [label]="user?.name" name="debtors" [value]="user?.id" [formControl]="debtorControl"></p-checkbox> -->
+					<p-checkbox [label]="users[i].name" name="debtors" [formControl]="debtorControl"></p-checkbox>
+				</ng-container>
+			</ng-container>
 		</div>
 		
 		<div class="form-element">

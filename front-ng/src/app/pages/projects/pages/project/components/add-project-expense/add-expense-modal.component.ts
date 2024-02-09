@@ -70,7 +70,7 @@ export class AddExpenseModalComponent implements OnInit {
 		[
 			...this.form.controls['debtors'].controls,
 			...this.form.controls['payers'].controls
-		].forEach(c => c.controls['isSelectedUser'].valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
+		].forEach(c => c.valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
 	}
 
 	public showDialog(): void {
@@ -110,6 +110,11 @@ export class AddExpenseModalComponent implements OnInit {
 
 		pristineDebtors.forEach(c => c.controls['userAmount'].setValue((amount - dirtyDebtorsAmount) / totalDebtors, { emitEvent: false }));
 		
+		// TODO Set errors if deb/pay amounts are not equal to expense amount
+		if (true) {
+			
+		}
+
 		// Reset amount for unSelectedUsers
 		form.controls['debtors'].controls
 			.filter(c => !c.get('isSelectedUser')?.value)

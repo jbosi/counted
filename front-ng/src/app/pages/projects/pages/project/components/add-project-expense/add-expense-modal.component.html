@@ -19,9 +19,10 @@
 			<label>Payé par</label>
 			
 			<ng-container formArrayName="payers">
-				<ng-container *ngFor="let payerControl of payersControl.controls; let i = index">
+				<ng-container *ngFor="let payerControl of payersControl.controls; let i = index" [formGroup]="payerControl">
 					<!-- <p-checkbox [label]="user?.name" name="payors" [value]="user?.id" [formControl]="payerControl"></p-checkbox> -->
-					<p-checkbox [label]="users[i].name" name="payors" [formControl]="payerControl"></p-checkbox>
+					<p-checkbox [label]="users[i].name" [name]="'payers' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
 				</ng-container>
 			</ng-container>
 		</div>
@@ -30,9 +31,10 @@
 			<label>Pour</label>
 
 			<ng-container formArrayName="debtors">
-				<ng-container *ngFor="let debtorControl of debtorsControl.controls; let i = index">
+				<ng-container *ngFor="let debtorControl of debtorsControl.controls; let i = index" [formGroup]="debtorControl">
 					<!-- <p-checkbox [label]="user?.name" name="debtors" [value]="user?.id" [formControl]="debtorControl"></p-checkbox> -->
-					<p-checkbox [label]="users[i].name" name="debtors" [formControl]="debtorControl"></p-checkbox>
+					<p-checkbox [label]="users[i].name" [name]="'debtors' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
 				</ng-container>
 			</ng-container>
 		</div>

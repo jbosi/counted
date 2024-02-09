@@ -24,11 +24,11 @@ export class AddExpenseModalComponent implements OnInit {
 	@Input({ required: true }) public users: IUser[] = [];
 
 	public form = {} as FormGroup<IAddExpenseForm>;
-	public get payersControl(): FormArray<FormControl<number>> {
+	public get payersControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
 		return this.form.controls['payers'];
 	}
 
-	public get debtorsControl(): FormArray<FormControl<number>> {
+	public get debtorsControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
 		return this.form.controls['debtors'];
 	}
 
@@ -45,15 +45,32 @@ export class AddExpenseModalComponent implements OnInit {
 	) {}
 
 	ngOnInit(): void {
-		const payersAndDebtorsControls: FormControl[] = this.users.map(u => new FormControl())
+		const payersControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
+			isSelectedUser: new FormControl(index === 0),
+			userAmount: new FormControl(0, { nonNullable: true })
+		}));
+		const debtorsControls: FormGroup[] = this.users.map(() => new FormGroup({
+			isSelectedUser: new FormControl(true),
+			userAmount: new FormControl(0, { nonNullable: true })
+		}));
+
 		this.form = new FormGroup({
-			name: new FormControl(),
-			amount: new FormControl(),
-			debtors: new FormArray([...payersAndDebtorsControls]),
+			name: new FormControl('', { nonNullable: true }),
+			amount: new FormControl<number>(0, { nonNullable: true }),
+			debtors: new FormArray([...debtorsControls]),
 			expenseType: new FormControl(),
-			payers: new FormArray([...payersAndDebtorsControls]),
+			payers: new FormArray([...payersControls]),
 			description: new FormControl()
 		});
+
+		this.form.controls['amount'].valueChanges.subscribe(amount => {
+			this.updateDebtorsAndPayors(this.form, amount);
+		});
+
+		[
+			...this.form.controls['debtors'].controls,
+			...this.form.controls['payers'].controls
+		].forEach(c => c.controls['isSelectedUser'].valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
 	}
 
 	public showDialog(): void {
@@ -69,14 +86,52 @@ export class AddExpenseModalComponent implements OnInit {
 		this.display = false;
 		this.expenseAdded.next();
 	}
+
+	private updateDebtorsAndPayors(form: FormGroup<IAddExpenseForm>, amount: number): void {
+		const dirtyPayersAmount: number = form.controls['payers'].controls
+			.filter(c => c.controls['userAmount'].dirty && c.controls['isSelectedUser'].value)
+			.reduce((acc, c) => acc + c.controls['userAmount'].value, 0);
+		
+		const pristinePayers = form.controls['payers'].controls
+			.filter(c => c.controls['userAmount'].pristine && c.controls['isSelectedUser'].value);
+		
+		const totalPayers = pristinePayers.filter(c => c.controls['isSelectedUser'].value).length
+
+		pristinePayers.forEach(c => c.controls['userAmount'].setValue((amount - dirtyPayersAmount) / totalPayers, { emitEvent: false }));
+
+		const dirtyDebtorsAmount: number = form.controls['debtors'].controls
+			.filter(c => c.controls['userAmount'].dirty && c.controls['isSelectedUser'].value)
+			.reduce((acc, c) => acc + c.controls['userAmount'].value, 0);
+		
+		const pristineDebtors = form.controls['debtors'].controls
+			.filter(c => c.controls['userAmount'].pristine && c.controls['isSelectedUser'].value);
+		
+		const totalDebtors = pristineDebtors.filter(c => c.controls['isSelectedUser'].value).length
+
+		pristineDebtors.forEach(c => c.controls['userAmount'].setValue((amount - dirtyDebtorsAmount) / totalDebtors, { emitEvent: false }));
+		
+		// Reset amount for unSelectedUsers
+		form.controls['debtors'].controls
+			.filter(c => !c.get('isSelectedUser')?.value)
+			.forEach(c => c.controls.userAmount.setValue(0, { emitEvent: false }));
+		
+		form.controls['payers'].controls
+			.filter(c => !c.get('isSelectedUser')?.value)
+			.forEach(c => c.controls.userAmount.setValue(0, { emitEvent: false }));
+	}
 }
 
 
 export interface IAddExpenseForm {
 	name: FormControl<string>;
 	amount: FormControl<number>;
-	debtors: FormArray<FormControl<number>>;
+	debtors: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
 	expenseType: FormControl<ExpenseType[]>;
-	payers: FormArray<FormControl<number>>;
+	payers: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
 	description: FormControl<Partial<string>>;
+}
+
+interface IAddExpenseFormUserAmount {
+	isSelectedUser: FormControl<boolean>
+	userAmount: FormControl<number>
 }

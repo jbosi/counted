@@ -26,4 +26,8 @@ export class AddExpenseModalApplication {
 		await this.expensesHttpClient.createAsync(candidate)
 			.catch(e => console.error(e));
 	}
+
+	public async deleteExpenseAsync(expenseId: number): Promise<void> {
+		await this.expensesHttpClient.deleteAsync(expenseId);
+	}
 }

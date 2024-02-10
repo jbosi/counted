@@ -22,4 +22,8 @@ export class ExpensesHttpClient {
 	public createAsync(candidate: ICreatableExpense): Promise<IExpenseDto> {
 		return this.http.post(`${API_URL}`, candidate);
 	}
+
+	public deleteAsync(expenseId: number): Promise<void> {
+		return this.http.delete(`${API_URL}/${expenseId}`);
+	}
 }

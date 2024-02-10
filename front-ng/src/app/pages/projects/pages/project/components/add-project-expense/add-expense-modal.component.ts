@@ -136,7 +136,7 @@ export interface IAddExpenseForm {
 	description: FormControl<Partial<string>>;
 }
 
-interface IAddExpenseFormUserAmount {
+export interface IAddExpenseFormUserAmount {
 	isSelectedUser: FormControl<boolean>
 	userAmount: FormControl<number>
 }

@@ -19,14 +19,9 @@
 		"target": "ES2022",
 		"module": "ES2022",
 		"useDefineForClassFields": false,
-		"lib": [
-			"ES2022",
-			"dom"
-		],
+		"lib": ["ES2022", "dom"],
 		"paths": {
-			"@hcount/modules": [
-				"./src/app/modules/index"
-			],
+			"@hcount/modules": ["./src/app/modules/index"]
 		}
 	},
 	"angularCompilerOptions": {

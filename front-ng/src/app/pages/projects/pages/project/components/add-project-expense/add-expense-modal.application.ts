@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ExpenseType, ExpensesHttpClient, ICreatableExpense } from '@hcount/modules';
+import { ExpenseType, ExpensesHttpClient, ICreatableExpense, IExpenseDto } from '@hcount/modules';
 import { IAddExpenseForm } from './add-expense-modal.component';
 
+// TODO Rename into ExpenseModalApplication
 @Injectable({ providedIn: 'root' })
 export class AddExpenseModalApplication {
 	constructor(
@@ -25,6 +26,11 @@ export class AddExpenseModalApplication {
 
 		await this.expensesHttpClient.createAsync(candidate)
 			.catch(e => console.error(e));
+	}
+
+	public async getExpenseByIdAsync(expenseId: number): Promise<IExpenseDto | null> {
+		return this.expensesHttpClient.getByIdAsync(expenseId)
+			.catch(() => null);
 	}
 
 	public async deleteExpenseAsync(expenseId: number): Promise<void> {

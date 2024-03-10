@@ -6,6 +6,7 @@ use diesel::RunQueryDsl;
 use crate::{DbPool, schema};
 use crate::expenses::domain::expense_model::Expense;
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
+use crate::schema::expenses;
 
 pub async fn get_expenses(pool: web::Data<DbPool>, params: Query<ExpenseQueryParams>) -> Vec<Expense> {
     use schema::expenses::dsl::*;
@@ -23,4 +24,13 @@ pub async fn get_expenses(pool: web::Data<DbPool>, params: Query<ExpenseQueryPar
         .expect("Error while trying to get Expenses");
 
     return expense_list;
+}
+
+pub async fn get_expense(pool: web::Data<DbPool>, expense_id: i32) -> Expense {
+    let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+    return expenses::table
+        .find(expense_id)
+        .get_result(&mut conn)
+        .expect("Error while trying to get Expenses");
 }

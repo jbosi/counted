@@ -6,7 +6,7 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::expenses::application::expense_application::get_expenses_app;
+use crate::expenses::application::expense_application::{get_expense_app, get_expenses_app};
 use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
@@ -61,27 +61,18 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	web::Json(created_expense)
 }
 
-// On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
-// #[get("expenses")]
-// pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-// 	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
-// 	use schema::expenses::dsl::*;
-//
-// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-//
-// 	let expense_list = expenses
-// 		.filter(project_id.eq(params.project_id))
-// 		.load::<Expense>(&mut conn)
-// 		.expect("Error while trying to get Expenses");
-//
-// 	web::Json(expense_list)
-// }
-
 #[get("expenses")]
-pub async fn get_expense(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
+pub async fn get_expenses(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
 	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(req.query_string()).unwrap();
 
 	let expense_dto: Vec<ExpenseDto> = get_expenses_app(pool, params).await;
+
+	web::Json(expense_dto)
+}
+
+#[get("expenses/{expense_id}")]
+pub async fn get_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) -> impl Responder {
+	let expense_dto: ExpenseDto = get_expense_app(pool, expense_id.into_inner()).await;
 
 	web::Json(expense_dto)
 }

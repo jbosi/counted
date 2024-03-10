@@ -22,6 +22,7 @@ import { AddExpenseModalApplication } from './add-expense-modal.application';
 export class AddExpenseModalComponent implements OnInit {
 	@Output() public expenseAdded = new EventEmitter<void>();
 	@Input({ required: true }) public users: IUser[] = [];
+	@Input() public expenseId: number | undefined;
 
 	public form = {} as FormGroup<IAddExpenseForm>;
 	public get payersControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
@@ -63,6 +64,10 @@ export class AddExpenseModalComponent implements OnInit {
 			description: new FormControl()
 		});
 
+		if (this.expenseId != null) {
+			this.setInitialValues(this.expenseId, this.form);
+		}
+
 		this.form.controls['amount'].valueChanges.subscribe(amount => {
 			this.updateDebtorsAndPayors(this.form, amount);
 		});
@@ -75,6 +80,10 @@ export class AddExpenseModalComponent implements OnInit {
 
 	public showDialog(): void {
 		this.display = true;
+	}
+
+	private setInitialValues(expenseId: number, form: FormGroup<IAddExpenseForm>): void {
+		this.addExpenseModalApplication.
 	}
 
 	public async onSubmitAsync(): Promise<void> {

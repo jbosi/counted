@@ -12,7 +12,7 @@ mod expense_application_test {
     use crate::query_strings::expense_query_string::ExpenseQueryParams;
 
     #[test]
-    fn should_return_expense_dto_when_given_valid_inputs() {
+    async fn should_return_expense_dto_when_given_valid_inputs() {
         // Arrange
         let pool = create_test_pool();
         let params = web::Query(ExpenseQueryParams {
@@ -21,7 +21,7 @@ mod expense_application_test {
         });
 
         // Act
-        let result = get_expenses_app(pool.clone(), params);
+        let result = get_expenses_app(pool.clone(), params).await;
 
         // Assert
         assert_eq!(result.len(), 1);

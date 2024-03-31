@@ -28,7 +28,7 @@ mod expense_application_test {
         assert_eq!(result[0].id, 1);
         assert_eq!(result[0].author_id, 1);
         assert_eq!(result[0].project_id, params.project_id.unwrap());
-        assert_eq!(result[0].date, NaiveDate::from_ymd_opt(2022, 1, 1));
+        assert_eq!(result[0].date, NaiveDate::from_ymd(2022, 1, 1));
         assert_eq!(result[0].amount, 100.0);
         assert_eq!(result[0].description, Some("Expense description".to_string()));
         assert_eq!(result[0].name, "Expense name");
@@ -39,7 +39,7 @@ mod expense_application_test {
         assert_eq!(result[0].payments[0].user_id, 1);
         assert_eq!(result[0].payments[0].is_debt, false);
         assert_eq!(result[0].payments[0].amount, 50.0);
-        assert_eq!(result[0].payments[0].created_at, NaiveDateTime::from_timestamp_opt(1640995200, 0));
+        assert_eq!(result[0].payments[0].created_at, NaiveDateTime::from_timestamp(1640995200, 0));
     }
 
     fn create_test_pool() -> web::Data<DbPool> {

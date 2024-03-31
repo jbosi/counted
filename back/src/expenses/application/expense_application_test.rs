@@ -21,7 +21,7 @@ mod expense_application_test {
         });
 
         // Act
-        let result = get_expenses_app(pool.clone(), params).await;
+        let result = get_expenses_app(pool.clone(), params.clone()).await;
 
         // Assert
         assert_eq!(result.len(), 1);

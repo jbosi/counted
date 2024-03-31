@@ -11,7 +11,7 @@ mod expense_application_test {
     use crate::expenses::domain::expense_model::ExpenseType;
     use crate::query_strings::expense_query_string::ExpenseQueryParams;
 
-    #[test]
+    #[actix_rt::test]
     async fn should_return_expense_dto_when_given_valid_inputs() {
         // Arrange
         let pool = create_test_pool();

@@ -83,7 +83,7 @@ export class AddExpenseModalComponent implements OnInit {
 	}
 
 	private setInitialValues(expenseId: number, form: FormGroup<IAddExpenseForm>): void {
-		this.addExpenseModalApplication.
+		// this.addExpenseModalApplication.
 	}
 
 	public async onSubmitAsync(): Promise<void> {

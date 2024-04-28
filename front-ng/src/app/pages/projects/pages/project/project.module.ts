@@ -7,17 +7,13 @@ import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ExpenseComponent, ExpensePaymentDetailComponent } from './components';
+import { ExpenseComponent } from './components';
 
 
 const routes: Routes = [
 	{
 		path: '',
 		component: ProjectComponent
-	},
-	{
-		path: ':expensePaymentId',
-		component: ExpensePaymentDetailComponent
 	}
 ]
 

@@ -1,4 +1,4 @@
-<div *ngIf="expensePayment != null" class="expense" [routerLink]="[expensePayment.id]">
+<div *ngIf="expensePayment != null" class="expense" (click)="displayExpenseDetail.emit(expensePayment.id)">
 	<span class="pi pi-money-bill"></span>
 	<div class="expenseContent">
 		<label>{{ expensePayment.name }}</label>

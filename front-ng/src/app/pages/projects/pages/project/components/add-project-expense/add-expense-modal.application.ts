@@ -16,7 +16,7 @@ export class AddExpenseModalApplication {
 		const candidate: ICreatableExpense = {
 			name: formValues.name as string,
 			amount: formValues.amount,
-			expense_type: formValues?.expenseType?.[0] as ExpenseType,
+			expense_type: formValues?.expenseType?.[0]?.id,
 			debtors: formValues.debtors.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			payers: formValues.payers.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			project_id: projectId,

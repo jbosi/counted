@@ -1,51 +1,47 @@
-<p-dialog header="Créer une nouvelle dépense" [(visible)]="display" [style]="{ width: '50vw', height: '600px' }">
-	<form (ngSubmit)="onSubmitAsync()" class="form-container" [formGroup]="form">
+<form (ngSubmit)="onSubmitAsync()" class="form-container" [formGroup]="form">
+	<section class="expensePaymentDetail-header">
 		<div class="form-element">
 			<label>Nom de la dépense</label>
-			<input type="text" pInputText formControlName="name"/>
+			<input type="text" pInputText formControlName="name" [required]="true"/>
 		</div>
-
-		<div class="form-element">
-			<label>Montant</label>
-			<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="amount"></p-inputNumber>
+		<div class="expensePaymentDetail-amount">
+			<div class="form-element">
+				<p-multiSelect [options]="expenseTypeOptions" formControlName="expenseType" optionLabel="name" optionValue="id" [selectionLimit]="1" [required]="true"></p-multiSelect>
+			</div>
+			<span class="expensePaymentDetail-amount-span">de</span>
+			<div class="form-element">
+				<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="amount" [required]="true"></p-inputNumber>
+			</div>
 		</div>
-
 		<div class="form-element">
-			<label>Type de dépense</label>
-			<p-multiSelect [options]="expenseTypeOptions" formControlName="expenseType" optionLabel="name" optionValue="id"></p-multiSelect>
-		</div>
-		
-		<div class="form-element">
-			<label>Payé par</label>
-			
-			<ng-container formArrayName="payers">
-				<ng-container *ngFor="let payerControl of payersControl.controls; let i = index" [formGroup]="payerControl">
-					<!-- <p-checkbox [label]="user?.name" name="payors" [value]="user?.id" [formControl]="payerControl"></p-checkbox> -->
-					<p-checkbox [label]="users[i].name" [name]="'payers' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
-					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
-				</ng-container>
-			</ng-container>
-		</div>
-		
-		<div class="form-element">
-			<label>Pour</label>
-
-			<ng-container formArrayName="debtors">
-				<ng-container *ngFor="let debtorControl of debtorsControl.controls; let i = index" [formGroup]="debtorControl">
-					<!-- <p-checkbox [label]="user?.name" name="debtors" [value]="user?.id" [formControl]="debtorControl"></p-checkbox> -->
-					<p-checkbox [label]="users[i].name" [name]="'debtors' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
-					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
-				</ng-container>
-			</ng-container>
-		</div>
-		
-		<div class="form-element">
-			<label>Commentaire</label>
+			<label>Description</label>
 			<input type="text" pInputText formControlName="description"/>
 		</div>
+	</section>
 
-		<button pButton type="submit" class="p-button-outlined" label="Enregistrer"></button>
-	</form>
-</p-dialog>
+	<section class="expensePaymentDetail-payed-by">
+		<h2>Payé par</h2>
+		<ng-container formArrayName="payers">
+			<div *ngFor="let payerControl of payersControl.controls; let i = index" class="expensePaymentDetail" [formGroup]="payerControl">
+				<p-checkbox [label]="users[i].name" [name]="'payers' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+				<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="users[i].name"></app-avatar-initials>
+				<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
+				<span>€</span>
+			</div>
+		</ng-container>
+	</section>
+	
+	<section class="expensePaymentDetail-payed-for">
+		<h2>Pour</h2>
+		<ng-container formArrayName="debtors">
+			<div *ngFor="let debtorControl of debtorsControl.controls; let i = index" class="expensePaymentDetail" [formGroup]="debtorControl">
+				<p-checkbox [label]="users[i].name" [name]="'debtors' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+				<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="users[i].name"></app-avatar-initials>
+				<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
+				<span>€</span>
+			</div>
+		</ng-container>
+	</section>
 
-<button pButton type="button" (click)="showDialog()" class="p-button-outlined" label="Ajouter une dépense"></button>
+	<button pButton type="submit" class="p-button-outlined" label="Enregistrer"></button>
+</form>

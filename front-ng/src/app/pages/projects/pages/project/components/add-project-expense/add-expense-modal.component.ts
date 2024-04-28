@@ -1,15 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { firstValueFrom } from 'rxjs';
-import { ExpenseType, IUser } from '../../../../../../modules';
+import { AvatarInitialsComponent, ExpenseType, IExpensesViewModel, IUser } from '../../../../../../modules';
+import { IExpenseModalData } from '../../project.component';
 import { AddExpenseModalApplication } from './add-expense-modal.application';
 
 @Component({
@@ -17,12 +19,11 @@ import { AddExpenseModalApplication } from './add-expense-modal.application';
 	templateUrl: './add-expense-modal.component.html',
 	styleUrls: ['./add-expense-modal.component.scss'],
 	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, CommonModule]
+	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, CommonModule, AvatarInitialsComponent]
 })
 export class AddExpenseModalComponent implements OnInit {
-	@Output() public expenseAdded = new EventEmitter<void>();
-	@Input({ required: true }) public users: IUser[] = [];
-	@Input() public expenseId: number | undefined;
+	public users: IUser[] = [];
+	public expense: IExpensesViewModel | undefined;
 
 	public form = {} as FormGroup<IAddExpenseForm>;
 	public get payersControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
@@ -33,19 +34,24 @@ export class AddExpenseModalComponent implements OnInit {
 		return this.form.controls['debtors'];
 	}
 
-	public readonly expenseTypeOptions: { name: string, id: ExpenseType } [] = [
+	public readonly expenseTypeOptions: { name: string, id: ExpenseType }[] = [
 		{ id: ExpenseType.Expense, name: 'Dépense' },
 		{ id: ExpenseType.Gain, name: 'Rentrée d\'argent' },
 		{ id: ExpenseType.Transfer, name: 'Transfert d\'argent' }
 	]
 
-	public display: boolean = false;
 	constructor(
 		private readonly activatedRoute: ActivatedRoute,
-		private readonly addExpenseModalApplication: AddExpenseModalApplication
+		private readonly addExpenseModalApplication: AddExpenseModalApplication,
+		private readonly modal: DynamicDialogRef,
+		private readonly modalConfig: DynamicDialogConfig
 	) {}
 
 	ngOnInit(): void {
+		const config: DynamicDialogConfig<IExpenseModalData> = this.modalConfig
+		this.users = config.data?.users ?? [];
+		this.expense = config.data?.expensePayment;
+
 		const payersControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
 			isSelectedUser: new FormControl(index === 0),
 			userAmount: new FormControl(0, { nonNullable: true })
@@ -57,15 +63,15 @@ export class AddExpenseModalComponent implements OnInit {
 
 		this.form = new FormGroup({
 			name: new FormControl('', { nonNullable: true }),
-			amount: new FormControl<number>(0, { nonNullable: true }),
+			amount: new FormControl(0, { nonNullable: true }),
 			debtors: new FormArray([...debtorsControls]),
-			expenseType: new FormControl(),
+			expenseType: new FormControl([] as { name: string, id: ExpenseType }[], { nonNullable: true }),
 			payers: new FormArray([...payersControls]),
 			description: new FormControl()
 		});
 
-		if (this.expenseId != null) {
-			this.setInitialValues(this.expenseId, this.form);
+		if (this.expense != null) {
+			this.setInitialValues(this.expense, this.form);
 		}
 
 		this.form.controls['amount'].valueChanges.subscribe(amount => {
@@ -78,11 +84,8 @@ export class AddExpenseModalComponent implements OnInit {
 		].forEach(c => c.valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
 	}
 
-	public showDialog(): void {
-		this.display = true;
-	}
-
-	private setInitialValues(expenseId: number, form: FormGroup<IAddExpenseForm>): void {
+	private setInitialValues(expense: IExpensesViewModel, form: FormGroup<IAddExpenseForm>): void {
+		console.log(expense)
 		// this.addExpenseModalApplication.
 	}
 
@@ -92,8 +95,7 @@ export class AddExpenseModalComponent implements OnInit {
 
 		await this.addExpenseModalApplication.addExpenseModalAsync(this.form, projectId);
 
-		this.display = false;
-		this.expenseAdded.next();
+		this.modal.close(true);
 	}
 
 	private updateDebtorsAndPayors(form: FormGroup<IAddExpenseForm>, amount: number): void {
@@ -140,7 +142,7 @@ export interface IAddExpenseForm {
 	name: FormControl<string>;
 	amount: FormControl<number>;
 	debtors: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
-	expenseType: FormControl<ExpenseType[]>;
+	expenseType: FormControl<{ name: string, id: ExpenseType }[]>;
 	payers: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
 	description: FormControl<Partial<string>>;
 }

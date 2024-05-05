@@ -53,10 +53,10 @@ export class ProjectComponent implements OnInit {
 		this.globalTotal = this.expensePayments.map(ep => ep.amount).reduce((acc, ep) => acc + ep, 0);
 	}
 
-	public async onDisplayExpenseModal(users: IUser[], expensePayment?: IExpensesViewModel): Promise<void> {
+	public async onDisplayExpenseModal(users: IUser[], expensePaymentId?: number): Promise<void> {
 		const config: DynamicDialogConfig<IExpenseModalData> = {
 			data: {
-				expensePayment,
+				expensePayment: this.expensePayments?.find(ep => ep.id === expensePaymentId),
 				users: users
 			},
 			header: 'Créer une nouvelle dépense',

@@ -20,7 +20,7 @@ export class AddExpenseModalApplication {
 			debtors: formValues.debtors.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			payers: formValues.payers.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			project_id: projectId,
-			description: formValues?.description,
+			description: formValues?.description ?? undefined,
 			author_id: 1, // TODO set in backend
 		}
 

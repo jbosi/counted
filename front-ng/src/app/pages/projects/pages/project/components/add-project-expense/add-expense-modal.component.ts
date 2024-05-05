@@ -49,30 +49,11 @@ export class AddExpenseModalComponent implements OnInit {
 
 	ngOnInit(): void {
 		const config: DynamicDialogConfig<IExpenseModalData> = this.modalConfig
+
 		this.users = config.data?.users ?? [];
 		this.expense = config.data?.expensePayment;
 
-		const payersControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
-			isSelectedUser: new FormControl(index === 0),
-			userAmount: new FormControl(0, { nonNullable: true })
-		}));
-		const debtorsControls: FormGroup[] = this.users.map(() => new FormGroup({
-			isSelectedUser: new FormControl(true),
-			userAmount: new FormControl(0, { nonNullable: true })
-		}));
-
-		this.form = new FormGroup({
-			name: new FormControl('', { nonNullable: true }),
-			amount: new FormControl(0, { nonNullable: true }),
-			debtors: new FormArray([...debtorsControls]),
-			expenseType: new FormControl([] as { name: string, id: ExpenseType }[], { nonNullable: true }),
-			payers: new FormArray([...payersControls]),
-			description: new FormControl()
-		});
-
-		if (this.expense != null) {
-			this.setInitialValues(this.expense, this.form);
-		}
+		this.form = this.getFormGroup(this.expense)
 
 		this.form.controls['amount'].valueChanges.subscribe(amount => {
 			this.updateDebtorsAndPayors(this.form, amount);
@@ -84,9 +65,29 @@ export class AddExpenseModalComponent implements OnInit {
 		].forEach(c => c.valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
 	}
 
-	private setInitialValues(expense: IExpensesViewModel, form: FormGroup<IAddExpenseForm>): void {
-		console.log(expense)
-		// this.addExpenseModalApplication.
+	private getFormGroup(expense: IExpensesViewModel | undefined): FormGroup<IAddExpenseForm> {
+		const hasNoSelectedPayors: boolean = expense?.payors.length === 0;
+		const payersControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
+			isSelectedUser: new FormControl(hasNoSelectedPayors ? index === 0 : expense?.payors?.[index] != null),
+			userAmount: new FormControl(expense?.payors?.[index]?.amount ?? 0, { nonNullable: true })
+		}));
+
+		const hasNoSelectedDebtors: boolean = expense?.debtors.length === 0;
+		const debtorsControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
+			isSelectedUser: new FormControl(hasNoSelectedDebtors ? true : expense?.debtors?.[index] != null),
+			userAmount: new FormControl(expense?.debtors?.[index]?.amount ?? 0, { nonNullable: true })
+		}));
+
+		const form: FormGroup<IAddExpenseForm> = new FormGroup({
+			name: new FormControl<string>(expense?.name ?? '', { nonNullable: true }),
+			amount: new FormControl(expense?.amount ?? 0, { nonNullable: true }),
+			debtors: new FormArray([...debtorsControls]),
+			expenseType: new FormControl(this.getExpenseTypeInitialValue(expense), { nonNullable: true }),
+			payers: new FormArray([...payersControls]),
+			description: new FormControl(expense?.description ?? '')
+		});
+
+		return form;
 	}
 
 	public async onSubmitAsync(): Promise<void> {
@@ -96,6 +97,15 @@ export class AddExpenseModalComponent implements OnInit {
 		await this.addExpenseModalApplication.addExpenseModalAsync(this.form, projectId);
 
 		this.modal.close(true);
+	}
+
+	private getExpenseTypeInitialValue(expense: IExpensesViewModel | undefined): ({ name: string; id: ExpenseType; })[] {
+		if (!expense?.expense_type) {
+			return [] as { name: string, id: ExpenseType }[];
+		}
+		
+		const value = this.expenseTypeOptions.find(eto => eto.id === expense?.expense_type) ?? this.expenseTypeOptions[0];
+		return [value];
 	}
 
 	private updateDebtorsAndPayors(form: FormGroup<IAddExpenseForm>, amount: number): void {
@@ -144,7 +154,7 @@ export interface IAddExpenseForm {
 	debtors: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
 	expenseType: FormControl<{ name: string, id: ExpenseType }[]>;
 	payers: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
-	description: FormControl<Partial<string>>;
+	description: FormControl<string | null>;
 }
 
 export interface IAddExpenseFormUserAmount {

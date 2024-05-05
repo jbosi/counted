@@ -82,7 +82,7 @@ export class AddExpenseModalComponent implements OnInit {
 			name: new FormControl<string>(expense?.name ?? '', { nonNullable: true }),
 			amount: new FormControl(expense?.amount ?? 0, { nonNullable: true }),
 			debtors: new FormArray([...debtorsControls]),
-			expenseType: new FormControl(this.getExpenseTypeInitialValue(expense), { nonNullable: true }),
+			expenseType: new FormControl(this.getExpenseTypeInitialValue(expense) as any as ({ name: string; id: ExpenseType; })[], { nonNullable: true }),
 			payers: new FormArray([...payersControls]),
 			description: new FormControl(expense?.description ?? '')
 		});
@@ -99,13 +99,13 @@ export class AddExpenseModalComponent implements OnInit {
 		this.modal.close(true);
 	}
 
-	private getExpenseTypeInitialValue(expense: IExpensesViewModel | undefined): ({ name: string; id: ExpenseType; })[] {
+	private getExpenseTypeInitialValue(expense: IExpensesViewModel | undefined): ExpenseType[] {
 		if (!expense?.expense_type) {
-			return [] as { name: string, id: ExpenseType }[];
+			return [];
 		}
 		
 		const value = this.expenseTypeOptions.find(eto => eto.id === expense?.expense_type) ?? this.expenseTypeOptions[0];
-		return [value];
+		return [value.id];
 	}
 
 	private updateDebtorsAndPayors(form: FormGroup<IAddExpenseForm>, amount: number): void {

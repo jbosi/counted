@@ -6,7 +6,7 @@
 					<label>Nom de l'utilisateur</label>
 					<div class="form-element-group" [formGroup]="user">
 						<input class="form-element-group-input" type="text" pInputText formControlName="name"/>
-						<p-button (click)="deleteCandidateUser(i)" styleClass="p-button-rounded p-button-outlined">Supprimer</p-button>
+						<p-button *ngIf="i !== 0" (click)="deleteCandidateUser(i)" styleClass="p-button-rounded p-button-outlined">x</p-button>
 					</div>
 				</div>
 			</ng-container>

@@ -12,11 +12,12 @@ export class AddExpenseModalApplication {
 
 	public async addExpenseModalAsync(form: FormGroup<IAddExpenseForm>, projectId: string): Promise<void> {
 		const formValues = form.getRawValue();
+		const expenseTypeValue = formValues?.expenseType?.[0];
 
 		const candidate: ICreatableExpense = {
 			name: formValues.name as string,
 			amount: formValues.amount,
-			expense_type: formValues?.expenseType?.[0]?.id,
+			expense_type: typeof expenseTypeValue === 'string' ? expenseTypeValue : expenseTypeValue?.id, // Initial value is not an object
 			debtors: formValues.debtors.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			payers: formValues.payers.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
 			project_id: projectId,

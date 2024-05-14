@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse};
-use actix_web::{delete, get, post, Responder, web};
+use actix_web::{delete, get, post, patch, Responder, web};
 use actix_web::web::Query;
 use chrono::Utc;
 use diesel::prelude::*;
@@ -7,7 +7,7 @@ use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
 use crate::expenses::application::expense_application::{get_expense_app, get_expenses_app};
-use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
+use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense, PatchableExpense};
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
 use crate::schema::payments;
@@ -77,35 +77,35 @@ pub async fn get_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) ->
 	web::Json(expense_dto)
 }
 
-// #[patch("expenses/{expense_id}")]
-// pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
-// 	use schema::expenses::dsl::*;
+#[patch("expenses/{expense_id}")]
+pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
+	use schema::expenses::dsl::*;
 
-// 	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
+	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
 
-// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-// // https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
-// 	let updated_user = diesel::update(expenses.find(path_expense_id))
-// 		.set({
-// 			if (Some(payload.amount)) {
-// 				amount.eq(payload.amount)
-// 			} if (Some(payload.name)) {
-// 				name.eq(payload.name)
-// 			} if (Some(payload.description)) {
-// 				description.eq(payload.description)
-// 			} if (Some(payload.expense_type)) {
-// 				description.eq(payload.expense_type)
-// 			} if (Some(payload.debtors)) {
-// 				description.eq(payload.debtors)
-// 			} if (Some(payload.payers)) {
-// 				description.eq(payload.payers)
-// 			}
-// 		})
-// 		.execute(&conn)
-// 		.expect("Error while updating user amount");
+	let mut conn = pool.get().expect("couldn't get db connection from pool");
+// https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
+	let updated_user = diesel::update(expenses.find(path_expense_id))
+		.set({
+			if Some(payload.amount) {
+				amount.eq(payload.amount)
+			} if Some(payload.name) {
+				name.eq(payload.name)
+			} if Some(payload.description) {
+				description.eq(payload.description)
+			} if Some(payload.expense_type) {
+				description.eq(payload.expense_type)
+			} if Some(payload.debtors) {
+				description.eq(payload.debtors)
+			} if Some(payload.payers) {
+				description.eq(payload.payers)
+			}
+		})
+		.execute(&conn)
+		.expect("Error while updating user amount");
 
-// 	web::Json(updated_user)
-// }
+	web::Json(updated_user)
+}
 
 #[delete("expenses/{expense_id}")]
 pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> HttpResponse {

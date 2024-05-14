@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ExpenseType, ExpensesHttpClient, ICreatableExpense, IExpenseDto } from '@hcount/modules';
+import { ExpensesHttpClient, ICreatableExpense, IEditableExpense, IExpenseDto } from '@hcount/modules';
 import { IAddExpenseForm } from './add-expense-modal.component';
 
 // TODO Rename into ExpenseModalApplication
@@ -10,7 +10,7 @@ export class AddExpenseModalApplication {
 		private readonly expensesHttpClient: ExpensesHttpClient,
 	) {}
 
-	public async addExpenseModalAsync(form: FormGroup<IAddExpenseForm>, projectId: string): Promise<void> {
+	public async createOrEditExpenseAsync(form: FormGroup<IAddExpenseForm>, projectId: string, expenseId: number | undefined): Promise<void> {
 		const formValues = form.getRawValue();
 		const expenseTypeValue = formValues?.expenseType?.[0];
 
@@ -23,6 +23,16 @@ export class AddExpenseModalApplication {
 			project_id: projectId,
 			description: formValues?.description ?? undefined,
 			author_id: 1, // TODO set in backend
+		}
+
+		if (!!expenseId) {
+			const editableCandidate: IEditableExpense = {
+				...candidate,
+				id: expenseId
+			}
+			
+			await this.expensesHttpClient.editAsync(candidate)
+				.catch(e => console.error(e));
 		}
 
 		await this.expensesHttpClient.createAsync(candidate)

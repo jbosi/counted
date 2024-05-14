@@ -94,7 +94,7 @@ export class AddExpenseModalComponent implements OnInit {
 		const params: Params = await firstValueFrom(this.activatedRoute.params);
 		const projectId = (params as { projectId: string })?.projectId
 
-		await this.addExpenseModalApplication.addExpenseModalAsync(this.form, projectId);
+		await this.addExpenseModalApplication.createOrEditExpenseAsync(this.form, projectId, this.expense?.id);
 
 		this.modal.close(true);
 	}

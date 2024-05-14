@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FetchHttpClient, HttpFetchParams } from '../fetch';
-import { ICreatableExpense, IExpenseDto } from './models';
+import { ICreatableExpense, IEditableExpense, IExpenseDto } from './models';
 
 const API_URL = '/api/expenses';
 
@@ -13,6 +13,10 @@ export class ExpensesHttpClient {
 			['project_id', projectId]
 		])
 		return this.http.get(`${API_URL}`, params);
+	}
+
+	public editAsync(candidate: IEditableExpense): Promise<IExpenseDto> {
+		return this.http.post(`${API_URL}`, candidate);
 	}
 
 	public getByIdAsync(expenseId: number): Promise<IExpenseDto> {

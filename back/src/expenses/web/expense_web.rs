@@ -11,16 +11,13 @@ use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpen
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
 use crate::schema::payments;
+use crate::users::domain::user_model::UserAmount;
 
 #[post("expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
 	use schema::expenses;
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
-	let payers = new_expense.payers.clone().into_iter();
-	let debtors = new_expense.debtors.clone().into_iter();
-
 
 	let expense: NewExpense = NewExpense {
 		name: new_expense.clone().name,
@@ -37,21 +34,10 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		.get_result::<Expense>(&mut conn)
 		.expect("Error saving new post");
 
-	let creatable_debtors: Vec<NewPayment> = debtors.map(|d| NewPayment {
-		amount: d.amount,
-		expense_id: created_expense.id,
-		user_id: d.user_id,
-		is_debt: true
-	}).collect();
+	let payers = Some(new_expense.payers.clone());
+	let debtors = Some(new_expense.debtors.clone());
 
-	let creatable_payers: Vec<NewPayment> = payers.map(|p| NewPayment {
-		amount: p.amount,
-		expense_id: created_expense.id,
-		user_id: p.user_id,
-		is_debt: false
-	}).collect();
-
-	let creatable_payments: Vec<NewPayment> = [creatable_debtors, creatable_payers].concat();
+	let creatable_payments: Vec<NewPayment> = forge_creatable_payments(payers, debtors, created_expense.id);
 	
 	diesel::insert_into(payments::table)
 		.values(&creatable_payments)
@@ -80,29 +66,34 @@ pub async fn get_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) ->
 #[patch("expenses/{expense_id}")]
 pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
 	use schema::expenses::dsl::*;
+	use schema::payments::dsl::*;
 
-	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
+	let (_, path_expense_id): (i32, i32) = path.into_inner();
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
 // https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
+
+	// TODO handle null values for each prop by making an update for each prop (i.e. 4 set(), one for each prop)
+	let values = (
+		schema::expenses::columns::amount.eq(payload.clone().amount.unwrap()),
+		name.eq(payload.clone().name.unwrap()),
+		description.eq(payload.clone().description.unwrap()),
+		expense_type.eq(payload.clone().expense_type.unwrap()),
+	);
+
 	let updated_user = diesel::update(expenses.find(path_expense_id))
-		.set({
-			if Some(payload.amount) {
-				amount.eq(payload.amount)
-			} if Some(payload.name) {
-				name.eq(payload.name)
-			} if Some(payload.description) {
-				description.eq(payload.description)
-			} if Some(payload.expense_type) {
-				description.eq(payload.expense_type)
-			} if Some(payload.debtors) {
-				description.eq(payload.debtors)
-			} if Some(payload.payers) {
-				description.eq(payload.payers)
-			}
-		})
-		.execute(&conn)
+		.set(values)
+		.execute(&mut conn)
 		.expect("Error while updating user amount");
+
+	let editable_payments: Vec<NewPayment> = forge_creatable_payments(payload.clone().payers, payload.clone().debtors, path_expense_id);
+
+	for editable_payment in editable_payments {
+		diesel::update(payments.find(editable_payment.expense_id))
+			.set(editable_payment)
+			.execute(&mut conn)
+			.expect("Error updating payments");
+	}
 
 	web::Json(updated_user)
 }
@@ -120,4 +111,32 @@ pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> Ht
 		.expect("Error deleting expense");
 
 		HttpResponse::Ok().finish()
+}
+
+fn forge_creatable_payments(payers_option: Option<Vec<UserAmount>>, debtors_option: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
+	let mut debtors: Vec<UserAmount> = vec![];
+	if let Some(debtors_unwrapped) = debtors_option {
+		debtors = debtors_unwrapped;
+	}
+
+	let mut payers: Vec<UserAmount> = vec![];
+	if let Some(payers_unwrapped) = payers_option {
+		payers = payers_unwrapped;
+	}
+
+	let creatable_debtors: Vec<NewPayment> = debtors.into_iter().map(|d| NewPayment {
+		amount: d.amount,
+		expense_id: created_expense_id,
+		user_id: d.user_id,
+		is_debt: true
+	}).collect();
+
+	let creatable_payers: Vec<NewPayment> = payers.into_iter().map(|p| NewPayment {
+		amount: p.amount,
+		expense_id: created_expense_id,
+		user_id: p.user_id,
+		is_debt: false
+	}).collect();
+
+	return [creatable_debtors, creatable_payers].concat();
 }

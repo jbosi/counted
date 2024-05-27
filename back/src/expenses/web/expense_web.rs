@@ -34,8 +34,8 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		.get_result::<Expense>(&mut conn)
 		.expect("Error saving new post");
 
-	let payers = Some(new_expense.payers.clone());
-	let debtors = Some(new_expense.debtors.clone());
+	let payers = Some(new_expense.clone().payers);
+	let debtors = Some(new_expense.clone().debtors);
 
 	let creatable_payments: Vec<NewPayment> = forge_creatable_payments(payers, debtors, created_expense.id);
 	
@@ -113,25 +113,25 @@ pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> Ht
 		HttpResponse::Ok().finish()
 }
 
-fn forge_creatable_payments(payers_option: Option<Vec<UserAmount>>, debtors_option: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
-	let mut debtors: Vec<UserAmount> = vec![];
-	if let Some(debtors_unwrapped) = debtors_option {
-		debtors = debtors_unwrapped;
+fn forge_creatable_payments(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
+	let mut debtors_result: Vec<UserAmount> = vec![];
+	if let Some(debtors_unwrapped) = debtors {
+		debtors_result = debtors_unwrapped;
 	}
 
-	let mut payers: Vec<UserAmount> = vec![];
-	if let Some(payers_unwrapped) = payers_option {
-		payers = payers_unwrapped;
+	let mut payers_result: Vec<UserAmount> = vec![];
+	if let Some(payers_unwrapped) = payers {
+		payers_result = payers_unwrapped;
 	}
 
-	let creatable_debtors: Vec<NewPayment> = debtors.into_iter().map(|d| NewPayment {
+	let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter().map(|d| NewPayment {
 		amount: d.amount,
 		expense_id: created_expense_id,
 		user_id: d.user_id,
 		is_debt: true
 	}).collect();
 
-	let creatable_payers: Vec<NewPayment> = payers.into_iter().map(|p| NewPayment {
+	let creatable_payers: Vec<NewPayment> = payers_result.into_iter().map(|p| NewPayment {
 		amount: p.amount,
 		expense_id: created_expense_id,
 		user_id: p.user_id,

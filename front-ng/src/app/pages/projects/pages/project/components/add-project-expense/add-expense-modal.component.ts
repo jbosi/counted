@@ -67,15 +67,17 @@ export class AddExpenseModalComponent implements OnInit {
 
 	private getFormGroup(expense: IExpensesViewModel | undefined): FormGroup<IAddExpenseForm> {
 		const hasNoSelectedPayors: boolean = expense?.payors.length === 0;
-		const payersControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
+		const payersControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
 			isSelectedUser: new FormControl(hasNoSelectedPayors ? index === 0 : expense?.payors?.[index] != null),
-			userAmount: new FormControl(expense?.payors?.[index]?.amount ?? 0, { nonNullable: true })
+			userAmount: new FormControl(expense?.payors?.[index]?.amount ?? 0, { nonNullable: true }),
+			userId: new FormControl(u.id ?? 0, { nonNullable: true }) // usefull for POST only
 		}));
 
 		const hasNoSelectedDebtors: boolean = expense?.debtors.length === 0;
-		const debtorsControls: FormGroup[] = this.users.map((_, index) => new FormGroup({
+		const debtorsControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
 			isSelectedUser: new FormControl(hasNoSelectedDebtors ? true : expense?.debtors?.[index] != null),
-			userAmount: new FormControl(expense?.debtors?.[index]?.amount ?? 0, { nonNullable: true })
+			userAmount: new FormControl(expense?.debtors?.[index]?.amount ?? 0, { nonNullable: true }),
+			userId: new FormControl(u.id, { nonNullable: true })
 		}));
 
 		const form: FormGroup<IAddExpenseForm> = new FormGroup({
@@ -160,4 +162,5 @@ export interface IAddExpenseForm {
 export interface IAddExpenseFormUserAmount {
 	isSelectedUser: FormControl<boolean>
 	userAmount: FormControl<number>
+	userId: FormControl<number>
 }

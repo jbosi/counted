@@ -18,8 +18,8 @@ export class AddExpenseModalApplication {
 			name: formValues.name as string,
 			amount: parseFloat(formValues.amount as unknown as string),
 			expense_type: typeof expenseTypeValue === 'string' ? expenseTypeValue : expenseTypeValue?.id, // Initial value is not an object
-			debtors: formValues.debtors.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
-			payers: formValues.payers.map(d => ({ amount: d.userAmount, user_id: d.userAmount })),
+			debtors: formValues.debtors.map(d => ({ amount: d.userAmount, user_id: d.userId })),
+			payers: formValues.payers.map(d => ({ amount: d.userAmount, user_id: d.userId })),
 			project_id: projectId,
 			description: formValues?.description ?? undefined,
 			author_id: 1, // TODO set in backend

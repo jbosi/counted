@@ -11,7 +11,7 @@ pub async fn get_payments(pool: web::Data<DbPool>, params: Query<PaymentQueryPar
     use schema::payments::dsl::*;
 
     let mut conn = pool.get().expect("couldn't get db connection from pool");
-    let mut query = payments.into_boxed();
+    let mut query = schema::payments::table.into_boxed();
 
     if let Some(user_id_unwrapped) = params.user_id {
         query = query.filter(user_id.eq(user_id_unwrapped))
@@ -22,7 +22,7 @@ pub async fn get_payments(pool: web::Data<DbPool>, params: Query<PaymentQueryPar
     }
 
     let payments_list: Vec<Payment> = query
-        .load::<Payment>(&mut conn)
+        .load(&mut conn)
         .expect("Error while trying to get Payment");
 
     return payments_list;

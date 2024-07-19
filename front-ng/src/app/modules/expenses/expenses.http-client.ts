@@ -15,8 +15,8 @@ export class ExpensesHttpClient {
 		return this.http.get(`${API_URL}`, params);
 	}
 
-	public editAsync(candidate: IEditableExpense): Promise<IExpenseDto> {
-		return this.http.post(`${API_URL}`, candidate);
+	public editAsync(candidate: IEditableExpense, expenseId: number): Promise<IExpenseDto> {
+		return this.http.patch(`${API_URL}/${expenseId}`, candidate);
 	}
 
 	public getByIdAsync(expenseId: number): Promise<IExpenseDto> {

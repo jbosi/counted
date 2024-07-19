@@ -1,19 +1,21 @@
 use actix_web::{HttpRequest, HttpResponse};
-use actix_web::{delete, get, post, patch, Responder, web};
+use actix_web::{delete, get, patch, post, Responder, web};
 use actix_web::web::Query;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::expenses::application::expense_application::{get_expense_app, get_expenses_app};
+use crate::expenses::application::expense_application::{get_expense_app, get_expenses_app, patch_expense_app};
 use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense, PatchableExpense};
+use crate::payments::application::payment_application::forge_creatable_payments_from_expense;
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
+use crate::payments::repository::payment_repository::{create_payments, delete_payments_by_expense_id};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
+use crate::schema::expenses::dsl::expenses;
 use crate::schema::payments;
-use crate::users::domain::user_model::UserAmount;
 
-#[post("expenses")]
+#[post("/expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
 	use schema::expenses;
 
@@ -37,7 +39,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	let payers = Some(new_expense.clone().payers);
 	let debtors = Some(new_expense.clone().debtors);
 
-	let creatable_payments: Vec<NewPayment> = forge_creatable_payments(payers, debtors, created_expense.id);
+	let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payers, debtors, created_expense.id);
 	
 	diesel::insert_into(payments::table)
 		.values(&creatable_payments)
@@ -47,7 +49,7 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	web::Json(created_expense)
 }
 
-#[get("expenses")]
+#[get("/expenses")]
 pub async fn get_expenses(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
 	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(req.query_string()).unwrap();
 
@@ -56,49 +58,30 @@ pub async fn get_expenses(pool: web::Data<DbPool>, req: HttpRequest) -> impl Res
 	web::Json(expense_dto)
 }
 
-#[get("expenses/{expense_id}")]
+#[get("/expenses/{expense_id}")]
 pub async fn get_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) -> impl Responder {
 	let expense_dto: ExpenseDto = get_expense_app(pool, expense_id.into_inner()).await;
 
 	web::Json(expense_dto)
 }
 
-#[patch("expenses/{expense_id}")]
-pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
-	use schema::expenses::dsl::*;
-	use schema::payments::dsl::*;
+#[patch("/expenses/{expense_id}")]
+pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<i32>, payload: web::Json<PatchableExpense>) -> impl Responder {
 
-	let (_, path_expense_id): (i32, i32) = path.into_inner();
+	let path_expense_id: i32 = path.into_inner();
 
-	let mut conn = pool.get().expect("couldn't get db connection from pool");
-// https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
+	patch_expense_app(pool.clone(), path_expense_id, payload.clone()).await;
 
-	// TODO handle null values for each prop by making an update for each prop (i.e. 4 set(), one for each prop)
-	let values = (
-		schema::expenses::columns::amount.eq(payload.clone().amount.unwrap()),
-		name.eq(payload.clone().name.unwrap()),
-		description.eq(payload.clone().description.unwrap()),
-		expense_type.eq(payload.clone().expense_type.unwrap()),
-	);
+	// La solution la plus raisonnable mais perfectible me semble être de supprimer tous les payments de la dépense cible pour les recréer
+	delete_payments_by_expense_id(pool.clone(), path_expense_id).await;
 
-	let updated_user = diesel::update(expenses.find(path_expense_id))
-		.set(values)
-		.execute(&mut conn)
-		.expect("Error while updating user amount");
+	let new_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payload.clone().payers, payload.clone().debtors, path_expense_id);
+	create_payments(pool, new_payments).await;
 
-	let editable_payments: Vec<NewPayment> = forge_creatable_payments(payload.clone().payers, payload.clone().debtors, path_expense_id);
-
-	for editable_payment in editable_payments {
-		diesel::update(payments.find(editable_payment.expense_id))
-			.set(editable_payment)
-			.execute(&mut conn)
-			.expect("Error updating payments");
-	}
-
-	web::Json(updated_user)
+	HttpResponse::Ok().finish()
 }
 
-#[delete("expenses/{expense_id}")]
+#[delete("/expenses/{expense_id}")]
 pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> HttpResponse {
 	use schema::expenses::dsl::*;
 
@@ -111,32 +94,4 @@ pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> Ht
 		.expect("Error deleting expense");
 
 		HttpResponse::Ok().finish()
-}
-
-fn forge_creatable_payments(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
-	let mut debtors_result: Vec<UserAmount> = vec![];
-	if let Some(debtors_unwrapped) = debtors {
-		debtors_result = debtors_unwrapped;
-	}
-
-	let mut payers_result: Vec<UserAmount> = vec![];
-	if let Some(payers_unwrapped) = payers {
-		payers_result = payers_unwrapped;
-	}
-
-	let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter().map(|d| NewPayment {
-		amount: d.amount,
-		expense_id: created_expense_id,
-		user_id: d.user_id,
-		is_debt: true
-	}).collect();
-
-	let creatable_payers: Vec<NewPayment> = payers_result.into_iter().map(|p| NewPayment {
-		amount: p.amount,
-		expense_id: created_expense_id,
-		user_id: p.user_id,
-		is_debt: false
-	}).collect();
-
-	return [creatable_debtors, creatable_payers].concat();
 }

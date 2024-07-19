@@ -27,6 +27,16 @@ pub struct NewPayment {
 	pub amount: f64,
 }
 
+
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone, AsChangeset)]
+#[diesel(table_name = payments)]
+pub struct EditablePayment {
+	pub expense_id: i32,
+	pub user_id: i32,
+	pub is_debt: bool,
+	pub amount: f64,
+}
+
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct ExpenseDto {
 	pub id: i32,

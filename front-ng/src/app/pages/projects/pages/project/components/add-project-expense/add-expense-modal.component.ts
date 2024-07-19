@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
@@ -19,7 +19,7 @@ import { AddExpenseModalApplication } from './add-expense-modal.application';
 	templateUrl: './add-expense-modal.component.html',
 	styleUrls: ['./add-expense-modal.component.scss'],
 	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, CommonModule, AvatarInitialsComponent]
+	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, AvatarInitialsComponent]
 })
 export class AddExpenseModalComponent implements OnInit {
 	public users: IUser[] = [];

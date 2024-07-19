@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { IExpensesViewModel, IUser, RouterParamService } from '@hcount/modules';
 import { DialogService, DynamicDialogConfig, DynamicDialogModule } from 'primeng/dynamicdialog';
@@ -14,13 +14,12 @@ import { ButtonModule } from 'primeng/button';
 	styleUrls: ['./project.component.scss'],
 	standalone: true,
 	imports: [
-		ExpenseComponent,
-		SubHeaderComponent,
-		AddExpenseModalComponent,
-		CommonModule,
-		DynamicDialogModule,
-		ButtonModule
-	],
+    ExpenseComponent,
+    SubHeaderComponent,
+    AddExpenseModalComponent,
+    DynamicDialogModule,
+    ButtonModule
+],
 	providers: [DialogService]
 })
 export class ProjectComponent implements OnInit {

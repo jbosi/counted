@@ -12,12 +12,16 @@
 </div>
 
 <div class="expense-list">
-	<app-expense *ngFor="let expensePayment of expensePayments" [expensePayment]="expensePayment" (displayExpenseDetail)="onDisplayExpenseModal(users, $event)"></app-expense>
+	@for (expensePayment of expensePayments; track expensePayment) {
+		<app-expense [expensePayment]="expensePayment" (displayExpenseDetail)="onDisplayExpenseModal(users, $event)"></app-expense>
+	}
 </div>
 
-<button *ngIf="users.length > 0"
+@if (users.length > 0) {
+	<button
 	pButton
 	class="p-button-outlined"
 	label="Ajouter une dépense"
 	(click)="onDisplayExpenseModal(users)">
 </button>
+}

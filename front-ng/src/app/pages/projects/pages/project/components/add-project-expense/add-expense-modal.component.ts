@@ -66,14 +66,14 @@ export class AddExpenseModalComponent implements OnInit {
 	}
 
 	private getFormGroup(expense: IExpensesViewModel | undefined): FormGroup<IAddExpenseForm> {
-		const hasNoSelectedPayors: boolean = expense?.payors.length === 0;
+		const hasNoSelectedPayors: boolean = expense?.payors == null || expense?.payors?.length === 0;
 		const payersControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
 			isSelectedUser: new FormControl(hasNoSelectedPayors ? index === 0 : expense?.payors?.[index] != null),
 			userAmount: new FormControl(expense?.payors?.[index]?.amount ?? 0, { nonNullable: true }),
 			userId: new FormControl(u.id ?? 0, { nonNullable: true }) // usefull for POST only
 		}));
 
-		const hasNoSelectedDebtors: boolean = expense?.debtors.length === 0;
+		const hasNoSelectedDebtors: boolean = expense?.debtors == null || expense?.debtors?.length === 0;
 		const debtorsControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
 			isSelectedUser: new FormControl(hasNoSelectedDebtors ? true : expense?.debtors?.[index] != null),
 			userAmount: new FormControl(expense?.debtors?.[index]?.amount ?? 0, { nonNullable: true }),
@@ -103,7 +103,7 @@ export class AddExpenseModalComponent implements OnInit {
 
 	private getExpenseTypeInitialValue(expense: IExpensesViewModel | undefined): ExpenseType[] {
 		if (!expense?.expense_type) {
-			return [];
+			return [ExpenseType.Expense];
 		}
 		
 		const value = this.expenseTypeOptions.find(eto => eto.id === expense?.expense_type) ?? this.expenseTypeOptions[0];

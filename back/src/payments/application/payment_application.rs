@@ -12,6 +12,7 @@ pub async fn get_payments_app(pool: web::Data<DbPool>, params: Query<PaymentQuer
     return payments;
 }
 
+// Currently, payers / debtors with amount 0 (not selected) are created in the table
 pub fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
     let mut debtors_result: Vec<UserAmount> = vec![];
     if let Some(debtors_unwrapped) = debtors {
@@ -23,19 +24,23 @@ pub fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, de
         payers_result = payers_unwrapped;
     }
 
-    let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter().map(|d| NewPayment {
-        amount: d.amount,
-        expense_id: created_expense_id,
-        user_id: d.user_id,
-        is_debt: true
-    }).collect();
+    let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter()
+        .filter(|d| d.amount != 0.0)
+        .map(|d| NewPayment {
+            amount: d.amount,
+            expense_id: created_expense_id,
+            user_id: d.user_id,
+            is_debt: true
+        }).collect();
 
-    let creatable_payers: Vec<NewPayment> = payers_result.into_iter().map(|p| NewPayment {
-        amount: p.amount,
-        expense_id: created_expense_id,
-        user_id: p.user_id,
-        is_debt: false
-    }).collect();
+    let creatable_payers: Vec<NewPayment> = payers_result.into_iter()
+        .filter(|d| d.amount != 0.0)
+        .map(|p| NewPayment {
+            amount: p.amount,
+            expense_id: created_expense_id,
+            user_id: p.user_id,
+            is_debt: false
+        }).collect();
 
     return [creatable_debtors, creatable_payers].concat();
 }

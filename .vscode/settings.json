@@ -3,5 +3,51 @@
 		".\\back\\Cargo.toml",
 		".\\back\\Cargo.toml",
 		".\\back\\Cargo.toml"
-	]
+	],
+	"eslint.options": {
+		"extensions": [".ts", ".html"]
+	},
+	"eslint.validate": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"html"
+	],
+	// set prettier as default formatter
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"prettier.tabWidth": 4,
+	"prettier.useTabs": true,
+	// default to true to format .scss and .json files with prettier
+	"editor.formatOnSave": true,
+	// deactivate in javascript, typescript and html files
+	"[javascript]": {
+		"editor.formatOnSave": false
+	},
+	"[typescript]": {
+		"editor.formatOnSave": false
+	},
+	"[html]": {
+		"editor.formatOnSave": false
+	},
+	// let eslint fix issues on save
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit"
+	},
+	"editor.quickSuggestions": {
+		"other": true,
+		"comments": false,
+		"strings": true
+	},
+	"workbench.tree.renderIndentGuides": "always",
+	"editor.detectIndentation": false,
+	"editor.insertSpaces": false,
+	"editor.renderWhitespace": "all",
+	"diffEditor.ignoreTrimWhitespace": false,
+	"debug.allowBreakpointsEverywhere": true,
+	"search.useIgnoreFiles": false,
+	"search.exclude": {
+		"**/dist": true,
+		"**/.angular": true
+	}
 }

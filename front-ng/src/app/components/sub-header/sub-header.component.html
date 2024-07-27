@@ -1,5 +1,7 @@
 <div class="subHeader">
-	<app-avatar-initials class="subHeader-avatars" *ngFor="let user of users" [userName]="user.name"></app-avatar-initials>
+	@for (user of users; track user) {
+		<app-avatar-initials class="subHeader-avatars" [userName]="user.name"></app-avatar-initials>
+	}
 </div>
 
 <div>

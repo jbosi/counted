@@ -18,9 +18,19 @@ pub struct Payment {
 	pub created_at: NaiveDateTime
 }
 
-#[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone, AsChangeset)]
 #[diesel(table_name = payments)]
 pub struct NewPayment {
+	pub expense_id: i32,
+	pub user_id: i32,
+	pub is_debt: bool,
+	pub amount: f64,
+}
+
+
+#[derive(Insertable, Serialize, Deserialize, Debug, Clone, AsChangeset)]
+#[diesel(table_name = payments)]
+pub struct EditablePayment {
 	pub expense_id: i32,
 	pub user_id: i32,
 	pub is_debt: bool,

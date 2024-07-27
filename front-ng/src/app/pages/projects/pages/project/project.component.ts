@@ -1,12 +1,12 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
 import { IExpensesViewModel, IUser, RouterParamService } from '@hcount/modules';
-import { firstValueFrom } from 'rxjs';
+import { DialogService, DynamicDialogConfig, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { SubHeaderComponent } from '../../../../components';
 import { ExpenseComponent } from './components';
 import { AddExpenseModalComponent } from './components/add-project-expense';
 import { ProjectApplication } from './project.application';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
 	selector: 'app-project',
@@ -14,20 +14,25 @@ import { ProjectApplication } from './project.application';
 	styleUrls: ['./project.component.scss'],
 	standalone: true,
 	imports: [
-		ExpenseComponent,
-		SubHeaderComponent,
-		AddExpenseModalComponent,
-		CommonModule,
-	]
+    ExpenseComponent,
+    SubHeaderComponent,
+    AddExpenseModalComponent,
+    DynamicDialogModule,
+    ButtonModule
+],
+	providers: [DialogService]
 })
 export class ProjectComponent implements OnInit {
 	public users: IUser[] = [];
 	public expensePayments: IExpensesViewModel[] = [];
 	public projectId!: string;
+	public globalTotal: number = 0;
+	public expensePaymentId: number | undefined;
 
 	constructor(
 		private readonly projectApplication: ProjectApplication,
-		private readonly routerParamService: RouterParamService
+		private readonly routerParamService: RouterParamService,
+		private readonly dialogService: DialogService
 	) {}
 	
 	async ngOnInit(): Promise<void> {
@@ -42,9 +47,30 @@ export class ProjectComponent implements OnInit {
 		this.users = await this.projectApplication.getUsersByProjectIdAsync(this.projectId);
 
 		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
+
+		// TODO should be computed and use from backend
+		this.globalTotal = this.expensePayments.map(ep => ep.amount).reduce((acc, ep) => acc + ep, 0);
 	}
 
-	public async onExpenseAddedAsync(): Promise<void> {
-		this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
+	public async onDisplayExpenseModal(users: IUser[], expensePaymentId?: number): Promise<void> {
+		const config: DynamicDialogConfig<IExpenseModalData> = {
+			data: {
+				expensePayment: this.expensePayments?.find(ep => ep.id === expensePaymentId),
+				users: users
+			},
+			header: 'Créer une nouvelle dépense',
+			width: '50vw',
+			height: '600px'
+		}
+		this.dialogService.open(AddExpenseModalComponent, config).onClose.subscribe(async expense => {
+			if (expense != null) {
+				this.expensePayments = await this.projectApplication.getExpensesAsync(this.projectId);
+			}
+		});
 	}
+}
+
+export interface IExpenseModalData {
+	expensePayment?: IExpensesViewModel,
+	users: IUser[]
 }

@@ -1,26 +1,25 @@
 use actix_web::{HttpRequest, HttpResponse};
-use actix_web::{delete, get, post, Responder, web};
+use actix_web::{delete, get, patch, post, Responder, web};
 use actix_web::web::Query;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 
 use crate::{DbPool, schema};
-use crate::expenses::application::expense_application::get_expenses_app;
-use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense};
+use crate::expenses::application::expense_application::{get_expense_app, get_expenses_app, patch_expense_app};
+use crate::expenses::domain::expense_model::{CreatableExpense, Expense, NewExpense, PatchableExpense};
+use crate::payments::application::payment_application::forge_creatable_payments_from_expense;
 use crate::payments::domain::payment_model::{ExpenseDto, NewPayment};
+use crate::payments::repository::payment_repository::{create_payments, delete_payments_by_expense_id};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
+use crate::schema::expenses::dsl::expenses;
 use crate::schema::payments;
 
-#[post("expenses")]
+#[post("/expenses")]
 pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<CreatableExpense>) -> impl Responder {
 	use schema::expenses;
 
 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-
-	let payers = new_expense.payers.clone().into_iter();
-	let debtors = new_expense.debtors.clone().into_iter();
-
 
 	let expense: NewExpense = NewExpense {
 		name: new_expense.clone().name,
@@ -37,21 +36,10 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 		.get_result::<Expense>(&mut conn)
 		.expect("Error saving new post");
 
-	let creatable_debtors: Vec<NewPayment> = debtors.map(|d| NewPayment {
-		amount: d.amount,
-		expense_id: created_expense.id,
-		user_id: d.user_id,
-		is_debt: true
-	}).collect();
+	let payers = Some(new_expense.clone().payers);
+	let debtors = Some(new_expense.clone().debtors);
 
-	let creatable_payers: Vec<NewPayment> = payers.map(|p| NewPayment {
-		amount: p.amount,
-		expense_id: created_expense.id,
-		user_id: p.user_id,
-		is_debt: false
-	}).collect();
-
-	let creatable_payments: Vec<NewPayment> = [creatable_debtors, creatable_payers].concat();
+	let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payers, debtors, created_expense.id);
 	
 	diesel::insert_into(payments::table)
 		.values(&creatable_payments)
@@ -61,24 +49,8 @@ pub async fn create_expense(pool: web::Data<DbPool>, new_expense: web::Json<Crea
 	web::Json(created_expense)
 }
 
-// On veut les expenses relatives à un projet et pouvoir éventuellement filtrer sur un user
-// #[get("expenses")]
-// pub async fn get_expense(pool: web::Data<DbPool>, _req: HttpRequest) -> impl Responder {
-// 	let params = web::Query::<ExpensesQueryParams>::from_query(_req.query_string()).unwrap();
-// 	use schema::expenses::dsl::*;
-//
-// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-//
-// 	let expense_list = expenses
-// 		.filter(project_id.eq(params.project_id))
-// 		.load::<Expense>(&mut conn)
-// 		.expect("Error while trying to get Expenses");
-//
-// 	web::Json(expense_list)
-// }
-
-#[get("expenses")]
-pub async fn get_expense(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
+#[get("/expenses")]
+pub async fn get_expenses(pool: web::Data<DbPool>, req: HttpRequest) -> impl Responder {
 	let params: Query<ExpenseQueryParams> = web::Query::<ExpenseQueryParams>::from_query(req.query_string()).unwrap();
 
 	let expense_dto: Vec<ExpenseDto> = get_expenses_app(pool, params).await;
@@ -86,37 +58,30 @@ pub async fn get_expense(pool: web::Data<DbPool>, req: HttpRequest) -> impl Resp
 	web::Json(expense_dto)
 }
 
-// #[patch("expenses/{expense_id}")]
-// pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<(i32, i32)>, payload: web::Json<PatchableExpense>) -> impl Responder {
-// 	use schema::expenses::dsl::*;
+#[get("/expenses/{expense_id}")]
+pub async fn get_expense(pool: web::Data<DbPool>, expense_id: web::Path<i32>) -> impl Responder {
+	let expense_dto: ExpenseDto = get_expense_app(pool, expense_id.into_inner()).await;
 
-// 	let (path_project_id, path_expense_id): (i32, i32) = path.into_inner();
+	web::Json(expense_dto)
+}
 
-// 	let mut conn = pool.get().expect("couldn't get db connection from pool");
-// // https://stackoverflow.com/questions/72249171/rust-diesel-conditionally-update-fields
-// 	let updated_user = diesel::update(expenses.find(path_expense_id))
-// 		.set({
-// 			if (Some(payload.amount)) {
-// 				amount.eq(payload.amount)
-// 			} if (Some(payload.name)) {
-// 				name.eq(payload.name)
-// 			} if (Some(payload.description)) {
-// 				description.eq(payload.description)
-// 			} if (Some(payload.expense_type)) {
-// 				description.eq(payload.expense_type)
-// 			} if (Some(payload.debtors)) {
-// 				description.eq(payload.debtors)
-// 			} if (Some(payload.payers)) {
-// 				description.eq(payload.payers)
-// 			}
-// 		})
-// 		.execute(&conn)
-// 		.expect("Error while updating user amount");
+#[patch("/expenses/{expense_id}")]
+pub async fn update_expense(pool: web::Data<DbPool>, path: web::Path<i32>, payload: web::Json<PatchableExpense>) -> impl Responder {
 
-// 	web::Json(updated_user)
-// }
+	let path_expense_id: i32 = path.into_inner();
 
-#[delete("expenses/{expense_id}")]
+	patch_expense_app(pool.clone(), path_expense_id, payload.clone()).await;
+
+	// La solution la plus raisonnable mais perfectible me semble être de supprimer tous les payments de la dépense cible pour les recréer
+	delete_payments_by_expense_id(pool.clone(), path_expense_id).await;
+
+	let new_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payload.clone().payers, payload.clone().debtors, path_expense_id);
+	create_payments(pool, new_payments).await;
+
+	HttpResponse::Ok().finish()
+}
+
+#[delete("/expenses/{expense_id}")]
 pub async fn delete_expense(pool: web::Data<DbPool>, path: web::Path<i32>) -> HttpResponse {
 	use schema::expenses::dsl::*;
 

@@ -8,8 +8,10 @@
 		<div class="card-footer">
 			<p-tag value="En cours" severity="primary" [rounded]="true"></p-tag>
 			<div class="card-footer-avatars">
-
-				<app-avatar-initials *ngFor="let user of project?.users" class="card-footer-avatars-item" [size]="23" [userName]="user.name"></app-avatar-initials>
+				
+				@for (user of project?.users; track user) {
+					<app-avatar-initials class="card-footer-avatars-item" [size]="23" [userName]="user.name"></app-avatar-initials>
+				}
 				<!-- <p-avatar label="+2" shape="circle" [style]="{'background-color':'#9c27b0', 'color': '#ffffff'}"></p-avatar> -->
 			</div>
 		</div>

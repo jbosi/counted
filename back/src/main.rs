@@ -14,6 +14,7 @@ use crate::{
 	users::domain::user_model::User,
 	users::web::user_web::{create_users, delete_user, get_users, update_user_name}
 };
+use crate::expenses::web::expense_web::{get_expenses, update_expense};
 use crate::users::web::user_web::get_user;
 
 pub mod models;
@@ -94,6 +95,8 @@ async fn main() -> std::io::Result<()> {
 					.service(delete_user)
 
 					.service(create_expense)
+					.service(update_expense)
+					.service(get_expenses)
 					.service(get_expense)
 					.service(delete_expense)
 

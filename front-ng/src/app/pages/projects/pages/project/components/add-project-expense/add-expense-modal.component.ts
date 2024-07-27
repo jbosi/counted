@@ -1,86 +1,166 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { firstValueFrom } from 'rxjs';
-import { ExpenseType, ExpensesHttpClient, ICreatableExpense, IUser, IUserAmount } from '../../../../../../modules';
+import { AvatarInitialsComponent, ExpenseType, IExpensesViewModel, IUser } from '../../../../../../modules';
+import { IExpenseModalData } from '../../project.component';
+import { AddExpenseModalApplication } from './add-expense-modal.application';
 
 @Component({
 	selector: 'app-add-expense-modal',
 	templateUrl: './add-expense-modal.component.html',
 	styleUrls: ['./add-expense-modal.component.scss'],
 	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule]
+	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, AvatarInitialsComponent]
 })
 export class AddExpenseModalComponent implements OnInit {
-	@Output() public expenseAdded = new EventEmitter<void>();
-	@Input() public users: IUser[] = [];
+	public users: IUser[] = [];
+	public expense: IExpensesViewModel | undefined;
 
 	public form = {} as FormGroup<IAddExpenseForm>;
+	public get payersControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
+		return this.form.controls['payers'];
+	}
 
-	public readonly expenseTypeOptions: { name: string, id: ExpenseType } [] = [
+	public get debtorsControl(): FormArray<FormGroup<IAddExpenseFormUserAmount>> {
+		return this.form.controls['debtors'];
+	}
+
+	public readonly expenseTypeOptions: { name: string, id: ExpenseType }[] = [
 		{ id: ExpenseType.Expense, name: 'Dépense' },
 		{ id: ExpenseType.Gain, name: 'Rentrée d\'argent' },
 		{ id: ExpenseType.Transfer, name: 'Transfert d\'argent' }
 	]
 
-	public display: boolean = false;
 	constructor(
 		private readonly activatedRoute: ActivatedRoute,
-		private readonly expensesHttpClient: ExpensesHttpClient
+		private readonly addExpenseModalApplication: AddExpenseModalApplication,
+		private readonly modal: DynamicDialogRef,
+		private readonly modalConfig: DynamicDialogConfig
 	) {}
 
 	ngOnInit(): void {
-		this.form = new FormGroup({
-			name: new FormControl(),
-			amount: new FormControl(),
-			debtors: new FormControl(),
-			expenseType: new FormControl(),
-			payers: new FormControl(),
-			description: new FormControl()
-		})
+		const config: DynamicDialogConfig<IExpenseModalData> = this.modalConfig
+
+		this.users = config.data?.users ?? [];
+		this.expense = config.data?.expensePayment;
+
+		this.form = this.getFormGroup(this.expense)
+
+		this.form.controls['amount'].valueChanges.subscribe(amount => {
+			this.updateDebtorsAndPayors(this.form, amount);
+		});
+
+		[
+			...this.form.controls['debtors'].controls,
+			...this.form.controls['payers'].controls
+		].forEach(c => c.valueChanges.subscribe(() => this.updateDebtorsAndPayors(this.form, this.form.controls['amount'].value)))
 	}
 
-	public showDialog(): void {
-		this.display = true;
+	private getFormGroup(expense: IExpensesViewModel | undefined): FormGroup<IAddExpenseForm> {
+		const hasNoSelectedPayors: boolean = expense?.payors == null || expense?.payors?.length === 0;
+		const payersControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
+			isSelectedUser: new FormControl(hasNoSelectedPayors ? index === 0 : (expense?.payors?.[index] != null && expense?.payors?.[index]?.amount != 0)),
+			userAmount: new FormControl(expense?.payors?.[index]?.amount ?? 0, { nonNullable: true }),
+			userId: new FormControl(u.id ?? 0, { nonNullable: true }) // usefull for POST only
+		}));
+
+		const hasNoSelectedDebtors: boolean = expense?.debtors == null || expense?.debtors?.length === 0;
+		const debtorsControls: FormGroup[] = this.users.map((u, index) => new FormGroup({
+			isSelectedUser: new FormControl(hasNoSelectedDebtors ? true : (expense?.debtors?.[index] != null && expense?.debtors?.[index]?.amount != 0)),
+			userAmount: new FormControl(expense?.debtors?.[index]?.amount ?? 0, { nonNullable: true }),
+			userId: new FormControl(u.id, { nonNullable: true })
+		}));
+
+		const form: FormGroup<IAddExpenseForm> = new FormGroup({
+			name: new FormControl<string>(expense?.name ?? '', { nonNullable: true }),
+			amount: new FormControl(expense?.amount ?? 0, { nonNullable: true }),
+			debtors: new FormArray([...debtorsControls]),
+			expenseType: new FormControl(this.getExpenseTypeInitialValue(expense) as any as ({ name: string; id: ExpenseType; })[], { nonNullable: true }),
+			payers: new FormArray([...payersControls]),
+			description: new FormControl(expense?.description ?? '')
+		});
+
+		return form;
 	}
 
 	public async onSubmitAsync(): Promise<void> {
 		const params: Params = await firstValueFrom(this.activatedRoute.params);
 		const projectId = (params as { projectId: string })?.projectId
 
-		const amount: number = this.form.value?.amount as number;
-		const payers: number[] = this.form?.value?.payers as number[];
-		const debtors: number[] = this.form?.value?.debtors as number[];
-		const candidate: ICreatableExpense = {
-			name: this.form?.value?.name,
-			amount: amount,
-			expense_type: this.form?.value?.expenseType?.[0],
-			debtors: debtors?.map(id => ({ amount: amount / (debtors.length), user_id: id })),
-			payers: payers?.map(id => ({ amount: amount / (payers.length), user_id: id })),
-			project_id: projectId,
-			description: this.form?.value?.description,
-			author_id: 1, // TODO set in backend
-		} as ICreatableExpense
+		await this.addExpenseModalApplication.createOrEditExpenseAsync(this.form, projectId, this.expense?.id);
 
-		await this.expensesHttpClient.createAsync(candidate)
-			.catch(e => console.error(e));
+		this.modal.close(true);
+	}
 
-		this.display = false;
-		this.expenseAdded.next();
+	private getExpenseTypeInitialValue(expense: IExpensesViewModel | undefined): ExpenseType[] {
+		if (!expense?.expense_type) {
+			return [ExpenseType.Expense];
+		}
+		
+		const value = this.expenseTypeOptions.find(eto => eto.id === expense?.expense_type) ?? this.expenseTypeOptions[0];
+		return [value.id];
+	}
+
+	private updateDebtorsAndPayors(form: FormGroup<IAddExpenseForm>, amount: number): void {
+		const dirtyPayersAmount: number = form.controls['payers'].controls
+			.filter(c => c.controls['userAmount'].dirty && c.controls['isSelectedUser'].value)
+			.reduce((acc, c) => acc + c.controls['userAmount'].value, 0);
+		
+		const pristinePayers = form.controls['payers'].controls
+			.filter(c => c.controls['userAmount'].pristine && c.controls['isSelectedUser'].value);
+		
+		const totalPayers = pristinePayers.filter(c => c.controls['isSelectedUser'].value).length
+
+		pristinePayers.forEach(c => c.controls['userAmount'].setValue((amount - dirtyPayersAmount) / totalPayers, { emitEvent: false }));
+
+		const dirtyDebtorsAmount: number = form.controls['debtors'].controls
+			.filter(c => c.controls['userAmount'].dirty && c.controls['isSelectedUser'].value)
+			.reduce((acc, c) => acc + c.controls['userAmount'].value, 0);
+		
+		const pristineDebtors = form.controls['debtors'].controls
+			.filter(c => c.controls['userAmount'].pristine && c.controls['isSelectedUser'].value);
+		
+		const totalDebtors = pristineDebtors.filter(c => c.controls['isSelectedUser'].value).length
+
+		pristineDebtors.forEach(c => c.controls['userAmount'].setValue((amount - dirtyDebtorsAmount) / totalDebtors, { emitEvent: false }));
+		
+		// TODO Set errors if deb/pay amounts are not equal to expense amount
+		if (true) {
+			
+		}
+
+		// Reset amount for unSelectedUsers
+		form.controls['debtors'].controls
+			.filter(c => !c.get('isSelectedUser')?.value)
+			.forEach(c => c.controls.userAmount.setValue(0, { emitEvent: false }));
+		
+		form.controls['payers'].controls
+			.filter(c => !c.get('isSelectedUser')?.value)
+			.forEach(c => c.controls.userAmount.setValue(0, { emitEvent: false }));
 	}
 }
 
 
-interface IAddExpenseForm {
+export interface IAddExpenseForm {
 	name: FormControl<string>;
 	amount: FormControl<number>;
-	debtors: FormControl<number[]>;
-	expenseType: FormControl<ExpenseType[]>;
-	payers: FormControl<number[]>;
-	description: FormControl<Partial<string>>;
+	debtors: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
+	expenseType: FormControl<{ name: string, id: ExpenseType }[]>;
+	payers: FormArray<FormGroup<IAddExpenseFormUserAmount>>;
+	description: FormControl<string | null>;
+}
+
+export interface IAddExpenseFormUserAmount {
+	isSelectedUser: FormControl<boolean>
+	userAmount: FormControl<number>
+	userId: FormControl<number>
 }

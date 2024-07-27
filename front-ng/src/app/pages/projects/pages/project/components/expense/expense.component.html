@@ -1,13 +1,15 @@
-<div *ngIf="expensePayment != null" class="expense" [routerLink]="[expensePayment.id]">
-	<span class="pi pi-money-bill"></span>
-	<div class="expenseContent">
-		<label>{{ expensePayment.name }}</label>
-		<div class="expenseContent-avatars">
-			<span class="expenseContent-avatars-label">Payé par</span>
-			<ng-container *ngFor="let payor of expensePayment.payors">
-				<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="payor.user_name"></app-avatar-initials>
-			</ng-container>
+@if (expensePayment != null) {
+	<div class="expense" (click)="displayExpenseDetail.emit(expensePayment.id)">
+		<span class="pi pi-money-bill"></span>
+		<div class="expenseContent">
+			<label>{{ expensePayment.name }}</label>
+			<div class="expenseContent-avatars">
+				<span class="expenseContent-avatars-label">Payé par</span>
+				@for (payor of expensePayment.payors; track payor) {
+					<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="payor.user_name"></app-avatar-initials>
+				}
+			</div>
 		</div>
+		<div class="expenseAmount">{{ expensePayment.amount }} €</div>
 	</div>
-	<div class="expenseAmount">{{ expensePayment.amount }} €</div>
-</div>
+}

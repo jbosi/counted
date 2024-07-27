@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AvatarInitialsComponent, IExpensesViewModel } from '@hcount/modules';
 import { AvatarModule } from 'primeng/avatar';
@@ -8,9 +8,10 @@ import { AvatarModule } from 'primeng/avatar';
 	templateUrl: './expense.component.html',
 	styleUrls: ['./expense.component.scss'],
 	standalone: true,
-	imports: [AvatarModule, CommonModule, RouterModule, AvatarInitialsComponent],
+	imports: [AvatarModule, RouterModule, AvatarInitialsComponent],
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpenseComponent {
 	@Input() public expensePayment!: IExpensesViewModel;
+	@Output() public displayExpenseDetail = new EventEmitter<number>();
 }

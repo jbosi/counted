@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
@@ -11,12 +11,11 @@ import { AddUsersModalComponent } from './modals';
 	styleUrls: ['./sub-header.component.scss'],
 	standalone: true,
 	imports: [
-		ButtonModule,
-		AvatarModule,
-		AddUsersModalComponent,
-		AvatarInitialsComponent,
-		CommonModule
-	],
+    ButtonModule,
+    AvatarModule,
+    AddUsersModalComponent,
+    AvatarInitialsComponent
+],
 })
 export class SubHeaderComponent implements OnInit {
 	public users: IUser[] = [];

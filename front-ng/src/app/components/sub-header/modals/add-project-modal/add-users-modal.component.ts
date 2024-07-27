@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,7 @@ import { ICreatableUsers, IUser, RouterParamService, UsersHttpClient } from '../
 	templateUrl: './add-users-modal.component.html',
 	styleUrls: ['./add-users-modal.component.scss'],
 	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, ButtonModule, CommonModule]
+	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, ButtonModule]
 })
 export class AddUsersModalComponent implements OnInit {
 	@Output() public usersAdded = new EventEmitter<void>();

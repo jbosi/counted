@@ -2,17 +2,26 @@
 
 <div class="summary">
 	<div class="summary-personal">
-		<span>Mon total</span>
+		<span>Mon total </span>
 		<span>625€</span>
 	</div>
 	<div class="summary-global">
-		<span>Total global</span>
-		<span>3000€</span>
+		<span>Total global </span>
+		<span>{{ globalTotal }} €</span>
 	</div>
 </div>
 
 <div class="expense-list">
-	<app-expense *ngFor="let expensePayment of expensePayments" [expensePayment]="expensePayment"></app-expense>
+	@for (expensePayment of expensePayments; track expensePayment) {
+		<app-expense [expensePayment]="expensePayment" (displayExpenseDetail)="onDisplayExpenseModal(users, $event)"></app-expense>
+	}
 </div>
 
-<app-add-expense-modal [users]="users" (expenseAdded)="onExpenseAddedAsync()"></app-add-expense-modal>
+@if (users.length > 0) {
+	<button
+	pButton
+	class="p-button-outlined"
+	label="Ajouter une dépense"
+	(click)="onDisplayExpenseModal(users)">
+</button>
+}

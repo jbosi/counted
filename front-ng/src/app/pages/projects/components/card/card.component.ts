@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AvatarInitialsComponent } from '@hcount/modules';
@@ -14,7 +14,7 @@ import { IProjectCardViewModel } from '../../projects.component';
 	templateUrl: './card.component.html',
 	styleUrls: ['./card.component.scss'],
 	standalone: true,
-	imports: [CardModule, SharedModule, ProgressBarModule, TagModule, AvatarGroupModule, NgFor, AvatarInitialsComponent]
+	imports: [CardModule, SharedModule, ProgressBarModule, TagModule, AvatarGroupModule, AvatarInitialsComponent]
 })
 export class CardComponent {
 	@Input() public project = {} as IProjectCardViewModel;

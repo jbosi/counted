@@ -29,6 +29,10 @@ export interface ICreatableExpense {
 	description?: string,
 }
 
+export interface IEditableExpense extends ICreatableExpense {
+	id: number
+}
+
 export interface IUserAmount {
 	user_id: number,
 	amount: number

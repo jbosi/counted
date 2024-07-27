@@ -1,5 +1,7 @@
 <div class="card-list">
-	<app-card *ngFor="let project of projects" [project]="project"></app-card>
+	@for (project of projects; track project) {
+		<app-card [project]="project"></app-card>
+	}
 </div>
 
 <div>

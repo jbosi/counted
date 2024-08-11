@@ -93,18 +93,16 @@ fn forgeBalanceFromPayments(payments: Vec<Payment>) -> Balance {
     };
 
     let mut balances: HashMap<i32, f64> = Default::default();
+    let mut totalExpenses: f64 = 0.0;
 
     for payment in payments {
-        // if let Some(matching_balance) = balances.get_mut(&payment.user_id) {
-        //     matching_balance.add_assign(payment.amount);
-        // } else {
-        //     balances.insert(payment.user_id, payment.amount);
-        // }
         let mut default_insert: f64 = 0.0;
+
         if (payment.is_debt) {
             default_insert.sub_assign(payment.amount);
         } else {
             default_insert.add_assign(payment.amount);
+            totalExpenses.add_assign(payment.amount)
         }
         balances.entry(payment.user_id)
             .and_modify(|p| {
@@ -124,7 +122,7 @@ fn forgeBalanceFromPayments(payments: Vec<Payment>) -> Balance {
             amount: amount,
         });
 
-        balance.total_expenses = 0.0;
+        balance.total_expenses = totalExpenses;
         balance.currency = "€".to_string()
     }
 

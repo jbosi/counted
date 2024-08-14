@@ -11,4 +11,5 @@ pub struct Balance {
 pub struct UserBalance {
 	pub amount: f64,
 	pub user_id: i32,
+	pub user_name: String,
 }

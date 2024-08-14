@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ops::{AddAssign, RemAssign, SubAssign};
+use actix_web::cookie::SameSite::Strict;
 use actix_web::web;
 use actix_web::web::Query;
 use itertools::Itertools;
@@ -18,6 +19,9 @@ use crate::projects::domain::project_model::{CreatableProject, NewProject, Proje
 use crate::projects::repository::project_repository::{create_project, get_all_projects, get_project, get_projects_and_user_projects_for_user};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
 use crate::query_strings::project_query_string::ProjectQueryParams;
+use crate::query_strings::user_query_string::UserQueryParams;
+use crate::users::application::user_application::{get_users_app, get_users_by_ids_app};
+use crate::users::domain::user_model::User;
 
 pub async fn get_projects_app(pool: web::Data<DbPool>, params: Query<ProjectQueryParams>) -> Vec<ProjectDto> {
     let all_projects: Vec<Project> = get_all_projects(pool.clone()).await;
@@ -82,10 +86,16 @@ pub async fn get_balance_app(pool: web::Data<DbPool>, project_id: Uuid) -> Balan
         all_payments.append(&mut payments);
     }
 
-    return forgeBalanceFromPayments(all_payments);
+    let user_ids: HashSet<i32> = all_payments.iter()
+        .map(|p| p.user_id)
+        .collect();
+
+    let users_from_payments: Vec<User> = get_users_by_ids_app(pool, user_ids).await;
+
+    return forgeBalanceFromPayments(all_payments, users_from_payments);
 }
 
-fn forgeBalanceFromPayments(payments: Vec<Payment>) -> Balance {
+fn forgeBalanceFromPayments(payments: Vec<Payment>, users_from_payments: Vec<User>) -> Balance {
     let mut balance: Balance = Balance {
         balances: vec![],
         currency: "".to_string(),
@@ -115,11 +125,11 @@ fn forgeBalanceFromPayments(payments: Vec<Payment>) -> Balance {
             .or_insert(default_insert);
     }
 
-
     for (user_id, amount) in balances {
         balance.balances.push(UserBalance {
             user_id: user_id,
             amount: amount,
+            user_name: users_from_payments.iter().find(|u| u.id == user_id).cloned().unwrap().name
         });
 
         balance.total_expenses = totalExpenses;

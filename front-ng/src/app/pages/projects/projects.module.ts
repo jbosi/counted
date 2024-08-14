@@ -25,7 +25,17 @@ const routes: Routes = [
 	},
 	{
 		path: ':projectId',
-		loadChildren: () => import('./pages/project').then(m => m.ProjectModule)
+		children: [
+			{
+				path: '',
+				pathMatch: 'full',
+				loadChildren: () => import('./pages/project').then(m => m.ProjectModule)
+			},
+			{
+				path: 'balance',
+				loadChildren: () => import('./pages/balance').then(m => m.BalanceModule)
+			}
+		]
 	}
 ]
 

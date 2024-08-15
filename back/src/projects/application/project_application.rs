@@ -1,6 +1,6 @@
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
-use std::ops::{AddAssign, RemAssign, SubAssign};
-use actix_web::cookie::SameSite::Strict;
+use std::ops::{AddAssign, SubAssign};
 use actix_web::web;
 use actix_web::web::Query;
 use itertools::Itertools;
@@ -8,19 +8,16 @@ use uuid::Uuid;
 
 use crate::DbPool;
 use crate::expenses::application::expense_application::get_expenses_app;
-use crate::expenses::domain::expense_model::Expense;
 use crate::models::user_project_model::UserProjects;
 use crate::payments::application::payment_application::get_payments_app;
 use crate::payments::domain::payment_model::{ExpenseDto, Payment};
 use crate::payments::domain::payment_query_params::PaymentQueryParams;
-use crate::payments::repository::payment_repository::get_payments;
-use crate::projects::domain::balance_model::{Balance, UserBalance};
+use crate::projects::domain::balance_model::{Balance, ReimbursementSuggestion, UserBalance};
 use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, ProjectDto};
 use crate::projects::repository::project_repository::{create_project, get_all_projects, get_project, get_projects_and_user_projects_for_user};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
 use crate::query_strings::project_query_string::ProjectQueryParams;
-use crate::query_strings::user_query_string::UserQueryParams;
-use crate::users::application::user_application::{get_users_app, get_users_by_ids_app};
+use crate::users::application::user_application::{get_users_by_ids_app};
 use crate::users::domain::user_model::User;
 
 pub async fn get_projects_app(pool: web::Data<DbPool>, params: Query<ProjectQueryParams>) -> Vec<ProjectDto> {
@@ -60,7 +57,6 @@ pub async fn create_project_app(pool: web::Data<DbPool>, creatable_project: web:
     let new_project = NewProject {
         name: creatable_project.name.to_string(),
         currency: "Euro".to_string(),
-        // total_expenses: 0.0
     };
 
     return create_project(pool, creatable_project, new_project).await;
@@ -92,29 +88,53 @@ pub async fn get_balance_app(pool: web::Data<DbPool>, project_id: Uuid) -> Balan
 
     let users_from_payments: Vec<User> = get_users_by_ids_app(pool, user_ids).await;
 
-    return forgeBalanceFromPayments(all_payments, users_from_payments);
+    return forge_balance_from_payments(all_payments, users_from_payments);
 }
 
-fn forgeBalanceFromPayments(payments: Vec<Payment>, users_from_payments: Vec<User>) -> Balance {
-    let mut balance: Balance = Balance {
+fn forge_balance_from_payments(payments: Vec<Payment>, users_from_payments: Vec<User>) -> Balance {
+    let mut balance = get_initial_balance_values();
+
+    let (balances_by_user, total_expenses) = get_balances_by_user(payments);
+
+    for (user_id, amount) in balances_by_user {
+        balance.balances.push(UserBalance {
+            user_id: user_id,
+            amount: amount,
+            user_name: users_from_payments.iter().find(|u| u.id == user_id).cloned().unwrap().name
+        });
+
+        balance.total_expenses = total_expenses;
+        balance.currency = "€".to_string()
+    }
+
+    balance.reimbursement_suggestions = get_reimbursement_suggestions(balance.clone());
+
+    return balance;
+}
+
+fn get_initial_balance_values() -> Balance {
+    return Balance {
         balances: vec![],
         currency: "".to_string(),
         total_expenses: 0.0,
+        reimbursement_suggestions: vec![]
     };
+}
 
-    let mut balances: HashMap<i32, f64> = Default::default();
-    let mut totalExpenses: f64 = 0.0;
+fn get_balances_by_user(payments: Vec<Payment>) -> (HashMap<i32, f64>, f64) {
+    let mut balances_by_user: HashMap<i32, f64> = Default::default();
+    let mut total_expenses: f64 = 0.0;
 
     for payment in payments {
         let mut default_insert: f64 = 0.0;
 
-        if (payment.is_debt) {
+        if payment.is_debt {
             default_insert.sub_assign(payment.amount);
         } else {
             default_insert.add_assign(payment.amount);
-            totalExpenses.add_assign(payment.amount)
+            total_expenses.add_assign(payment.amount)
         }
-        balances.entry(payment.user_id)
+        balances_by_user.entry(payment.user_id)
             .and_modify(|p| {
                 if payment.is_debt {
                     return p.sub_assign(payment.amount);
@@ -125,16 +145,51 @@ fn forgeBalanceFromPayments(payments: Vec<Payment>, users_from_payments: Vec<Use
             .or_insert(default_insert);
     }
 
-    for (user_id, amount) in balances {
-        balance.balances.push(UserBalance {
-            user_id: user_id,
-            amount: amount,
-            user_name: users_from_payments.iter().find(|u| u.id == user_id).cloned().unwrap().name
-        });
+    return (balances_by_user, total_expenses);
+}
 
-        balance.total_expenses = totalExpenses;
-        balance.currency = "€".to_string()
+fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSuggestion> {
+    let mut result: Vec<ReimbursementSuggestion> = Vec::new();
+
+    if balance.balances.is_empty() {
+        return result;
     }
 
-    return balance;
+    balance.balances.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+    let mut unsolved_positive_balances_by_user: HashMap<i32, f64> = Default::default();
+    let mut unsolved_negative_balances_by_user: HashMap<i32, f64> = Default::default();
+
+    for user_balance in balance.balances.iter() {
+        if user_balance.amount.is_sign_positive() {
+            unsolved_positive_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+        } else {
+            unsolved_negative_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+        }
+    }
+
+    let mut resolved_users: Vec<(i32, i32)> = Vec::new();
+
+    for (user_id, balance_amount) in &unsolved_positive_balances_by_user {
+        let matching_equal_negative_balance: Option<(&i32, &f64)> = unsolved_negative_balances_by_user
+            .iter()
+            .filter(|(debtor_id, _)| !resolved_users.iter().any(|(_, resolved_debtor_id)| resolved_debtor_id == *debtor_id))
+            .find(|(_, b_amount)| b_amount.abs().total_cmp(&balance_amount) == Ordering::Equal);
+
+        if let Some((resolved_user_id_debtor, _)) = matching_equal_negative_balance {
+            result.push(ReimbursementSuggestion {
+                amount: *balance_amount,
+                user_id_debtor: *resolved_user_id_debtor,
+                user_id_payer: *user_id,
+            });
+
+            resolved_users.push((*user_id, *resolved_user_id_debtor));
+        }
+    }
+
+    resolved_users.iter().for_each(|(payer_id, debtor_id)| {
+        unsolved_positive_balances_by_user.remove(payer_id);
+        unsolved_negative_balances_by_user.remove(debtor_id);
+    });
+
+    return result;
 }

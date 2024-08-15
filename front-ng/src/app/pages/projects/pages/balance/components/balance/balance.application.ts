@@ -33,8 +33,6 @@ const forgeBalanceViewModel = (balance: IBalanceDto | null): IBalanceViewModel |
 		amountProgressBar: ((b.amount + Math.abs(range / 2)) / range) * 100
 	}))
 
-	console.log(balances)
-
 	return {
 		balances,
 		currency: balance.currency,

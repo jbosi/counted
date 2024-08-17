@@ -156,19 +156,17 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
     }
 
     balance.balances.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
-    let mut unsolved_positive_balances_by_user: HashMap<i32, f64> = Default::default();
-    let mut unsolved_negative_balances_by_user: HashMap<i32, f64> = Default::default();
 
-    for user_balance in balance.balances.iter() {
-        if user_balance.amount.is_sign_positive() {
-            unsolved_positive_balances_by_user.insert(user_balance.user_id, user_balance.amount);
-        } else {
-            unsolved_negative_balances_by_user.insert(user_balance.user_id, user_balance.amount);
-        }
-    }
+    let (mut unsolved_positive_balances_by_user,mut unsolved_negative_balances_by_user) = get_unresolved_balances_by_user(&mut balance);
 
     let mut resolved_users: Vec<(i32, i32)> = Vec::new();
 
+    resolve_equally_opposed_balances(&mut result, &mut unsolved_positive_balances_by_user, &mut unsolved_negative_balances_by_user, &mut resolved_users);
+
+    return result;
+}
+
+fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, mut unsolved_positive_balances_by_user: &mut HashMap<i32, f64>, mut unsolved_negative_balances_by_user: &mut HashMap<i32, f64>, resolved_users: &mut Vec<(i32, i32)>) {
     for (user_id, balance_amount) in &unsolved_positive_balances_by_user {
         let matching_equal_negative_balance: Option<(&i32, &f64)> = unsolved_negative_balances_by_user
             .iter()
@@ -190,6 +188,18 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
         unsolved_positive_balances_by_user.remove(payer_id);
         unsolved_negative_balances_by_user.remove(debtor_id);
     });
+}
 
-    return result;
+fn get_unresolved_balances_by_user(balance: &mut Balance) -> (HashMap<i32, f64>, HashMap<i32, f64>) {
+    let mut unsolved_positive_balances_by_user: HashMap<i32, f64> = Default::default();
+    let mut unsolved_negative_balances_by_user: HashMap<i32, f64> = Default::default();
+
+    for user_balance in balance.balances.iter() {
+        if user_balance.amount.is_sign_positive() {
+            unsolved_positive_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+        } else {
+            unsolved_negative_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+        }
+    }
+    (unsolved_positive_balances_by_user, unsolved_negative_balances_by_user)
 }

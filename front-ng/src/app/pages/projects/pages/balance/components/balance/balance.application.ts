@@ -31,7 +31,7 @@ const forgeBalanceViewModel = (balance: IBalanceDto | null): IBalanceViewModel |
 		user_id: b.user_id,
 		user_name: b.user_name,
 		amountProgressBar: ((b.amount + Math.abs(range / 2)) / range) * 100
-	}))
+	}));
 
 	return {
 		balances,

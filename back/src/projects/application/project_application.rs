@@ -155,18 +155,130 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
         return result;
     }
 
-    balance.balances.sort_by(|a, b| a.amount.partial_cmp(&b.amount).unwrap());
+    // desc order for positive and negative amounts
+    balance.balances.sort_by(|a, b| b.amount.abs().partial_cmp(&a.amount.abs()).unwrap());
 
     let (mut unsolved_positive_balances_by_user,mut unsolved_negative_balances_by_user) = get_unresolved_balances_by_user(&mut balance);
 
-    let mut resolved_users: Vec<(i32, i32)> = Vec::new();
+    resolve_equally_opposed_balances(&mut result, unsolved_positive_balances_by_user.clone(), &mut unsolved_negative_balances_by_user);
 
-    resolve_equally_opposed_balances(&mut result, &mut unsolved_positive_balances_by_user, &mut unsolved_negative_balances_by_user, &mut resolved_users);
+    //resolve_remaining_balances, to merge with resolve_equally_opposed_balances ?
+    // result.append(&mut resolve_negative_balances(&mut unsolved_positive_balances_by_user, &mut unsolved_negative_balances_by_user));
+
+    // Sinon passer par une boucle while pour traiter toutes les valeurs
+
+    let mut unresolved_negative_balance = (&0, &0.0);
+    for (positive_user_id, positive_balance_amount) in &unsolved_positive_balances_by_user {
+        let mut unresolved_positive_balance_amount = *positive_balance_amount;
+
+        while !unresolved_positive_balance_amount.eq(&0.0) {
+            let (negative_user_id, negative_balance_amount) = unsolved_negative_balances_by_user.iter().collect_vec()[0];
+
+            let (negative_user_id, negative_balance_amount) = if unresolved_negative_balance.1.eq(&0.0) {
+                unsolved_negative_balances_by_user.iter().collect_vec()[0]
+            } else {
+                unresolved_negative_balance
+            };
+
+            if negative_balance_amount.abs().total_cmp(&unresolved_positive_balance_amount) == Ordering::Less {
+                result.push(ReimbursementSuggestion {
+                    amount: *negative_balance_amount,
+                    user_id_debtor: *negative_user_id,
+                    user_id_payer: *positive_user_id
+                });
+
+                unresolved_positive_balance_amount.sub_assign(negative_balance_amount.abs());
+                unsolved_negative_balances_by_user.remove(negative_user_id);
+            }
+
+            else if positive_balance_amount.total_cmp(&unresolved_positive_balance_amount) != Ordering::Equal {
+                result.push(ReimbursementSuggestion {
+                    amount: *unresolved_positive_balance_amount,
+                    user_id_debtor: *negative_user_id,
+                    user_id_payer: *positive_user_id
+                });
+
+                unsolved_positive_balances_by_user.remove(positive_user_id);
+                unsolved_negative_balances_by_user
+                    .iter()
+                    .filter(|(u, b)| *u == negative_user_id)
+                    .update(|(u, b)| (u, *b.add_assign(unresolved_positive_balance_amount)));
+            }
+
+            else {
+                result.push(ReimbursementSuggestion {
+                    amount: *unresolved_positive_balance_amount,
+                    user_id_debtor: *negative_user_id,
+                    user_id_payer: *positive_user_id
+                });
+
+                let mut val = negative_balance_amount;
+                val.add_assign(unresolved_positive_balance_amount);
+                unresolved_negative_balance = (negative_user_id, val);
+
+                unsolved_positive_balances_by_user.remove(positive_user_id);
+            }
+        }
+    }
+
+    // TODO handle small differences / computation errors
 
     return result;
 }
 
-fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, mut unsolved_positive_balances_by_user: &mut HashMap<i32, f64>, mut unsolved_negative_balances_by_user: &mut HashMap<i32, f64>, resolved_users: &mut Vec<(i32, i32)>) {
+// Examples
+// P 10, 30, 50 - 10, 30, 50
+// N 30, 60     - 30, 30, 30
+
+fn resolve_negative_balances(unsolved_positive_balances_by_user: &mut HashMap<i32, f64>, unsolved_negative_balances_by_user: &mut HashMap<i32, f64>) -> Vec<ReimbursementSuggestion> {
+    const result: Vec<ReimbursementSuggestion> = Vec::new();
+
+    for (positive_user_id, positive_balance_amount) in &unsolved_positive_balances_by_user {
+
+        let mut positive_balance_amount_mut = *positive_balance_amount;
+
+        for (negative_user_id, negative_balance_amount) in &unsolved_negative_balances_by_user {
+            if (positive_balance_amount_mut.eq(&0.0)) {
+                break;
+            }
+
+            if (negative_balance_amount.abs().total_cmp(&positive_balance_amount_mut) == Ordering::Less || negative_balance_amount.abs().total_cmp(&positive_balance_amount_mut) == Ordering::Equal) {
+                result.push(ReimbursementSuggestion {
+                    amount: *negative_balance_amount,
+                    user_id_debtor: *negative_user_id,
+                    user_id_payer: *positive_user_id
+                });
+
+                positive_balance_amount_mut.sub_assign(negative_balance_amount.abs());
+                unsolved_negative_balances_by_user.remove(negative_user_id);
+            }
+        }
+
+        //
+        if (positive_balance_amount.total_cmp(&positive_balance_amount_mut) != Ordering::Equal && !positive_balance_amount_mut.eq(&0.0)) {
+            let (negative_user_id, negative_balance_amount) = *unsolved_negative_balances_by_user
+                .iter()
+                .collect_vec()[0];
+
+            result.push(ReimbursementSuggestion {
+                amount: *positive_balance_amount_mut,
+                user_id_debtor: *negative_user_id,
+                user_id_payer: *positive_user_id
+            });
+
+            unsolved_positive_balances_by_user.remove(positive_user_id);
+            unsolved_negative_balances_by_user.iter().filter(|(u, b)| u == negative_user_id).update(|(u, b)| (u, b.add_assign(positive_balance_amount_mut)));
+
+            // eprint!("amount is not completely resolved for user id {0} with a value of {1}", positive_user_id, positive_balance_amount_mut)
+        }
+    }
+
+    return result;
+}
+
+fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, mut unsolved_positive_balances_by_user: HashMap<i32, f64>, unsolved_negative_balances_by_user: &mut HashMap<i32, f64>) {
+    let mut resolved_users: Vec<(i32, i32)> = Vec::new();
+
     for (user_id, balance_amount) in &unsolved_positive_balances_by_user {
         let matching_equal_negative_balance: Option<(&i32, &f64)> = unsolved_negative_balances_by_user
             .iter()

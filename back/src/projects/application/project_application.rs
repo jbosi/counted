@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::ops::{AddAssign, SubAssign};
 use actix_web::web;
 use actix_web::web::Query;
+use chrono::NaiveDateTime;
 use itertools::Itertools;
 use uuid::Uuid;
 
@@ -91,7 +92,7 @@ pub async fn get_balance_app(pool: web::Data<DbPool>, project_id: Uuid) -> Balan
     return forge_balance_from_payments(all_payments, users_from_payments);
 }
 
-fn forge_balance_from_payments(payments: Vec<Payment>, users_from_payments: Vec<User>) -> Balance {
+pub fn forge_balance_from_payments(payments: Vec<Payment>, users_from_payments: Vec<User>) -> Balance {
     let mut balance = get_initial_balance_values();
 
     let (balances_by_user, total_expenses) = get_balances_by_user(payments);
@@ -168,58 +169,58 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
     // Sinon passer par une boucle while pour traiter toutes les valeurs
 
     let mut unresolved_negative_balance = (&0, &0.0);
-    for (positive_user_id, positive_balance_amount) in &unsolved_positive_balances_by_user {
-        let mut unresolved_positive_balance_amount = *positive_balance_amount;
-
-        while !unresolved_positive_balance_amount.eq(&0.0) {
-            let (negative_user_id, negative_balance_amount) = unsolved_negative_balances_by_user.iter().collect_vec()[0];
-
-            let (negative_user_id, negative_balance_amount) = if unresolved_negative_balance.1.eq(&0.0) {
-                unsolved_negative_balances_by_user.iter().collect_vec()[0]
-            } else {
-                unresolved_negative_balance
-            };
-
-            if negative_balance_amount.abs().total_cmp(&unresolved_positive_balance_amount) == Ordering::Less {
-                result.push(ReimbursementSuggestion {
-                    amount: *negative_balance_amount,
-                    user_id_debtor: *negative_user_id,
-                    user_id_payer: *positive_user_id
-                });
-
-                unresolved_positive_balance_amount.sub_assign(negative_balance_amount.abs());
-                unsolved_negative_balances_by_user.remove(negative_user_id);
-            }
-
-            else if positive_balance_amount.total_cmp(&unresolved_positive_balance_amount) != Ordering::Equal {
-                result.push(ReimbursementSuggestion {
-                    amount: *unresolved_positive_balance_amount,
-                    user_id_debtor: *negative_user_id,
-                    user_id_payer: *positive_user_id
-                });
-
-                unsolved_positive_balances_by_user.remove(positive_user_id);
-                unsolved_negative_balances_by_user
-                    .iter()
-                    .filter(|(u, b)| *u == negative_user_id)
-                    .update(|(u, b)| (u, *b.add_assign(unresolved_positive_balance_amount)));
-            }
-
-            else {
-                result.push(ReimbursementSuggestion {
-                    amount: *unresolved_positive_balance_amount,
-                    user_id_debtor: *negative_user_id,
-                    user_id_payer: *positive_user_id
-                });
-
-                let mut val = negative_balance_amount;
-                val.add_assign(unresolved_positive_balance_amount);
-                unresolved_negative_balance = (negative_user_id, val);
-
-                unsolved_positive_balances_by_user.remove(positive_user_id);
-            }
-        }
-    }
+    // for (positive_user_id, positive_balance_amount) in &unsolved_positive_balances_by_user {
+    //     let mut unresolved_positive_balance_amount = *positive_balance_amount;
+    // 
+    //     while !unresolved_positive_balance_amount.eq(&0.0) {
+    //         let (negative_user_id, negative_balance_amount) = unsolved_negative_balances_by_user.iter().collect_vec()[0];
+    // 
+    //         let (negative_user_id, mut negative_balance_amount) = if unresolved_negative_balance.1.eq(&0.0) {
+    //             unsolved_negative_balances_by_user.iter().collect_vec()[0]
+    //         } else {
+    //             unresolved_negative_balance
+    //         };
+    // 
+    //         if negative_balance_amount.abs().total_cmp(&unresolved_positive_balance_amount) == Ordering::Less {
+    //             result.push(ReimbursementSuggestion {
+    //                 amount: *negative_balance_amount,
+    //                 user_id_debtor: *negative_user_id,
+    //                 user_id_payer: *positive_user_id
+    //             });
+    // 
+    //             unresolved_positive_balance_amount.sub_assign(negative_balance_amount.abs());
+    //             // unsolved_negative_balances_by_user.remove(negative_user_id);
+    //         }
+    // 
+    //         else if positive_balance_amount.total_cmp(&unresolved_positive_balance_amount) != Ordering::Equal {
+    //             result.push(ReimbursementSuggestion {
+    //                 amount: unresolved_positive_balance_amount,
+    //                 user_id_debtor: *negative_user_id,
+    //                 user_id_payer: *positive_user_id
+    //             });
+    // 
+    //             // unsolved_positive_balances_by_user.remove(positive_user_id);
+    //             // unsolved_negative_balances_by_user
+    //             //     .iter()
+    //             //     .filter(|(u, b)| *u == negative_user_id)
+    //             //     .update(|(u, b)| (u, b.add_assign(unresolved_positive_balance_amount)));
+    //         }
+    // 
+    //         else {
+    //             result.push(ReimbursementSuggestion {
+    //                 amount: unresolved_positive_balance_amount,
+    //                 user_id_debtor: *negative_user_id,
+    //                 user_id_payer: *positive_user_id
+    //             });
+    // 
+    //             let mut val: &f64 = negative_balance_amount;
+    //             // val.add_assign(unresolved_positive_balance_amount);
+    //             unresolved_negative_balance = (negative_user_id, val);
+    // 
+    //             // unsolved_positive_balances_by_user.remove(positive_user_id);
+    //         }
+    //     }
+    // }
 
     // TODO handle small differences / computation errors
 
@@ -231,49 +232,49 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
 // N 30, 60     - 30, 30, 30
 
 fn resolve_negative_balances(unsolved_positive_balances_by_user: &mut HashMap<i32, f64>, unsolved_negative_balances_by_user: &mut HashMap<i32, f64>) -> Vec<ReimbursementSuggestion> {
-    const result: Vec<ReimbursementSuggestion> = Vec::new();
+    const RESULT: Vec<ReimbursementSuggestion> = Vec::new();
 
-    for (positive_user_id, positive_balance_amount) in &unsolved_positive_balances_by_user {
+    for (positive_user_id, positive_balance_amount) in &mut *unsolved_positive_balances_by_user {
 
         let mut positive_balance_amount_mut = *positive_balance_amount;
 
-        for (negative_user_id, negative_balance_amount) in &unsolved_negative_balances_by_user {
+        for (negative_user_id, negative_balance_amount) in &mut *unsolved_negative_balances_by_user {
             if (positive_balance_amount_mut.eq(&0.0)) {
                 break;
             }
 
             if (negative_balance_amount.abs().total_cmp(&positive_balance_amount_mut) == Ordering::Less || negative_balance_amount.abs().total_cmp(&positive_balance_amount_mut) == Ordering::Equal) {
-                result.push(ReimbursementSuggestion {
+                RESULT.push(ReimbursementSuggestion {
                     amount: *negative_balance_amount,
                     user_id_debtor: *negative_user_id,
                     user_id_payer: *positive_user_id
                 });
 
                 positive_balance_amount_mut.sub_assign(negative_balance_amount.abs());
-                unsolved_negative_balances_by_user.remove(negative_user_id);
+                // unsolved_negative_balances_by_user.remove(negative_user_id);
             }
         }
 
         //
         if (positive_balance_amount.total_cmp(&positive_balance_amount_mut) != Ordering::Equal && !positive_balance_amount_mut.eq(&0.0)) {
-            let (negative_user_id, negative_balance_amount) = *unsolved_negative_balances_by_user
+            let (negative_user_id, negative_balance_amount) = unsolved_negative_balances_by_user
                 .iter()
                 .collect_vec()[0];
 
-            result.push(ReimbursementSuggestion {
-                amount: *positive_balance_amount_mut,
+            RESULT.push(ReimbursementSuggestion {
+                amount: positive_balance_amount_mut,
                 user_id_debtor: *negative_user_id,
                 user_id_payer: *positive_user_id
             });
 
-            unsolved_positive_balances_by_user.remove(positive_user_id);
-            unsolved_negative_balances_by_user.iter().filter(|(u, b)| u == negative_user_id).update(|(u, b)| (u, b.add_assign(positive_balance_amount_mut)));
+            // unsolved_positive_balances_by_user.remove(positive_user_id);
+            // unsolved_negative_balances_by_user.iter().filter(|(u, b)| u == negative_user_id).update(|(u, b)| (u, b.add_assign(positive_balance_amount_mut)));
 
             // eprint!("amount is not completely resolved for user id {0} with a value of {1}", positive_user_id, positive_balance_amount_mut)
         }
     }
 
-    return result;
+    return RESULT;
 }
 
 fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, mut unsolved_positive_balances_by_user: HashMap<i32, f64>, unsolved_negative_balances_by_user: &mut HashMap<i32, f64>) {
@@ -314,4 +315,56 @@ fn get_unresolved_balances_by_user(balance: &mut Balance) -> (HashMap<i32, f64>,
         }
     }
     (unsolved_positive_balances_by_user, unsolved_negative_balances_by_user)
+}
+
+#[test]
+fn test_forge_balance_from_payments_with_correct_user_balances() {
+    // Prepare test data
+    let payments = vec![
+        Payment { id: 1, expense_id: 1, user_id: 1, is_debt: false, amount: 50.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 2, expense_id: 2, user_id: 2, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 3, expense_id: 3, user_id: 1, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+    ];
+
+    let users_from_payments = vec![
+        User { id: 1, name: "Alice".to_string(), balance: Some(100.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
+        User { id: 2, name: "Bob".to_string(), balance: Some(50.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
+    ];
+
+    // Call the function under test
+    let result = forge_balance_from_payments(payments, users_from_payments);
+
+    // Assertions
+    assert_eq!(result.currency, "€");
+    assert_eq!(result.total_expenses, 50.0);
+    assert_eq!(result.balances.len(), 2);
+    assert_eq!(result.balances[0].user_id, 1);
+    assert_eq!(result.balances[0].amount, 25.0);
+    assert_eq!(result.balances[0].user_name, "Alice");
+    assert_eq!(result.balances[1].user_id, 2);
+    assert_eq!(result.balances[1].amount, -25.0);
+    assert_eq!(result.balances[1].user_name, "Bob");
+}
+
+#[test]
+fn test_forge_balance_from_payments_with_correct_user_reimbursement_suggestions() {
+    // Prepare test data
+    let payments = vec![
+        Payment { id: 1, expense_id: 1, user_id: 1, is_debt: false, amount: 50.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 2, expense_id: 2, user_id: 2, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 3, expense_id: 3, user_id: 1, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+    ];
+
+    let users_from_payments = vec![
+        User { id: 1, name: "Alice".to_string(), balance: Some(100.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
+        User { id: 2, name: "Bob".to_string(), balance: Some(50.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
+    ];
+
+    // Call the function under test
+    let result = forge_balance_from_payments(payments, users_from_payments);
+
+    // Assertions
+    assert_eq!(result.reimbursement_suggestions[0].amount, 25.0);
+    assert_eq!(result.reimbursement_suggestions[0].user_id_payer, 1);
+    assert_eq!(result.reimbursement_suggestions[0].user_id_debtor, 2);
 }

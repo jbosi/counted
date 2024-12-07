@@ -13,7 +13,7 @@ use crate::models::user_project_model::UserProjects;
 use crate::payments::application::payment_application::get_payments_app;
 use crate::payments::domain::payment_model::{ExpenseDto, Payment};
 use crate::payments::domain::payment_query_params::PaymentQueryParams;
-use crate::projects::domain::balance_model::{Balance, ReimbursementSuggestion, UserBalance};
+use crate::projects::domain::balance_model::{Balance, ReimbursementSuggestion, UserBalance, UserBalanceComputation};
 use crate::projects::domain::project_model::{CreatableProject, NewProject, Project, ProjectDto};
 use crate::projects::repository::project_repository::{create_project, get_all_projects, get_project, get_projects_and_user_projects_for_user};
 use crate::query_strings::expense_query_string::ExpenseQueryParams;
@@ -157,11 +157,12 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
     }
 
     // desc order for positive and negative amounts
-    balance.balances.sort_by(|a, b| b.amount.abs().partial_cmp(&a.amount.abs()).unwrap());
+    balance.balances
+        .sort_by(|a, b| b.amount.abs().partial_cmp(&a.amount.abs()).unwrap());
 
     let (mut unsolved_positive_balances_by_user,mut unsolved_negative_balances_by_user) = get_unresolved_balances_by_user(&mut balance);
 
-    resolve_equally_opposed_balances(&mut result, unsolved_positive_balances_by_user.clone(), &mut unsolved_negative_balances_by_user);
+    resolve_equally_opposed_balances(&mut result, &mut unsolved_positive_balances_by_user, &mut unsolved_negative_balances_by_user);
 
     //resolve_remaining_balances, to merge with resolve_equally_opposed_balances ?
     // result.append(&mut resolve_negative_balances(&mut unsolved_positive_balances_by_user, &mut unsolved_negative_balances_by_user));
@@ -277,23 +278,26 @@ fn resolve_negative_balances(unsolved_positive_balances_by_user: &mut HashMap<i3
     return RESULT;
 }
 
-fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, mut unsolved_positive_balances_by_user: HashMap<i32, f64>, unsolved_negative_balances_by_user: &mut HashMap<i32, f64>) {
+fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, unsolved_positive_balances_by_user: &mut HashMap<i32, UserBalanceComputation>, unsolved_negative_balances_by_user: &mut HashMap<i32, UserBalanceComputation>) {
     let mut resolved_users: Vec<(i32, i32)> = Vec::new();
 
-    for (user_id, balance_amount) in &unsolved_positive_balances_by_user {
-        let matching_equal_negative_balance: Option<(&i32, &f64)> = unsolved_negative_balances_by_user
-            .iter()
+    for (positive_user_id, balance_amount) in &mut *unsolved_positive_balances_by_user {
+        let matching_equal_negative_balance = unsolved_negative_balances_by_user
+            .iter_mut()
             .filter(|(debtor_id, _)| !resolved_users.iter().any(|(_, resolved_debtor_id)| resolved_debtor_id == *debtor_id))
-            .find(|(_, b_amount)| b_amount.abs().total_cmp(&balance_amount) == Ordering::Equal);
+            .find(|(_, b_amount)| b_amount.remaining_amount.abs().total_cmp(&balance_amount.remaining_amount) == Ordering::Equal);
 
-        if let Some((resolved_user_id_debtor, _)) = matching_equal_negative_balance {
+        if let Some((resolved_user_id_debtor, negative_user_balance)) = matching_equal_negative_balance {
             result.push(ReimbursementSuggestion {
-                amount: *balance_amount,
+                amount: balance_amount.remaining_amount,
                 user_id_debtor: *resolved_user_id_debtor,
-                user_id_payer: *user_id,
+                user_id_payer: *positive_user_id,
             });
 
-            resolved_users.push((*user_id, *resolved_user_id_debtor));
+            balance_amount.remaining_amount = 0.0;
+            negative_user_balance.remaining_amount = 0.0;
+            
+            resolved_users.push((*positive_user_id, *resolved_user_id_debtor));
         }
     }
 
@@ -303,15 +307,21 @@ fn resolve_equally_opposed_balances(result: &mut Vec<ReimbursementSuggestion>, m
     });
 }
 
-fn get_unresolved_balances_by_user(balance: &mut Balance) -> (HashMap<i32, f64>, HashMap<i32, f64>) {
-    let mut unsolved_positive_balances_by_user: HashMap<i32, f64> = Default::default();
-    let mut unsolved_negative_balances_by_user: HashMap<i32, f64> = Default::default();
+fn get_unresolved_balances_by_user(balance: &mut Balance) -> (HashMap<i32, UserBalanceComputation>, HashMap<i32, UserBalanceComputation>) {
+    let mut unsolved_positive_balances_by_user: HashMap<i32, UserBalanceComputation> = Default::default();
+    let mut unsolved_negative_balances_by_user: HashMap<i32, UserBalanceComputation> = Default::default();
 
     for user_balance in balance.balances.iter() {
         if user_balance.amount.is_sign_positive() {
-            unsolved_positive_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+            unsolved_positive_balances_by_user.insert(user_balance.user_id, UserBalanceComputation {
+                remaining_amount: user_balance.amount,
+                amount: user_balance.amount
+            });
         } else {
-            unsolved_negative_balances_by_user.insert(user_balance.user_id, user_balance.amount);
+            unsolved_negative_balances_by_user.insert(user_balance.user_id, UserBalanceComputation {
+                remaining_amount: user_balance.amount,
+                amount: user_balance.amount
+            });
         }
     }
     (unsolved_positive_balances_by_user, unsolved_negative_balances_by_user)

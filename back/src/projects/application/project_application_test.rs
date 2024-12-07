@@ -30,20 +30,26 @@ fn test_forge_balance_from_payments_with_correct_user_balances() {
     assert_eq!(result.balances[1].user_id, 2);
     assert_eq!(result.balances[1].amount, -25.0);
     assert_eq!(result.balances[1].user_name, "Bob");
+
+    assert_eq!(result.reimbursement_suggestions[0].amount, 25.0);
+    assert_eq!(result.reimbursement_suggestions[0].user_id_payer, 1);
+    assert_eq!(result.reimbursement_suggestions[0].user_id_debtor, 2);
 }
 
 #[test]
-fn test_forge_balance_from_payments_with_correct_user_reimbursement_suggestions() {
+fn test_forge_balance_from_payments_with_correct_user_balances_advanced() {
     // Prepare test data
     let payments = vec![
-        Payment { id: 1, expense_id: 1, user_id: 1, is_debt: false, amount: 50.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
-        Payment { id: 2, expense_id: 2, user_id: 2, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
-        Payment { id: 3, expense_id: 3, user_id: 1, is_debt: true, amount: 25.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 1, expense_id: 1, user_id: 1, is_debt: false, amount: 100.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 2, expense_id: 1, user_id: 2, is_debt: true, amount: 30.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 3, expense_id: 1, user_id: 1, is_debt: true, amount: 30.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
+        Payment { id: 4, expense_id: 1, user_id: 3, is_debt: true, amount: 40.0, created_at: NaiveDateTime::from_timestamp(0, 0) },
     ];
 
     let users_from_payments = vec![
         User { id: 1, name: "Alice".to_string(), balance: Some(100.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
         User { id: 2, name: "Bob".to_string(), balance: Some(50.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
+        User { id: 3, name: "John".to_string(), balance: Some(50.0), created_at: Some(NaiveDateTime::from_timestamp(0, 0)) },
     ];
 
     // Call the function under test

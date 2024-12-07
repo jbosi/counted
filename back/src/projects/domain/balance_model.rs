@@ -16,6 +16,12 @@ pub struct UserBalance {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UserBalanceComputation {
+	pub amount: f64,
+	pub remaining_amount: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ReimbursementSuggestion {
 	pub amount: f64,
 	pub user_id_debtor: i32,

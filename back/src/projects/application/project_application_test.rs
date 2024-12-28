@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use crate::payments::domain::payment_model::Payment;
 use crate::projects::application::project_application::forge_balance_from_payments;
+use crate::projects::domain::balance_model::UserBalance;
 use crate::users::domain::user_model::User;
 
 #[test]
@@ -21,15 +22,17 @@ fn test_forge_balance_from_payments_with_correct_user_balances() {
     let result = forge_balance_from_payments(payments, users_from_payments);
 
     // Assertions
+
+    let user_id_1: &UserBalance = result.balances.iter().find(|b| b.user_id == 1).unwrap();
+    let user_id_2: &UserBalance = result.balances.iter().find(|b| b.user_id == 2).unwrap();
+    
     assert_eq!(result.currency, "€");
     assert_eq!(result.total_expenses, 50.0);
     assert_eq!(result.balances.len(), 2);
-    assert_eq!(result.balances[0].user_id, 1);
-    assert_eq!(result.balances[0].amount, 25.0);
-    assert_eq!(result.balances[0].user_name, "Alice");
-    assert_eq!(result.balances[1].user_id, 2);
-    assert_eq!(result.balances[1].amount, -25.0);
-    assert_eq!(result.balances[1].user_name, "Bob");
+    assert_eq!(user_id_1.amount, 25.0);
+    assert_eq!(user_id_1.user_name, "Alice");
+    assert_eq!(user_id_2.amount, -25.0);
+    assert_eq!(user_id_2.user_name, "Bob");
 
     assert_eq!(result.reimbursement_suggestions[0].amount, 25.0);
     assert_eq!(result.reimbursement_suggestions[0].user_id_payer, 1);

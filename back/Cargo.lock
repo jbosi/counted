@@ -704,6 +704,7 @@ dependencies = [
  "diesel-derive-enum",
  "dotenvy",
  "itertools",
+ "log",
  "r2d2",
  "serde",
  "serde_json",

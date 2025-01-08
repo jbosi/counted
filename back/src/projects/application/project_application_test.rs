@@ -59,7 +59,13 @@ fn test_forge_balance_from_payments_with_correct_user_balances_advanced() {
     let result = forge_balance_from_payments(payments, users_from_payments);
 
     // Assertions
-    assert_eq!(result.reimbursement_suggestions[0].amount, 25.0);
-    assert_eq!(result.reimbursement_suggestions[0].user_id_payer, 1);
-    assert_eq!(result.reimbursement_suggestions[0].user_id_debtor, 2);
+    let reimbursement_suggestions_user_2 = result.reimbursement_suggestions.iter().find(|u| u.user_id_debtor == 2).unwrap();
+
+    assert_eq!(reimbursement_suggestions_user_2.amount, 30.0);
+    assert_eq!(reimbursement_suggestions_user_2.user_id_payer, 1);
+
+    let reimbursement_suggestions_user_3 = result.reimbursement_suggestions.iter().find(|u| u.user_id_debtor == 3).unwrap();
+
+    assert_eq!(reimbursement_suggestions_user_3.amount, 40.0);
+    assert_eq!(reimbursement_suggestions_user_3.user_id_payer, 1);
 }

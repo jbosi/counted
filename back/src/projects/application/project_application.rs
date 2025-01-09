@@ -181,6 +181,10 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
 // - trier les deux listes par ordre "extrème" :check:
 // - Pour chaque valeur, maximale (neg ou pos), retrancher n opposés
 // - Si il reste une valeur, regarder si il y a un équivalent négatif après chaque itération sinon retirer le reste
+/////////////////////
+// Est-ce que ce ne serait pas mieux de faire la somme de tous les payments par userId (permet d'éliminer ceux qui sont à l'équilibre)
+// Ensuite on calcule qui doit combien a qui
+// Beaucoup plus simple
 fn resolve_remaining_balances(unsolved_positive_balances_by_user: &mut HashMap<i32, UserBalanceComputation>, unsolved_negative_balances_by_user: &mut HashMap<i32, UserBalanceComputation>) -> Vec<ReimbursementSuggestion> {
     let mut result: Vec<ReimbursementSuggestion> = Vec::new();
 
@@ -264,11 +268,12 @@ fn solve_max_balance(max_balance: (i32, UserBalanceComputation), min_balances: H
         if (max_balance_amount.total_cmp(&min_balance_amount) == Ordering::Greater) {
             fully_compensated_balances.insert(min_balance.0, min_balance.1.clone());
             max_balance_amount = max_balance_amount.sub(min_balance_amount);
+            continue;
         }
         
         if (max_balance_amount.total_cmp(&min_balance_amount) == Ordering::Equal) {
             fully_compensated_balances.insert(min_balance.0, min_balance.1.clone());
-            break;
+            continue;
         }
 
         if (max_balance_amount.total_cmp(&min_balance_amount) == Ordering::Less) {

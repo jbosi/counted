@@ -173,6 +173,12 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
     return result;
 }
 
+/////////////////////
+// Est-ce que ce ne serait pas mieux de faire la somme de tous les payments par userId (permet d'éliminer ceux qui sont à l'équilibre)
+// Ensuite on calcule qui doit combien a qui
+// Beaucoup plus simple
+// fn sum_
+
 // Examples
 // P 10, 30, 50 - 10, 30, 50
 // N 30, 60     - 30, 30, 30
@@ -181,10 +187,6 @@ fn get_reimbursement_suggestions(mut balance: Balance) -> Vec<ReimbursementSugge
 // - trier les deux listes par ordre "extrème" :check:
 // - Pour chaque valeur, maximale (neg ou pos), retrancher n opposés
 // - Si il reste une valeur, regarder si il y a un équivalent négatif après chaque itération sinon retirer le reste
-/////////////////////
-// Est-ce que ce ne serait pas mieux de faire la somme de tous les payments par userId (permet d'éliminer ceux qui sont à l'équilibre)
-// Ensuite on calcule qui doit combien a qui
-// Beaucoup plus simple
 fn resolve_remaining_balances(unsolved_positive_balances_by_user: &mut HashMap<i32, UserBalanceComputation>, unsolved_negative_balances_by_user: &mut HashMap<i32, UserBalanceComputation>) -> Vec<ReimbursementSuggestion> {
     let mut result: Vec<ReimbursementSuggestion> = Vec::new();
 

@@ -5,11 +5,10 @@ import { IBalanceViewModel } from '../../models';
 import { BalanceApplication } from './balance.application';
 
 @Component({
-  selector: 'app-balance',
-  standalone: true,
-  imports: [AvatarInitialsComponent, NgFor],
-  templateUrl: './balance.component.html',
-  styleUrl: './balance.component.scss'
+    selector: 'app-balance',
+    imports: [AvatarInitialsComponent, NgFor],
+    templateUrl: './balance.component.html',
+    styleUrl: './balance.component.scss'
 })
 export class BalanceComponent implements OnInit {
 	private readonly balanceApplication = inject(BalanceApplication);

@@ -10,12 +10,11 @@ const AVAILABLE_COLORS_LIGHT_THEME = ['2c3e50']
  
 
 @Component({
-	selector: 'app-avatar-initials',
-	templateUrl: './avatar-initials.component.html',
-	styleUrls: ['./avatar-initials.component.scss'],
-	standalone: true,
-	imports: [CommonModule],
-	changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-avatar-initials',
+    templateUrl: './avatar-initials.component.html',
+    styleUrls: ['./avatar-initials.component.scss'],
+    imports: [CommonModule],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AvatarInitialsComponent implements OnInit {
 	@Input() public userName: string = '';

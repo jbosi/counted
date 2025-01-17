@@ -15,11 +15,10 @@ import { IExpenseModalData } from '../../project.component';
 import { AddExpenseModalApplication } from './add-expense-modal.application';
 
 @Component({
-	selector: 'app-add-expense-modal',
-	templateUrl: './add-expense-modal.component.html',
-	styleUrls: ['./add-expense-modal.component.scss'],
-	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, AvatarInitialsComponent]
+    selector: 'app-add-expense-modal',
+    templateUrl: './add-expense-modal.component.html',
+    styleUrls: ['./add-expense-modal.component.scss'],
+    imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, AvatarInitialsComponent]
 })
 export class AddExpenseModalComponent implements OnInit {
 	public users: IUser[] = [];

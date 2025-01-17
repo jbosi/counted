@@ -10,11 +10,10 @@ import { TagModule } from 'primeng/tag';
 import { IProjectCardViewModel } from '../../projects.component';
 
 @Component({
-	selector: 'app-card',
-	templateUrl: './card.component.html',
-	styleUrls: ['./card.component.scss'],
-	standalone: true,
-	imports: [CardModule, SharedModule, ProgressBarModule, TagModule, AvatarGroupModule, AvatarInitialsComponent]
+    selector: 'app-card',
+    templateUrl: './card.component.html',
+    styleUrls: ['./card.component.scss'],
+    imports: [CardModule, SharedModule, ProgressBarModule, TagModule, AvatarGroupModule, AvatarInitialsComponent]
 })
 export class CardComponent {
 	@Input() public project = {} as IProjectCardViewModel;

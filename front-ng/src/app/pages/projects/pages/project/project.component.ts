@@ -10,19 +10,18 @@ import { ButtonModule } from 'primeng/button';
 import { RouterModule } from '@angular/router';
 
 @Component({
-	selector: 'app-project',
-	templateUrl: './project.component.html',
-	styleUrls: ['./project.component.scss'],
-	standalone: true,
-	imports: [
-		ExpenseComponent,
-		SubHeaderComponent,
-		AddExpenseModalComponent,
-		DynamicDialogModule,
-		ButtonModule,
-		RouterModule
-],
-	providers: [DialogService]
+    selector: 'app-project',
+    templateUrl: './project.component.html',
+    styleUrls: ['./project.component.scss'],
+    imports: [
+        ExpenseComponent,
+        SubHeaderComponent,
+        AddExpenseModalComponent,
+        DynamicDialogModule,
+        ButtonModule,
+        RouterModule
+    ],
+    providers: [DialogService]
 })
 export class ProjectComponent implements OnInit {
 	public users: IUser[] = [];

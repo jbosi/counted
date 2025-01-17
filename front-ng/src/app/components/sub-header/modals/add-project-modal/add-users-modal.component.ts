@@ -7,11 +7,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ICreatableUsers, IUser, RouterParamService, UsersHttpClient } from '../../../../modules';
 
 @Component({
-	selector: 'app-add-users-modal',
-	templateUrl: './add-users-modal.component.html',
-	styleUrls: ['./add-users-modal.component.scss'],
-	standalone: true,
-	imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, ButtonModule]
+    selector: 'app-add-users-modal',
+    templateUrl: './add-users-modal.component.html',
+    styleUrls: ['./add-users-modal.component.scss'],
+    imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, ButtonModule]
 })
 export class AddUsersModalComponent implements OnInit {
 	@Output() public usersAdded = new EventEmitter<void>();

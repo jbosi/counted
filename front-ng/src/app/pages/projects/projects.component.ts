@@ -6,11 +6,10 @@ import { CardComponent } from './components/card/card.component';
 import { JsonPipe } from '@angular/common';
 
 @Component({
-	selector: 'app-projects',
-	templateUrl: './projects.component.html',
-	styleUrls: ['./projects.component.scss'],
-	standalone: true,
-	imports: [CardComponent, AddProjectModalComponent, JsonPipe]
+    selector: 'app-projects',
+    templateUrl: './projects.component.html',
+    styleUrls: ['./projects.component.scss'],
+    imports: [CardComponent, AddProjectModalComponent, JsonPipe]
 })
 export class ProjectsComponent implements OnInit {
 	public projects: IProjectCardViewModel[] = [];

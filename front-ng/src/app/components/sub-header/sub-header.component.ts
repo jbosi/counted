@@ -6,16 +6,15 @@ import { AvatarInitialsComponent, IUser, RouterParamService, UsersHttpClient } f
 import { AddUsersModalComponent } from './modals';
 
 @Component({
-	selector: 'app-sub-header',
-	templateUrl: './sub-header.component.html',
-	styleUrls: ['./sub-header.component.scss'],
-	standalone: true,
-	imports: [
-    ButtonModule,
-    AvatarModule,
-    AddUsersModalComponent,
-    AvatarInitialsComponent
-],
+    selector: 'app-sub-header',
+    templateUrl: './sub-header.component.html',
+    styleUrls: ['./sub-header.component.scss'],
+    imports: [
+        ButtonModule,
+        AvatarModule,
+        AddUsersModalComponent,
+        AvatarInitialsComponent
+    ]
 })
 export class SubHeaderComponent implements OnInit {
 	public users: IUser[] = [];

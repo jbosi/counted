@@ -4,11 +4,10 @@ import { HeaderComponent } from './components/header/header.component';
 import { RouterParamService } from './modules';
 
 @Component({
-	selector: 'app-root',
-	templateUrl: './app.component.html',
-	styleUrls: ['./app.component.scss'],
-	standalone: true,
-	imports: [HeaderComponent, RouterOutlet]
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    imports: [HeaderComponent, RouterOutlet]
 })
 export class AppComponent implements OnInit {
 	public title = 'front-ng';

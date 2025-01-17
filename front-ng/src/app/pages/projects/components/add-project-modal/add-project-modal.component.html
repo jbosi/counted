@@ -7,7 +7,7 @@
 	
 		<div class="form-element">
 			<label>Utilisateurs</label>
-			<p-multiSelect [options]="users" formControlName="selectedUserIds" optionLabel="name" optionValue="id"></p-multiSelect>
+			<p-multiSelect [options]="users()" formControlName="selectedUserIds" optionLabel="name" optionValue="id"></p-multiSelect>
 		</div>
 
 		<button pButton type="submit" class="p-button-outlined" label="Enregistrer"></button>

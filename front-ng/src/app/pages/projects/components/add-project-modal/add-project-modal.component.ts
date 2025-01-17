@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject, input } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ICreatableProject, IUser, ProjectsHttpClient } from '../../../../modules';
 import { ButtonModule } from 'primeng/button';
@@ -16,7 +16,7 @@ export class AddProjectModalComponent implements OnInit {
 	private readonly projectsHttpClient = inject(ProjectsHttpClient);
 
 	@Output() public projectAdded = new EventEmitter<void>();
-	@Input() public users: IUser[] = [];
+	public readonly users = input<IUser[]>([]);
 
 	public form = {} as FormGroup;
 

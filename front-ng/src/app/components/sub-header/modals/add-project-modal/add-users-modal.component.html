@@ -18,7 +18,7 @@
 		<h2>Utilisateurs existants</h2>
 		
 		<ul>
-			@for (existingUser of existingUsers; track existingUser) {
+			@for (existingUser of existingUsers(); track existingUser) {
 				<li>
 					<span>{{ existingUser?.name }}</span>
 					<p-button (click)="deleteExistingUserAsync(existingUser.id)" styleClass="p-button-rounded p-button-outlined">Supprimer</p-button>

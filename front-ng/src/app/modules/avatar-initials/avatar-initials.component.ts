@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, input } from '@angular/core';
 
 const AVAILABLE_COLORS = [
 	'#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#16a085', '#27ae60', '#2980b9',
@@ -19,14 +19,14 @@ const AVAILABLE_COLORS_LIGHT_THEME = ['2c3e50']
 export class AvatarInitialsComponent implements OnInit {
 	private readonly cdr = inject(ChangeDetectorRef);
 
-	@Input() public userName: string = '';
-	@Input() public size: number = 30;
+	public readonly userName = input<string>('');
+	public readonly size = input<number>(30);
 	
 	public backGroundColor: string = '#1abc9c';
 	public initials: string = '';
 
 	ngOnInit(): void {
-		const chars = this.userName?.split(' ')?.length > 1 ? this.userName?.split(' ') : this.userName;
+		const chars = this.userName()?.split(' ')?.length > 1 ? this.userName()?.split(' ') : this.userName();
 
 		this.initials = chars?.[0]?.charAt(0)?.toUpperCase() + (chars?.[1]?.charAt(0)?.toUpperCase() ?? '');
 		const charIndex = this.initials?.charCodeAt(0) - 65;

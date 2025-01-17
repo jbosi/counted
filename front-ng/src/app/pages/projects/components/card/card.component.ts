@@ -1,5 +1,5 @@
 
-import { Component, Input, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AvatarInitialsComponent } from '@hcount/modules';
 import { SharedModule } from 'primeng/api';
@@ -19,9 +19,9 @@ export class CardComponent {
 	private readonly router = inject(Router);
 	private readonly activatedRoute = inject(ActivatedRoute);
 
-	@Input() public project = {} as IProjectCardViewModel;
+	public readonly project = input({} as IProjectCardViewModel);
 	
 	public onCardClick(): void {
-		this.router.navigate([`${this.project.id}`], { relativeTo: this.activatedRoute });
+		this.router.navigate([`${this.project().id}`], { relativeTo: this.activatedRoute });
 	}
 }

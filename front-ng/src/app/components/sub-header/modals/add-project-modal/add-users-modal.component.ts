@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject, input } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -17,7 +17,7 @@ export class AddUsersModalComponent implements OnInit {
 	private readonly routerParamService = inject(RouterParamService);
 
 	@Output() public usersAdded = new EventEmitter<void>();
-	@Input() public existingUsers: IUser[] = [];
+	public readonly existingUsers = input<IUser[]>([]);
 
 	public form = new FormGroup({
 		users: new FormArray<FormGroup<IUsersForm>>([
@@ -75,7 +75,7 @@ export class AddUsersModalComponent implements OnInit {
 
 	public async deleteExistingUserAsync(userId: number): Promise<void> {
 		await this.usersHttpClient.deleteAsync(userId).then(() => {
-			this.existingUsers = this.existingUsers.filter(user => user.id != userId);
+			this.existingUsers = this.existingUsers().filter(user => user.id != userId);
 		});
 	}
 }

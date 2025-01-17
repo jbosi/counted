@@ -1,9 +1,10 @@
+use std::collections::HashSet;
 use actix_web::web;
 use actix_web::web::Query;
 use diesel::RunQueryDsl;
 use diesel::{QueryDsl, SelectableHelper};
 use diesel::BelongingToDsl;
-
+use itertools::Itertools;
 use crate::{DbPool, schema};
 use crate::diesel::ExpressionMethods;
 use crate::models::user_project_model::{NewUserProjects, UserProjects};
@@ -38,6 +39,15 @@ pub async fn get_users(pool: web::Data<DbPool>, params: Query<UserQueryParams>) 
     }
 
     return user_list;
+}
+
+pub async fn get_users_by_ids(pool: web::Data<DbPool>, user_ids: HashSet<i32>) -> Vec<User> {
+    let mut conn = pool.get().expect("couldn't get db connection from pool");
+
+    return users::table
+        .filter(users::id.eq_any(user_ids.iter().collect_vec()))
+        .get_results(&mut conn)
+        .expect("Error while trying to get Project");
 }
 
 pub async fn get_user(pool: web::Data<DbPool>, user_id: i32) -> User {

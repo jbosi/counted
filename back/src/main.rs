@@ -15,6 +15,7 @@ use crate::{
 	users::web::user_web::{create_users, delete_user, get_users, update_user_name}
 };
 use crate::expenses::web::expense_web::{get_expenses, update_expense};
+use crate::projects::web::project_web::get_balance;
 use crate::users::web::user_web::get_user;
 
 pub mod models;
@@ -106,6 +107,8 @@ async fn main() -> std::io::Result<()> {
 					.service(get_payments)
 					// .service(get_expense_payments)
 					// .service(get_users_by_project_id)
+
+					.service(get_balance)
 			)
 			.service(
 				SwaggerUi::new("/swagger-ui/{_:.*}")

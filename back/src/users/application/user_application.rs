@@ -1,13 +1,18 @@
+use std::collections::HashSet;
 use actix_web::web;
 use actix_web::web::Query;
 
 use crate::DbPool;
 use crate::query_strings::user_query_string::UserQueryParams;
 use crate::users::domain::user_model::{CreatableUser, NewUser, PatchableUser, User};
-use crate::users::repository::user_repository::{create_users, delete_user, get_user, get_users, patch_user};
+use crate::users::repository::user_repository::{create_users, delete_user, get_user, get_users, get_users_by_ids, patch_user};
 
 pub async fn get_users_app(pool: web::Data<DbPool>, params: Query<UserQueryParams>) -> Vec<User> {
     return get_users(pool.clone(), params).await;
+}
+
+pub async fn get_users_by_ids_app(pool: web::Data<DbPool>, user_ids: HashSet<i32>) -> Vec<User> {
+    return get_users_by_ids(pool.clone(), user_ids).await;
 }
 
 pub async fn get_user_app(pool: web::Data<DbPool>, user_id: i32) -> User {

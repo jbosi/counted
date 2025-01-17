@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FetchHttpClient, HttpFetchParams } from '../fetch';
-import { ICreatableProject, IProject } from './models';
+import { IBalanceDto, ICreatableProject, IProject } from './models';
 
 const API_URL = '/api/projects';
 
@@ -22,5 +22,9 @@ export class ProjectsHttpClient {
 
 	public createAsync(candidate: ICreatableProject): Promise<IProject> {
 		return this.http.post(API_URL, candidate);
+	}
+
+	public getBalanceAsync(project_id: string): Promise<IBalanceDto> {
+		return this.http.get(`${API_URL}/${project_id}/balance`);
 	}
 }

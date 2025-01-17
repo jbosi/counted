@@ -1,6 +1,8 @@
 <app-sub-header></app-sub-header>
 
 <div class="summary">
+	<a [routerLink]="['/projects/', this.projectId]">Liste des dépenses</a>
+	<a [routerLink]="['/projects/', this.projectId, 'balance']">Equilibre</a>
 	<div class="summary-personal">
 		<span>Mon total </span>
 		<span>625€</span>

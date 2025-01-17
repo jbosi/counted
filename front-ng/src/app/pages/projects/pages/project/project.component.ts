@@ -7,6 +7,7 @@ import { ExpenseComponent } from './components';
 import { AddExpenseModalComponent } from './components/add-project-expense';
 import { ProjectApplication } from './project.application';
 import { ButtonModule } from 'primeng/button';
+import { RouterModule } from '@angular/router';
 
 @Component({
 	selector: 'app-project',
@@ -14,11 +15,12 @@ import { ButtonModule } from 'primeng/button';
 	styleUrls: ['./project.component.scss'],
 	standalone: true,
 	imports: [
-    ExpenseComponent,
-    SubHeaderComponent,
-    AddExpenseModalComponent,
-    DynamicDialogModule,
-    ButtonModule
+		ExpenseComponent,
+		SubHeaderComponent,
+		AddExpenseModalComponent,
+		DynamicDialogModule,
+		ButtonModule,
+		RouterModule
 ],
 	providers: [DialogService]
 })

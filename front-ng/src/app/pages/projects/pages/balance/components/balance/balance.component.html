@@ -1,0 +1,20 @@
+@if (userBalances()?.balances != null) {
+	@for (balance of userBalances()?.balances; track balance.user_id) {
+		<section class="balance-content">
+			<app-avatar-initials class="" [size]="23" [userName]="balance.user_name"></app-avatar-initials>
+			<h3>{{ balance.user_name }}</h3>
+			<span>{{ balance.amount }}</span>
+		</section>
+		 
+		@if (balance.amountProgressBar >= 0) {
+			<div class="barContainer">
+				<span class="bar" [style.width]="balance.amountProgressBar + '%'"></span>
+			</div>
+		} @else {
+			<div class="barContainer negative-container-bar">
+				<span class="bar negative-bar" [style.width]="balance.amountProgressBar + '%'"></span>
+			</div>
+		}
+
+	}
+}

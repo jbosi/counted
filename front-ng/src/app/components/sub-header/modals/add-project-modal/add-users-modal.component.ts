@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, OnInit, Output, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -16,7 +16,7 @@ export class AddUsersModalComponent implements OnInit {
 	private readonly usersHttpClient = inject(UsersHttpClient);
 	private readonly routerParamService = inject(RouterParamService);
 
-	@Output() public usersAdded = new EventEmitter<void>();
+	public readonly usersAdded = output<void>();
 	public readonly existingUsers = input<IUser[]>([]);
 
 	public form = new FormGroup({
@@ -59,7 +59,7 @@ export class AddUsersModalComponent implements OnInit {
 			.catch(e => console.error(e));
 
 		this.display = false;
-		this.usersAdded.next();
+		this.usersAdded.emit();
 	}
 
 	public addCandidateUser(): void {

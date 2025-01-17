@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { RouterParamService } from '@hcount/modules';
 import { ButtonModule } from 'primeng/button';
@@ -12,7 +12,8 @@ import { ButtonModule } from 'primeng/button';
     ]
 })
 export class HeaderComponent {
-	constructor(private readonly routerParamService: RouterParamService) {}
+	private readonly routerParamService = inject(RouterParamService);
+
 
 	public navigateBackClick(): void {
 		this.routerParamService.navigateRelative('..')

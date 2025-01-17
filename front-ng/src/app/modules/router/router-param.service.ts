@@ -1,17 +1,15 @@
 /* eslint-disable no-restricted-syntax */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRoute, ActivationEnd, NavigationEnd, Params, Router } from '@angular/router';
 import { filter, map, Observable, ReplaySubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class RouterParamService {
+	private readonly activatedRoute = inject(ActivatedRoute);
+	private readonly router = inject(Router);
+
 	private params$ = new ReplaySubject<Params>(1);
 	private data$ = new ReplaySubject<any>(1);
-
-	constructor(
-		private readonly activatedRoute: ActivatedRoute,
-		private readonly router: Router
-	) { }
 
 	public init(): void {
 		this.router.events.pipe(

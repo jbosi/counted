@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -13,6 +13,9 @@ import { ICreatableUsers, IUser, RouterParamService, UsersHttpClient } from '../
     imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, ButtonModule]
 })
 export class AddUsersModalComponent implements OnInit {
+	private readonly usersHttpClient = inject(UsersHttpClient);
+	private readonly routerParamService = inject(RouterParamService);
+
 	@Output() public usersAdded = new EventEmitter<void>();
 	@Input() public existingUsers: IUser[] = [];
 
@@ -27,10 +30,6 @@ export class AddUsersModalComponent implements OnInit {
 	public users!: FormArray<FormGroup<IUsersForm>>;
 
 	public display: boolean = false;
-	constructor(
-		private readonly usersHttpClient: UsersHttpClient,
-		private readonly routerParamService: RouterParamService
-	) {}
 
 	ngOnInit(): void {
 		this.users = this.form.controls["users"];

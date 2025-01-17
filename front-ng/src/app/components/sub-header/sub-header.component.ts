@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { AvatarInitialsComponent, IUser, RouterParamService, UsersHttpClient } from '../../modules';
@@ -17,11 +17,10 @@ import { AddUsersModalComponent } from './modals';
     ]
 })
 export class SubHeaderComponent implements OnInit {
+	private readonly usersHttpClient = inject(UsersHttpClient);
+	private readonly routerParamService = inject(RouterParamService);
+
 	public users: IUser[] = [];
-	constructor(
-		private readonly usersHttpClient: UsersHttpClient,
-		private readonly routerParamService: RouterParamService
-	) {}
 
 	async ngOnInit(): Promise<void> {
 		const project_id: string | undefined = this.routerParamService.getParam('projectId');

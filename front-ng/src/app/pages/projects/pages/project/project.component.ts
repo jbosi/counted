@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { IExpensesViewModel, IUser, RouterParamService } from '@hcount/modules';
 import { DialogService, DynamicDialogConfig, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { SubHeaderComponent } from '../../../../components';
@@ -24,17 +24,15 @@ import { RouterModule } from '@angular/router';
     providers: [DialogService]
 })
 export class ProjectComponent implements OnInit {
+	private readonly projectApplication = inject(ProjectApplication);
+	private readonly routerParamService = inject(RouterParamService);
+	private readonly dialogService = inject(DialogService);
+
 	public users: IUser[] = [];
 	public expensePayments: IExpensesViewModel[] = [];
 	public projectId!: string;
 	public globalTotal: number = 0;
 	public expensePaymentId: number | undefined;
-
-	constructor(
-		private readonly projectApplication: ProjectApplication,
-		private readonly routerParamService: RouterParamService,
-		private readonly dialogService: DialogService
-	) {}
 	
 	async ngOnInit(): Promise<void> {
 		const projectId = this.routerParamService.getParam('projectId');

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FetchHttpClient, HttpFetchParams } from '../fetch';
 import { ICreatableUsers, IUser } from './models';
 
@@ -6,7 +6,8 @@ const API_URL = '/api/users';
 
 @Injectable({ providedIn: 'root' })
 export class UsersHttpClient {
-	constructor(private http: FetchHttpClient) { }
+	private http = inject(FetchHttpClient);
+
 	
 	// TODO: scope to project
 	public getAsync(): Promise<IUser[]> {

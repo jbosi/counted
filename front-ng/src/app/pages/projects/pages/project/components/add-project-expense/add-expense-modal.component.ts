@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +21,11 @@ import { AddExpenseModalApplication } from './add-expense-modal.application';
     imports: [DialogModule, FormsModule, ReactiveFormsModule, InputTextModule, MultiSelectModule, ButtonModule, InputNumberModule, CheckboxModule, AvatarInitialsComponent]
 })
 export class AddExpenseModalComponent implements OnInit {
+	private readonly activatedRoute = inject(ActivatedRoute);
+	private readonly addExpenseModalApplication = inject(AddExpenseModalApplication);
+	private readonly modal = inject(DynamicDialogRef);
+	private readonly modalConfig = inject(DynamicDialogConfig);
+
 	public users: IUser[] = [];
 	public expense: IExpensesViewModel | undefined;
 
@@ -38,13 +43,6 @@ export class AddExpenseModalComponent implements OnInit {
 		{ id: ExpenseType.Gain, name: 'Rentrée d\'argent' },
 		{ id: ExpenseType.Transfer, name: 'Transfert d\'argent' }
 	]
-
-	constructor(
-		private readonly activatedRoute: ActivatedRoute,
-		private readonly addExpenseModalApplication: AddExpenseModalApplication,
-		private readonly modal: DynamicDialogRef,
-		private readonly modalConfig: DynamicDialogConfig
-	) {}
 
 	ngOnInit(): void {
 		const config: DynamicDialogConfig<IExpenseModalData> = this.modalConfig

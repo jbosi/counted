@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { IProject, IUser, ProjectsHttpClient, UsersHttpClient } from '../../modules';
 import { AddProjectModalComponent } from './components/add-project-modal/add-project-modal.component';
 import { CardComponent } from './components/card/card.component';
@@ -12,13 +12,11 @@ import { JsonPipe } from '@angular/common';
     imports: [CardComponent, AddProjectModalComponent, JsonPipe]
 })
 export class ProjectsComponent implements OnInit {
+	private readonly projectsHttpClient = inject(ProjectsHttpClient);
+	private readonly usersHttpClient = inject(UsersHttpClient);
+
 	public projects: IProjectCardViewModel[] = [];
 	public users: IUser[] = [];
-
-	constructor(
-		private readonly projectsHttpClient: ProjectsHttpClient,
-		private readonly usersHttpClient: UsersHttpClient
-	) {}
 
 	async ngOnInit(): Promise<void> {
 		await this.getData()

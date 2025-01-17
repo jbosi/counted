@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ExpensesHttpClient, ICreatableExpense, IEditableExpense, IExpenseDto } from '@hcount/modules';
 import { IAddExpenseForm } from './add-expense-modal.component';
@@ -6,9 +6,8 @@ import { IAddExpenseForm } from './add-expense-modal.component';
 // TODO Rename into ExpenseModalApplication
 @Injectable({ providedIn: 'root' })
 export class AddExpenseModalApplication {
-	constructor(
-		private readonly expensesHttpClient: ExpensesHttpClient,
-	) {}
+	private readonly expensesHttpClient = inject(ExpensesHttpClient);
+
 
 	public async createOrEditExpenseAsync(form: FormGroup<IAddExpenseForm>, projectId: string, expenseId: number | undefined): Promise<void> {
 		const formValues = form.getRawValue();

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FetchHttpClient, HttpFetchParams } from '../fetch';
 import { ICreatableExpense, IEditableExpense, IExpenseDto } from './models';
 
@@ -6,7 +6,8 @@ const API_URL = '/api/expenses';
 
 @Injectable({ providedIn: 'root' })
 export class ExpensesHttpClient {
-	constructor(private http: FetchHttpClient) { }
+	private http = inject(FetchHttpClient);
+
 	
 	public getAsync(projectId: string): Promise<IExpenseDto[]> {
 		const params: HttpFetchParams = new Map([

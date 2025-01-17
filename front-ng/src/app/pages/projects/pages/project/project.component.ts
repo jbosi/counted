@@ -14,13 +14,12 @@ import { RouterModule } from '@angular/router';
     templateUrl: './project.component.html',
     styleUrls: ['./project.component.scss'],
     imports: [
-        ExpenseComponent,
-        SubHeaderComponent,
-        AddExpenseModalComponent,
-        DynamicDialogModule,
-        ButtonModule,
-        RouterModule
-    ],
+    ExpenseComponent,
+    SubHeaderComponent,
+    DynamicDialogModule,
+    ButtonModule,
+    RouterModule
+],
     providers: [DialogService]
 })
 export class ProjectComponent implements OnInit {

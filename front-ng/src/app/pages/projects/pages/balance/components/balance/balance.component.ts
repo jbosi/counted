@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { AvatarInitialsComponent, RouterParamService } from '@hcount/modules';
 import { IBalanceViewModel } from '../../models';
@@ -6,7 +6,7 @@ import { BalanceApplication } from './balance.application';
 
 @Component({
     selector: 'app-balance',
-    imports: [AvatarInitialsComponent, NgFor],
+    imports: [AvatarInitialsComponent],
     templateUrl: './balance.component.html',
     styleUrl: './balance.component.scss'
 })

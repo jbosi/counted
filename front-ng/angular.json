@@ -16,10 +16,10 @@
 			"architect": {
 				"build": {
 					"builder": "@angular/build:application",
-          "options": {
-            "outputPath": {
-              "base": "dist/front-ng"
-            },
+					"options": {
+						"outputPath": {
+							"base": "dist/front-ng"
+						},
 						"index": "src/index.html",
 						"polyfills": ["zone.js"],
 						"tsConfig": "tsconfig.app.json",
@@ -27,12 +27,10 @@
 						"assets": ["src/favicon.ico", "src/assets"],
 						"styles": [
 							"src/styles.scss",
-							"node_modules/primeng/resources/themes/bootstrap4-dark-blue/theme.css",
-							"node_modules/primeng/resources/primeng.min.css",
 							"node_modules/primeicons/primeicons.css"
 						],
-            "scripts": [],
-            "browser": "src/main.ts"
+						"scripts": [],
+						"browser": "src/main.ts"
 					},
 					"configurations": {
 						"production": {
@@ -77,8 +75,8 @@
 				}
 			}
 		}
-  },
-  "cli": {
-    "analytics": false
-  }
+	},
+	"cli": {
+		"analytics": false
+	}
 }

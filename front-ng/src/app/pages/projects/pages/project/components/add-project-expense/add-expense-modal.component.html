@@ -23,8 +23,12 @@
 		<h2>Payé par</h2>
 		<ng-container formArrayName="payers">
 			@for (payerControl of payersControl.controls; track payerControl; let i = $index) {
+				@let name = 'payers' + i;
+
 				<div class="expensePaymentDetail" [formGroup]="payerControl">
-					<p-checkbox [label]="users[i].name" [name]="'payers' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<p-checkbox [inputId]="name" [name]="'payers' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<label [for]="name">{{ users[i].name }}</label>
+
 					<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="users[i].name"></app-avatar-initials>
 					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
 					<span>€</span>
@@ -37,8 +41,11 @@
 		<h2>Pour</h2>
 		<ng-container formArrayName="debtors">
 			@for (debtorControl of debtorsControl.controls; track debtorControl; let i = $index) {
+				@let name = 'debtors' + i;
+
 				<div class="expensePaymentDetail" [formGroup]="debtorControl">
-					<p-checkbox [label]="users[i].name" [name]="'debtors' + i" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<p-checkbox [inputId]="name" [name]="name" formControlName="isSelectedUser" [binary]="true"></p-checkbox>
+					<label [for]="name">{{ users[i].name }}</label>
 					<app-avatar-initials class="expenseContent-avatars-item" [size]="23" [userName]="users[i].name"></app-avatar-initials>
 					<p-inputNumber mode="currency" currency="EUR" [min]="0" formControlName="userAmount"></p-inputNumber>
 					<span>€</span>

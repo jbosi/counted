@@ -2,8 +2,6 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AddProjectModalComponent, CardComponent } from './components';
-
-
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
@@ -55,7 +53,6 @@ const routes: Routes = [
 		FormsModule,
 		ReactiveFormsModule,
 		MultiSelectModule,
-		ProjectsComponent,
 		CardComponent,
 		AddProjectModalComponent
 	]

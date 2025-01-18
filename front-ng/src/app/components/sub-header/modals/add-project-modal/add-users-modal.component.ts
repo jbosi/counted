@@ -75,7 +75,8 @@ export class AddUsersModalComponent implements OnInit {
 
 	public async deleteExistingUserAsync(userId: number): Promise<void> {
 		await this.usersHttpClient.deleteAsync(userId).then(() => {
-			this.existingUsers = this.existingUsers().filter(user => user.id != userId);
+			// TODO
+			// this.existingUsers.set(this.existingUsers().filter(user => user.id != userId));
 		});
 	}
 }

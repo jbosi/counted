@@ -1,0 +1,9 @@
+docker compose up -d
+
+## Backend
+cd backend
+cargo run
+
+## Frontend
+cd frontend
+trunk serve --open

@@ -1,25 +1,25 @@
 [package]
-name = "backend"
+name = "api"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Paquet local partagé
+dioxus = { workspace = true, features = ["fullstack"] }
 shared = { path = "../shared" }
 
-# Dépendances serveur
+# server deps
 axum = "0.7"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.5.0", features = ["fs", "trace"] }
 
-# Base de données
+# DB
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "chrono", "rust_decimal"] }
 
-# Sérialisation
+# Serialisation
 serde = "1.0"
 serde_json = "1.0"
 
-# Utilitaires
+# Tools
 anyhow = "1.0"
 thiserror = "1.0"
 tracing = "0.1"

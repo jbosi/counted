@@ -1,9 +1,24 @@
 docker compose up -d
 
-## Backend
-cd backend
-cargo run
+## DB
+# psql -U hcount_user -d hcount -h localhost -f schema.sql
+
+user: hcount_user
+password : supersecret
 
 ## Frontend
 cd frontend
-trunk serve --open
+# dx build --package frontend --release
+# dx serve --package frontend --port 3000 -- -- --proxy "http://localhost:8080/api=>/api"
+dx serve --package frontend --port 3000
+
+## Backend
+cd backend
+cargo run --package backend
+
+http://localhost:3000
+
+## Docker
+# Copier le script dans le conteneur et l'executer
+docker cp schema.sql hcount-db-1:/tmp/schema.sql
+docker exec -it hcount-db-1 psql -U hcount_user -d hcount -f /tmp/schema.sql

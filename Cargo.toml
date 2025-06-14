@@ -1,6 +1,24 @@
 [workspace]
+resolver = "2"
 members = [
-    "backend",
     "frontend",
-    "shared"
+    "backend",
+    "shared",
 ]
+
+# Optionnel : définir des profils de build pour tout le workspace
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true
+codegen-units = 1
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

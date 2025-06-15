@@ -1,0 +1,10 @@
+-- Add up migration script here
+
+CREATE TABLE payments (
+  id SERIAL PRIMARY KEY,
+  expense_id integer REFERENCES expenses(id) NOT NULL,
+  user_id integer REFERENCES users(id) NOT NULL,
+  is_debt boolean NOT NULL,
+  amount double precision NOT NULL,
+  created_at timestamp default current_timestamp NOT NULL
+);

@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use ui::Navbar;
-use views::{Blog, Home};
+use views::{Blog, Projects};
 
 mod views;
 
@@ -10,7 +10,7 @@ mod views;
 enum Route {
     #[layout(DesktopNavbar)]
     #[route("/")]
-    Home {},
+    Projects {},
     #[route("/blog/:id")]
     Blog { id: i32 },
 }
@@ -40,8 +40,8 @@ fn DesktopNavbar() -> Element {
     rsx! {
         Navbar {
             Link {
-                to: Route::Home {},
-                "Home"
+                to: Route::Projects {},
+                "Projects"
             }
             Link {
                 to: Route::Blog { id: 1 },

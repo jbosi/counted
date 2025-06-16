@@ -19,16 +19,17 @@ pub fn Projects() -> Element {
             div {
                 class: "space-y-4 min-w-md",
                 
-                // On itère sur nos données pour créer une carte pour chaque voyage
-                {trips.iter().map(|(title, current, total)| rsx!{
-                    TripCard {
-                        title: title.to_string(),
-                        current_reimbursements: *current,
-                        total_reimbursements: *total,
-                        participants: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
-                        more_participants: 3
-                    }
-                })}
+                {
+                    trips.iter().map(|(title, current, total)| rsx!{
+                        TripCard {
+                            title: title.to_string(),
+                            current_reimbursements: *current,
+                            total_reimbursements: *total,
+                            participants: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
+                            more_participants: 3
+                        }
+                    })
+                }
             }
         Echo {}
     }

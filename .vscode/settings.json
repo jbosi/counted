@@ -5,5 +5,9 @@
 		".\\mobile\\Cargo.toml",
 		".\\ui\\Cargo.toml",
 		".\\web\\Cargo.toml"
-	]
+	],
+	"tailwindCSS.experimental.classRegex": ["class: \"(.*)\""],
+	"tailwindCSS.includeLanguages": {
+		"rust": "html"
+	},
 }

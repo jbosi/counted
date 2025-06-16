@@ -90,7 +90,7 @@ api/
 3. Run the following command in the root of the project to start the Tailwind CSS compiler:
 
 ```bash
-npx tailwindcss -i ./tailwind.css -o .ui/assets/tailwind.css --watch
+npx tailwindcss -i ./input.css -o .web/assets/tailwind.css --watch
 ```
 
 

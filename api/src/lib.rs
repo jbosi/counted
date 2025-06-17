@@ -1,30 +1,30 @@
 //! This crate contains all shared fullstack server functions.
 use dioxus::prelude::*;
+use sqlx::{PgPool};
+use uuid::Uuid;
 
 
 
-// pub mod entities;
+pub mod entities;
 
-// use axum::{
-//     extract::{Path, State},
-//     http::StatusCode,
-//     response::IntoResponse,
-//     routing::{get, post},
-//     Json, Router,
-// };
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 // use rust_decimal::Decimal;
 // use shared::{
 //     CreateExpensePayload, CreateUserPayload, Expense, ExpenseSummary, FullGroupDetails, Group, User,
 //     UserBalance,
 // };
-// use sqlx::{PgPool};
 // use std::net::SocketAddr;
 // use tower_http::services::ServeDir;
 // use tracing::{info, Level};
 // use tracing_subscriber::FmtSubscriber;
-// use uuid::Uuid;
 
-// use crate::entities::entities::DbUser;
+use crate::entities::entities::Project;
 
 // // On utilise les structs de 'shared' mais on a besoin de `FromRow` ici pour les requêtes DB.
 // // On peut dériver FromRow sur des "newtypes" ou des copies locales si nécessaire,
@@ -33,6 +33,22 @@ use dioxus::prelude::*;
 // type AppState = PgPool;
 
 // --- GESTIONNAIRES D'API (API Handlers) ---
+
+async fn get_projects(project_id: Uuid) -> Result<Json<Vec<Project>>, AppError> {
+        dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
+        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
+
+        let pool = PgPool::connect(&db_url)
+        .await
+        .expect("Unable to connect to the database");
+
+    let projects: Vec<Project> = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+        .bind(project_id)
+        .fetch_all(&pool)
+        .await?;
+
+    Ok(Json(projects))
+}
 
 // async fn get_group_details(
 //     State(pool): State<AppState>,
@@ -178,13 +194,13 @@ use dioxus::prelude::*;
 // }
 
 // // --- GESTION DES ERREURS ---
-// #[derive(Debug, thiserror::Error)]
-// enum AppError {
-//     #[error(transparent)]
-//     SqlxError(#[from] sqlx::Error),
-//     #[error("Erreur de requête : {0}")]
-//     BadRequest(String),
-// }
+#[derive(Debug, thiserror::Error)]
+enum AppError {
+    #[error(transparent)]
+    SqlxError(#[from] sqlx::Error),
+    #[error("Erreur de requête : {0}")]
+    BadRequest(String),
+}
 
 // impl IntoResponse for AppError {
 //     fn into_response(self) -> axum::response::Response {

@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use ui::{Echo, Hero};
 
 #[component]
 pub fn Projects() -> Element {
@@ -25,13 +24,12 @@ pub fn Projects() -> Element {
                             title: title.to_string(),
                             current_reimbursements: *current,
                             total_reimbursements: *total,
-                            participants: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
-                            more_participants: 3
+                            users: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
+                            more_users: 3
                         }
                     })
                 }
             }
-        Echo {}
     }
 }
 
@@ -41,8 +39,8 @@ struct TripCardProps {
     title: String,
     current_reimbursements: u32,
     total_reimbursements: u32,
-    participants: Vec<String>,
-    more_participants: u32,
+    users: Vec<String>,
+    more_users: u32,
 }
 
 fn TripCard(props: TripCardProps) -> Element {
@@ -92,13 +90,13 @@ fn TripCard(props: TripCardProps) -> Element {
                 }
                 div {
                     class: "flex items-center",
-                    // On affiche les avatars des participants
-                    {props.participants.iter().map(|initials| rsx!{
+                    // On affiche les avatars des users
+                    {props.users.iter().map(|initials| rsx!{
                         Avatar { text: initials.clone() }
                     })}
-                    // On affiche le nombre de participants supplémentaires
-                    {if props.more_participants > 0 {
-                        rsx! { Avatar { text: format!("+{}", props.more_participants) } }
+                    // On affiche le nombre de users supplémentaires
+                    {if props.more_users > 0 {
+                        rsx! { Avatar { text: format!("+{}", props.more_users) } }
                     } else {
                         rsx! { "" }
                     }}

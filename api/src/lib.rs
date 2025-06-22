@@ -33,8 +33,8 @@ use crate::entities::entities::Project;
 // type AppState = PgPool;
 
 // --- GESTIONNAIRES D'API (API Handlers) ---
-
-async fn get_projects(project_id: Uuid) -> Result<Json<Vec<Project>>, AppError> {
+#[server(GetProject)]
+async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
         dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
         let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
 
@@ -42,12 +42,28 @@ async fn get_projects(project_id: Uuid) -> Result<Json<Vec<Project>>, AppError> 
         .await
         .expect("Unable to connect to the database");
 
-    let projects: Vec<Project> = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+    let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_all(&pool)
         .await?;
 
-    Ok(Json(projects))
+    Ok(projects)
+}
+
+#[server(GetProjects)]
+async fn get_projects(project_id: Uuid) -> Result<Vec<Project>, ServerFnError> {
+        dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
+        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
+
+        let pool = PgPool::connect(&db_url)
+        .await
+        .expect("Unable to connect to the database");
+
+    let projects: Vec<Project> = sqlx::query_as("SELECT * FROM projects")
+        .fetch_all(&pool)
+        .await?;
+
+    Ok(projects)
 }
 
 // async fn get_group_details(
@@ -194,13 +210,13 @@ async fn get_projects(project_id: Uuid) -> Result<Json<Vec<Project>>, AppError> 
 // }
 
 // // --- GESTION DES ERREURS ---
-#[derive(Debug, thiserror::Error)]
-enum AppError {
-    #[error(transparent)]
-    SqlxError(#[from] sqlx::Error),
-    #[error("Erreur de requête : {0}")]
-    BadRequest(String),
-}
+// #[derive(Debug, thiserror::Error)]
+// enum AppError {
+//     #[error(transparent)]
+//     SqlxError(#[from] sqlx::Error),
+//     #[error("Erreur de requête : {0}")]
+//     BadRequest(String),
+// }
 
 // impl IntoResponse for AppError {
 //     fn into_response(self) -> axum::response::Response {

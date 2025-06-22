@@ -1,3 +1,4 @@
+use crate::Route;
 use dioxus::prelude::*;
 
 #[component]
@@ -8,6 +9,8 @@ pub fn Projects() -> Element {
         ("Randonnée en montagne", 1, 8),
         ("City-trip à Lisbonne", 5, 6),
     ];
+
+    // let data = api::GetProjects().await.unwrap();
 
     rsx! {
             h1 {

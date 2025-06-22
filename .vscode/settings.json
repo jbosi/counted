@@ -6,6 +6,7 @@
 		".\\ui\\Cargo.toml",
 		".\\web\\Cargo.toml"
 	],
+	"rust-analyzer.cargo.features": ["full-support"],
 	"tailwindCSS.experimental.classRegex": ["class: \"(.*)\""],
 	"tailwindCSS.includeLanguages": {
 		"rust": "html"

@@ -10,7 +10,7 @@ pub fn Projects() -> Element {
         ("City-trip à Lisbonne", 5, 6),
     ];
 
-    // let data = api::GetProjects().await.unwrap();
+    let data = use_resource(move || async move { api::get_projects().await.unwrap() });
 
     rsx! {
             h1 {

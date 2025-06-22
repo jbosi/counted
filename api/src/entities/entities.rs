@@ -3,8 +3,10 @@ use chrono::{DateTime, Utc, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use shared::{Group, User};
 use uuid::Uuid;
+#[cfg(feature = "sqlx")]
 use sqlx::FromRow;
 
+#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, FromRow)]
 pub struct Project {
 	pub id: Uuid,

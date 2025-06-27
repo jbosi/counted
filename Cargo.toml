@@ -14,6 +14,7 @@ dioxus = { version = "0.6.0" }
 # workspace
 ui = { path = "ui" }
 api = { path = "api" }
+shared = { path = "shared" }
 
 [profile]
 

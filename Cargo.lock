@@ -4697,6 +4697,7 @@ dependencies = [
  "chrono",
  "rust_decimal",
  "serde",
+ "sqlx",
  "uuid",
 ]
 
@@ -5977,9 +5978,16 @@ dependencies = [
 name = "web"
 version = "0.1.0"
 dependencies = [
- "api",
+ "axum",
+ "chrono",
  "dioxus",
+ "dotenvy",
+ "serde",
+ "serde_json",
+ "shared",
+ "sqlx",
  "ui",
+ "uuid",
 ]
 
 [[package]]

@@ -28,7 +28,9 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool};
+use sqlx::{FromRow, PgPool, Pool, Postgres};
+#[cfg(feature = "server")]
+use crate::db::get_db;
 use shared::Project;
 // use rust_decimal::Decimal;
 // use shared::{
@@ -51,12 +53,7 @@ use shared::Project;
 // #[cfg(feature = "sqlx")]
 // #[server(GetProject)]
 // pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
-//         dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
-//         let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
-//
-//         let pool = PgPool::connect(&db_url)
-//         .await
-//         .expect("Unable to connect to the database");
+//     let pool: Pool<Postgres> = get_db().await;
 //
 //     let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
 //         .bind(project_id)
@@ -68,12 +65,7 @@ use shared::Project;
 
 #[server()]
 pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
-    dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
-
-    let pool = PgPool::connect(&db_url)
-        .await
-        .expect("Unable to connect to the database");
+    let pool: Pool<Postgres> = get_db().await;
 
     let projects: Vec<Project> = sqlx::query_as("SELECT id, name, created_at, currency FROM projects")
         .fetch_all(&pool)

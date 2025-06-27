@@ -1,7 +1,6 @@
 use crate::Route;
 use dioxus::prelude::*;
 
-
 #[component]
 pub fn Expenses(id: i32) -> Element {
     let today_transactions = vec![
@@ -21,18 +20,18 @@ pub fn Expenses(id: i32) -> Element {
 
         div {
             class: "p-4",
-            
+
             Header { title: "Weekend Paris" }
             UserSection {}
             SummaryCard { my_total: 625.0, global_total: 3200.0 }
-            
+
             // Liste des transactions
             div {
                 class: "mt-6",
-                
+
                 DateSeparator { label: "Today" }
                 TransactionList { transactions: today_transactions }
-                
+
                 DateSeparator { label: "Yesterday" }
                 TransactionList { transactions: yesterday_transactions }
             }
@@ -57,7 +56,7 @@ fn Header(props: HeaderProps) -> Element {
         header {
             class: "flex justify-between items-center py-4",
             // Un espace vide pour pousser le titre au centre
-            span { class: "w-8" } 
+            span { class: "w-8" }
             h1 { class: "text-2xl font-semibold text-gray-800", "{props.title}" }
             // Icône de menu Hamburger
             svg {

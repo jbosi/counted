@@ -1,4 +1,4 @@
-use crate::Route;
+use crate::{api, Route};
 use dioxus::prelude::*;
 
 #[component]
@@ -10,7 +10,14 @@ pub fn Projects() -> Element {
         ("City-trip à Lisbonne", 5, 6),
     ];
 
-    let data = use_resource(move || async move { api::get_projects().await.unwrap() });
+    // let mut trips = use_signal(|| vec![]);
+
+    // let _ = use_resource(move || async move {
+    //     match api::get_projects().await {
+    //         Ok(todo) => trips.set(vec![todo]),
+    //         Err(_) => ()
+    //     }
+    // });
 
     rsx! {
             h1 {
@@ -20,7 +27,7 @@ pub fn Projects() -> Element {
 
             div {
                 class: "space-y-4 min-w-md",
-                
+
                 {
                     trips.iter().map(|(title, current, total)| rsx!{
                         TripCard {
@@ -123,3 +130,4 @@ fn Avatar(props: AvatarProps) -> Element {
         }
     }
 }
+

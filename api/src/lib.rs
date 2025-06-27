@@ -1,11 +1,10 @@
 //! This crate contains all shared fullstack server functions.
+mod db;
+
 use dioxus::prelude::*;
 use uuid::Uuid;
 
-
-#[cfg(feature = "sqlx")]
-use sqlx::{PgPool};
-#[cfg(feature = "axum")]
+#[cfg(feature = "server")]
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -14,9 +13,23 @@ use axum::{
     Json, Router,
 };
 
+// use rust_decimal::Decimal;
+// use shared::{
+//     CreateExpensePayload, CreateUserPayload, Expense, ExpenseSummary, FullGroupDetails, Group, User,
+//     UserBalance,
+// };
+// use std::net::SocketAddr;
+// use tower_http::services::ServeDir;
+// use tracing::{info, Level};
+// use tracing_subscriber::FmtSubscriber;
 
+use chrono::{DateTime, NaiveDateTime, Utc};
+// use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 
-
+#[cfg(feature = "server")]
+use sqlx::{FromRow, PgPool};
+use shared::Project;
 // use rust_decimal::Decimal;
 // use shared::{
     //     CreateExpensePayload, CreateUserPayload, Expense, ExpenseSummary, FullGroupDetails, Group, User,
@@ -27,12 +40,6 @@ use axum::{
     // use tracing::{info, Level};
     // use tracing_subscriber::FmtSubscriber;
     
-    #[cfg(feature = "sqlx")]
-    pub mod entities;
-    #[cfg(feature = "sqlx")]
-    use crate::entities::Project;
-
-// use entities::Project
 
 // // On utilise les structs de 'shared' mais on a besoin de `FromRow` ici pour les requêtes DB.
 // // On peut dériver FromRow sur des "newtypes" ou des copies locales si nécessaire,
@@ -41,35 +48,34 @@ use axum::{
 // type AppState = PgPool;
 
 // --- GESTIONNAIRES D'API (API Handlers) ---
-#[cfg(feature = "sqlx")]
-#[server(GetProject)]
-pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
-        dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
-        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
+// #[cfg(feature = "sqlx")]
+// #[server(GetProject)]
+// pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
+//         dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
+//         let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
+//
+//         let pool = PgPool::connect(&db_url)
+//         .await
+//         .expect("Unable to connect to the database");
+//
+//     let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+//         .bind(project_id)
+//         .fetch_all(&pool)
+//         .await?;
+//
+//     Ok(projects)
+// }
 
-        let pool = PgPool::connect(&db_url)
+#[server()]
+pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
+    dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
+    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
+
+    let pool = PgPool::connect(&db_url)
         .await
         .expect("Unable to connect to the database");
 
-    let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
-        .bind(project_id)
-        .fetch_all(&pool)
-        .await?;
-
-    Ok(projects)
-}
-
-#[cfg(feature = "sqlx")]
-#[server(GetProjects)]
-pub async fn get_projects(project_id: Uuid) -> Result<Vec<Project>, ServerFnError> {
-        dotenvy::dotenv().expect("Le fichier .env n'a pas pu être chargé");
-        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL doit être défini");
-
-        let pool = PgPool::connect(&db_url)
-        .await
-        .expect("Unable to connect to the database");
-
-    let projects: Vec<Project> = sqlx::query_as("SELECT * FROM projects")
+    let projects: Vec<Project> = sqlx::query_as("SELECT id, name, created_at, currency FROM projects")
         .fetch_all(&pool)
         .await?;
 

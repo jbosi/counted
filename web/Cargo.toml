@@ -7,7 +7,7 @@ edition = "2021"
 dioxus = { workspace = true, features = ["router"] }
 ui = { workspace = true }
 shared = { workspace = true }
-#api = { workspace = true, default-features = false }
+api = { workspace = true }
 
 # Serialisation
 serde = "1.0"
@@ -24,4 +24,4 @@ axum = { version = "0.7", optional = true }
 [features]
 default = []
 web = ["dioxus/web"]
-server = ["dioxus/server", "sqlx", "axum", "shared/server"]
+server = ["dioxus/server", "sqlx", "axum", "shared/server", "api/server"]

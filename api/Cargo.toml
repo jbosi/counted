@@ -30,6 +30,4 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "ch
 axum = { version = "0.7", optional = true }
 
 [features]
-sqlx-support = ["sqlx"]
-axum-support = ["axum"]
-full-support = ["sqlx-support", "axum-support"]
+server = ["sqlx", "axum"]

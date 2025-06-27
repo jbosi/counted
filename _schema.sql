@@ -84,3 +84,17 @@ INSERT INTO expenses (group_id, description, amount, paid_by_user_id) VALUES
 INSERT INTO expense_participants (expense_id, user_id, share) VALUES
 (2, 2, 25.00), -- Bob
 (2, 3, 25.00); -- Charlie
+
+
+
+--------------------------------------------------
+
+INSERT INTO projects (name, currency) VALUES
+    ('Voyage en Italie', 'eur'),
+    ('Tour du monde en amoureux', 'eur'),
+    ('Découverte du monténégro', 'dollar');
+
+INSERT INTO users (name) VALUES
+    ('Alice'),
+    ('Bob'),
+    ('Charlie');

@@ -3,7 +3,13 @@
 docker compose up -d
 
 ## DB
- <!-- psql -U hcount_user -d hcount -h localhost -f schema.sql -->
+
+Connection à la DB : 
+docker ps (pour récup l'id)
+docker exec -it **ID** bash
+psql -U hcount_user -d hcount -h localhost
+
+pour jouer un fichier : psql -U hcount_user -d hcount -h localhost -f schema.sql
 
 user: hcount_user
 password : supersecret

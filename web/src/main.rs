@@ -4,8 +4,6 @@ use ui::Navbar;
 use views::{Expenses, Projects};
 
 mod views;
-mod api;
-
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 enum Route {

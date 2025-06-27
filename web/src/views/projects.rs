@@ -1,23 +1,25 @@
-use crate::{api, Route};
+use crate::{Route};
 use dioxus::prelude::*;
+use shared::Project;
+use api::get_projects;
 
 #[component]
 pub fn Projects() -> Element {
-    let trips = vec![
-        ("Voyage en Italie", 2, 6),
-        ("Week-end à la mer", 4, 5),
-        ("Randonnée en montagne", 1, 8),
-        ("City-trip à Lisbonne", 5, 6),
-    ];
+    // let trips = vec![
+    //     ("Voyage en Italie", 2, 6),
+    //     ("Week-end à la mer", 4, 5),
+    //     ("Randonnée en montagne", 1, 8),
+    //     ("City-trip à Lisbonne", 5, 6),
+    // ];
 
-    // let mut trips = use_signal(|| vec![]);
+    let mut trips: Signal<Vec<Project>> = use_signal(|| vec![]);
 
-    // let _ = use_resource(move || async move {
-    //     match api::get_projects().await {
-    //         Ok(todo) => trips.set(vec![todo]),
-    //         Err(_) => ()
-    //     }
-    // });
+    let _ = use_resource(move || async move {
+        match get_projects().await {
+            Ok(items) => trips.set(items),
+            Err(_) => ()
+        }
+    });
 
     rsx! {
             h1 {
@@ -29,11 +31,11 @@ pub fn Projects() -> Element {
                 class: "space-y-4 min-w-md",
 
                 {
-                    trips.iter().map(|(title, current, total)| rsx!{
+                    trips.iter().map(|trip| rsx!{
                         TripCard {
-                            title: title.to_string(),
-                            current_reimbursements: *current,
-                            total_reimbursements: *total,
+                            title: trip.name.to_string(),
+                            current_reimbursements: 0,
+                            total_reimbursements: 0,
                             users: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
                             more_users: 3
                         }

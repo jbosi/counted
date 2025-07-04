@@ -2,6 +2,7 @@ use crate::{Route};
 use dioxus::prelude::*;
 use shared::Project;
 use api::get_projects;
+use uuid::Uuid;
 
 #[component]
 pub fn Projects() -> Element {
@@ -26,6 +27,7 @@ pub fn Projects() -> Element {
                 {
                     trips.iter().map(|trip| rsx!{
                         TripCard {
+                            id: trip.id,
                             title: trip.name.to_string(),
                             current_reimbursements: 0,
                             total_reimbursements: 0,
@@ -42,6 +44,7 @@ pub fn Projects() -> Element {
 
 #[derive(PartialEq, Props, Clone)]
 struct TripCardProps {
+    id: Uuid,
     title: String,
     current_reimbursements: u32,
     total_reimbursements: u32,
@@ -61,6 +64,9 @@ fn TripCard(props: TripCardProps) -> Element {
     rsx! {
         div {
             class: "card bg-base-100 w-96 shadow-sm",
+            onclick: move |_| {
+                navigator().push(Route::Expenses { id: props.id });
+            },
             div {
                 class: "card-body",
                 div {

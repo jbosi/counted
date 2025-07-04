@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use uuid::Uuid;
 
 use ui::Navbar;
 use views::{Expenses, Projects};
@@ -11,7 +12,7 @@ enum Route {
     #[route("/")]
     Projects {},
     #[route("/expenses/:id")]
-    Expenses { id: i32 },
+    Expenses { id: Uuid },
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -48,10 +49,6 @@ fn WebNavbar() -> Element {
             Link {
                 to: Route::Projects {},
                 "Projects"
-            }
-            Link {
-                to: Route::Expenses { id: 1 },
-                "Expenses"
             }
         }
 

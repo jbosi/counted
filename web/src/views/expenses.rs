@@ -1,8 +1,9 @@
 use crate::Route;
 use dioxus::prelude::*;
+use uuid::Uuid;
 
 #[component]
-pub fn Expenses(id: i32) -> Element {
+pub fn Expenses(id: Uuid) -> Element {
     let today_transactions = vec![
         Transaction { id: 1, category: "Repas".to_string(), paid_by: "Payé par Rober".to_string(), amount: 50.0 },
         Transaction { id: 2, category: "Piscine de Paris".to_string(), paid_by: "Payé par Léo".to_string(), amount: 12.99 },

@@ -18,9 +18,8 @@ pub fn Expenses(id: Uuid) -> Element {
     ];
 
     rsx! {
-
         div {
-            class: "p-4",
+            class: "container bg-base-100 mx-auto p-4 max-w-md rounded-xl",
 
             Header { title: "Weekend Paris" }
             UserSection {}
@@ -52,44 +51,58 @@ struct Transaction {
 struct HeaderProps {
     title: String,
 }
+
 fn Header(props: HeaderProps) -> Element {
     rsx! {
-        header {
-            class: "flex justify-between items-center py-4",
-            // Un espace vide pour pousser le titre au centre
-            span { class: "w-8" }
-            h1 { class: "text-2xl font-semibold text-gray-800", "{props.title}" }
-            // Icône de menu Hamburger
-            svg {
-                class: "w-7 h-7 text-gray-600",
-                fill: "none",
-                stroke: "currentColor",
-                "stroke-width": "2.5",
-                "stroke-linecap": "round",
-                "stroke-linejoin": "round",
-                view_box: "0 0 24 24",
-                path { d: "M3 12h18M3 6h18M3 18h18" }
+        div {
+            class: "navbar px-0",
+            div {
+                class: "navbar-start",
+                // Espace vide pour centrer le titre
+            }
+            div {
+                class: "navbar-center",
+                h1 { class: "text-xl font-bold", "{props.title}" }
+            }
+            div {
+                class: "navbar-end",
+                button {
+                    class: "btn btn-ghost btn-circle",
+                    svg {
+                        class: "w-6 h-6",
+                        fill: "none",
+                        stroke: "currentColor",
+                        "stroke-width": "2",
+                        "stroke-linecap": "round",
+                        "stroke-linejoin": "round",
+                        view_box: "0 0 24 24",
+                        path { d: "M3 12h18M3 6h18M3 18h18" }
+                    }
+                }
             }
         }
     }
 }
 
-fn UserSection() ->Element {
+fn UserSection() -> Element {
     rsx! {
-        section {
-            class: "flex justify-between items-center my-6 px-2",
+        div {
+            class: "flex justify-between items-center my-6",
+            
             button {
-                class: "flex items-center justify-center w-14 h-14 bg-gray-100 rounded-full text-3xl text-gray-500 font-light",
+                class: "btn btn-circle btn-outline btn-lg",
                 "+"
             }
+            
             div {
-                class: "flex space-x-2",
+                class: "avatar-group -space-x-4",
                 Avatar { initials: "MA" }
                 Avatar { initials: "TE" }
                 Avatar { initials: "BU" }
             }
-            // Espace vide pour équilibrer le flex
-            span { class: "w-14" }
+            
+            // Espace vide pour équilibrer
+            div { class: "w-16" }
         }
     }
 }
@@ -102,34 +115,41 @@ struct AvatarProps {
 fn Avatar(props: AvatarProps) -> Element {
     rsx! {
         div {
-            class: "flex items-center justify-center w-12 h-12 bg-gray-400 text-white rounded-full font-bold text-lg",
-            "{props.initials}"
+            class: "avatar placeholder",
+            div {
+                class: "bg-neutral text-neutral-content rounded-full w-12",
+                span { class: "text-sm font-bold", "{props.initials}" }
+            }
         }
     }
 }
-
 
 #[derive(PartialEq, Props, Clone)]
 struct SummaryCardProps {
     my_total: f32,
     global_total: f32,
 }
+
 fn SummaryCard(props: SummaryCardProps) -> Element {
-    // Helper pour formater les nombres avec une virgule
     let format_currency = |val: f32| format!("{:.2}€", val).replace('.', ",");
 
     rsx! {
         div {
-            class: "bg-gray-50 rounded-lg p-4 space-y-2",
+            class: "",
             div {
-                class: "flex justify-between items-center text-gray-800",
-                p { "Mon Total" }
-                p { class: "font-semibold text-lg", "{format_currency(props.my_total)}" }
-            }
-            div {
-                class: "flex justify-between items-center text-gray-500",
-                p { "Total global" }
-                p { class: "font-semibold text-lg", "{format_currency(props.global_total)}" }
+                class: "card-body p-4 space-y-3",
+                
+                div {
+                    class: "flex justify-between items-center",
+                    span { class: "text-base-content", "Mon Total" }
+                    span { class: "font-bold text-lg", "{format_currency(props.my_total)}" }
+                }
+                
+                div {
+                    class: "flex justify-between items-center",
+                    span { class: "text-base-content/70", "Total global" }
+                    span { class: "font-semibold text-lg text-base-content/70", "{format_currency(props.global_total)}" }
+                }
             }
         }
     }
@@ -139,10 +159,11 @@ fn SummaryCard(props: SummaryCardProps) -> Element {
 struct DateSeparatorProps {
     label: String,
 }
+
 fn DateSeparator(props: DateSeparatorProps) -> Element {
     rsx! {
-        h3 {
-            class: "text-blue-500 font-bold text-sm my-4",
+        div {
+            class: "divider divider-start text-primary font-bold text-sm my-4",
             "{props.label}"
         }
     }
@@ -152,13 +173,14 @@ fn DateSeparator(props: DateSeparatorProps) -> Element {
 struct TransactionListProps {
     transactions: Vec<Transaction>,
 }
+
 fn TransactionList(props: TransactionListProps) -> Element {
     rsx! {
         div {
-            class: "space-y-4",
+            class: "space-y-3",
             {props.transactions.iter().map(|tx| rsx! {
                 TransactionItem {
-                    key: "{tx.id}", // La clé est importante pour Dioxus
+                    key: "{tx.id}",
                     transaction: tx.clone()
                 }
             })}
@@ -170,24 +192,35 @@ fn TransactionList(props: TransactionListProps) -> Element {
 struct TransactionItemProps {
     transaction: Transaction,
 }
+
 fn TransactionItem(props: TransactionItemProps) -> Element {
     let tx = &props.transaction;
     let formatted_amount = format!("{:.2}€", tx.amount).replace('.', ",");
 
     rsx! {
         div {
-            class: "flex items-center space-x-4",
+            class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
+            
             // Icône de catégorie
-            div { class: "w-11 h-11 bg-gray-200 rounded-full flex-shrink-0" }
+            div {
+                class: "avatar placeholder",
+                div {
+                    class: "bg-base-300 text-base-content rounded-full w-11",
+                    span { class: "text-lg", "💰" }
+                }
+            }
+            
             // Détails de la transaction
             div {
-                p { class: "font-semibold text-gray-800", "{tx.category}" }
-                p { class: "text-sm text-gray-500", "{tx.paid_by}" }
+                class: "flex-1 min-w-0",
+                p { class: "font-semibold text-base-content truncate", "{tx.category}" }
+                p { class: "text-sm text-base-content/70 truncate", "{tx.paid_by}" }
             }
-            // Montant (aligné à droite)
-            p {
-                class: "ml-auto font-semibold text-lg text-gray-800",
-                "{formatted_amount}"
+            
+            // Montant
+            div {
+                class: "text-right",
+                p { class: "font-bold text-lg text-base-content", "{formatted_amount}" }
             }
         }
     }

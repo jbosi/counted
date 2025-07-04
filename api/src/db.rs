@@ -1,5 +1,3 @@
-use dioxus::prelude::*;
-
 #[cfg(feature = "sqlx")]
 use sqlx::{PgPool, Pool, Postgres};
 

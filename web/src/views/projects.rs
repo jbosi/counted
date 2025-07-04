@@ -5,13 +5,6 @@ use api::get_projects;
 
 #[component]
 pub fn Projects() -> Element {
-    // let trips = vec![
-    //     ("Voyage en Italie", 2, 6),
-    //     ("Week-end à la mer", 4, 5),
-    //     ("Randonnée en montagne", 1, 8),
-    //     ("City-trip à Lisbonne", 5, 6),
-    // ];
-
     let mut trips: Signal<Vec<Project>> = use_signal(|| vec![]);
 
     let _ = use_resource(move || async move {
@@ -37,7 +30,8 @@ pub fn Projects() -> Element {
                             current_reimbursements: 0,
                             total_reimbursements: 0,
                             users: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
-                            more_users: 3
+                            more_users: 3,
+                            description: "A card component has a figure, a body part, and inside body there are title and actions parts",
                         }
                     })
                 }
@@ -53,65 +47,61 @@ struct TripCardProps {
     total_reimbursements: u32,
     users: Vec<String>,
     more_users: u32,
+    description: Option<String>,
 }
 
 fn TripCard(props: TripCardProps) -> Element {
     // Calcul du pourcentage pour la barre de progression
-    let progress_percentage = (props.current_reimbursements as f32 / props.total_reimbursements as f32) * 100.0;
-
+    let progress_percentage: u32 = ((props.current_reimbursements as f32 / props.total_reimbursements as f32) * 100.0).round() as u32;
+    let description = match &props.description {
+        Some(desc) => desc.clone(),
+        None => "".to_string(),
+    };
+    
     rsx! {
         div {
-            class: "bg-white p-6 rounded-2xl shadow-sm w-full max-w-md",
-
-            // Entête de la carte (Titre et menu ...)
+            class: "card bg-base-100 w-96 shadow-sm",
             div {
-                class: "flex justify-between items-start mb-2",
+                class: "card-body",
                 div {
-                    h2 { class: "font-bold text-lg text-gray-800", "{props.title}" }
-                    p { class: "text-gray-400 text-sm", "Description" }
+                    h2 {
+                        class: "card-title",
+                        "{props.title}"
+                    }
+                    p { "{description}" }
                 }
-                button { class: "text-gray-400 font-bold text-xl", "..." }
-            }
-
-            // Section de la barre de progression
-            div {
-                class: "my-4",
                 div {
-                    class: "flex justify-between text-sm text-gray-600 mb-1",
+                    class: "flex justify-between",
                     span { "Remboursements" }
-                    span { class: "font-semibold",
-                        "{props.current_reimbursements}/{props.total_reimbursements}"
-                    }
+                    span { "{props.current_reimbursements}/{props.total_reimbursements}" }
                 }
-                // La barre de progression
+                progress {
+                    class: "progress",
+                    value: "{progress_percentage}",
+                    max: 100
+                }
                 div {
-                    class: "bg-gray-200 rounded-full h-1.5",
+                    class: "card-actions justify-between",
                     div {
-                        class: "bg-gray-800 h-1.5 rounded-full",
-                        style: "width: {progress_percentage}%",
+                        class: "flex gap-2 items-center",
+                        div {
+                            class: "status status-success",
+                        } 
+                        span { "En cours" },
                     }
-                }
-            }
-
-            // Pied de la carte (Bouton et avatars)
-            div {
-                class: "flex justify-between items-center mt-6",
-                button {
-                    class: "bg-gray-100 text-gray-500 font-semibold py-2 px-6 rounded-full text-sm",
-                    "Clôturé"
-                }
-                div {
-                    class: "flex items-center",
-                    // On affiche les avatars des users
-                    {props.users.iter().map(|initials| rsx!{
-                        Avatar { text: initials.clone() }
-                    })}
-                    // On affiche le nombre de users supplémentaires
-                    {if props.more_users > 0 {
-                        rsx! { Avatar { text: format!("+{}", props.more_users) } }
-                    } else {
-                        rsx! { "" }
-                    }}
+                    div {
+                        class: "",
+                        // On affiche les avatars des users
+                        {props.users.iter().map(|initials| rsx!{
+                            Avatar { text: initials.clone() }
+                        })}
+                        // On affiche le nombre de users supplémentaires
+                        {if props.more_users > 0 {
+                            rsx! { Avatar { text: format!("+{}", props.more_users) } }
+                        } else {
+                            rsx! { "" }
+                        }}
+                    }
                 }
             }
         }
@@ -127,8 +117,14 @@ fn Avatar(props: AvatarProps) -> Element {
     rsx! {
         div {
             // Le "-ml-3" permet de superposer les avatars
-            class: "flex items-center justify-center w-9 h-9 bg-gray-300 rounded-full border-2 border-white text-white font-bold text-xs -ml-3",
-            "{props.text}"
+            class: "avatar avatar-placeholder",
+            div {
+                class: "bg-neutral base-neutral-content w-8 rounded-full",
+                span {
+                    class: "text-xs",
+                    "{props.text}"
+                }
+            }
         }
     }
 }

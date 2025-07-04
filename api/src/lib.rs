@@ -41,7 +41,7 @@ use shared::Project;
     // use tower_http::services::ServeDir;
     // use tracing::{info, Level};
     // use tracing_subscriber::FmtSubscriber;
-    
+
 
 // // On utilise les structs de 'shared' mais on a besoin de `FromRow` ici pour les requêtes DB.
 // // On peut dériver FromRow sur des "newtypes" ou des copies locales si nécessaire,

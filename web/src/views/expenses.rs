@@ -64,8 +64,6 @@ struct HeaderProps {
 }
 
 fn Header(props: HeaderProps) -> Element {
-    let mut modal_open = use_signal(|| false);
-    println!("HeaderTest est appelé!");
     rsx! {
         div {
             class: "navbar px-0",
@@ -79,12 +77,8 @@ fn Header(props: HeaderProps) -> Element {
             }
             div {
                 class: "navbar-end",
-                button {
+                button { 
                     class: "btn btn-ghost btn-circle",
-                    onclick: move |_| {
-                        println!("ONCLICK DÉCLENCHÉ!");
-                        modal_open.set(true);
-                    },
                     svg {
                         class: "w-6 h-6",
                         fill: "none",
@@ -95,21 +89,21 @@ fn Header(props: HeaderProps) -> Element {
                         view_box: "0 0 24 24",
                         path { d: "M3 12h18M3 6h18M3 18h18" }
                     },
-                }
+                }   
             }
         }
-
-        AddUserModal { modal_open }
     }
 }
 
 fn UserSection() -> Element {
+    let mut modal_open = use_signal(|| false);
     rsx! {
         div {
             class: "flex justify-between items-center my-6",
             
             button {
                 class: "btn btn-circle btn-outline btn-lg",
+                onclick: move |_| modal_open.set(true),
                 "+"
             }
             
@@ -123,6 +117,7 @@ fn UserSection() -> Element {
             // Espace vide pour équilibrer
             div { class: "w-16" }
         }
+        AddUserModal { modal_open }
     }
 }
 
@@ -248,12 +243,10 @@ fn TransactionItem(props: TransactionItemProps) -> Element {
 #[component]
 fn AddUserModal(modal_open: Signal<bool>) -> Element {    
     rsx! {
-        "{modal_open()}"
         dialog {
             id: "add_user_modal",
             class: "modal",
             class: if modal_open() { "modal-open" } else { "" },
-            style: if modal_open() { "display: block;" } else { "display: none;" },
             div {
                 class: "modal-box",
                 h3 {

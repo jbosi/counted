@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use uuid::Uuid;
 use api::{get_users_by_project_id, add_user};
 use shared::{User};
+use crate::dioxus_elements::button::r#type;
 
 // TODO rename into project_details
 #[component]
@@ -251,11 +252,36 @@ fn AddUserModal(modal_open: Signal<bool>) -> Element {
                 class: "modal-box",
                 h3 {
                     class: "text-lg font-bold",
-                    "Hello!"
+                    "Ajouter un utilisateur"
                 }
-                p {
-                    class: "py-4",
-                    "Press ESC key or click outside to close"
+                fieldset {
+                    class:"fieldset",
+                    legend {
+                        class: "fieldset-legend",
+                        "Nom de l'utilisateur"
+                    } 
+                    input {
+                        type: "text",
+                        class: "input",
+                    },
+                }
+                form {
+                    method: "dialog",
+                    onclick: move |_| modal_open.set(false),
+                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
+                    button {
+                        "X"
+                    }
+                }
+                form {
+                    method: "dialog",
+                    class: "btn",
+                    button {
+                        r#type: "submit",
+                        onclick: move |_| modal_open.set(false),
+                        onsubmit: move |event| { println!("Submitted! {event:?}")},
+                        "Enregistrer"
+                    }
                 }
             }
             form {

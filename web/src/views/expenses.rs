@@ -1,9 +1,20 @@
 use crate::Route;
 use dioxus::prelude::*;
 use uuid::Uuid;
+use api::{get_users_by_project_id, add_user};
+use shared::{User};
 
+// TODO rename into project_details
 #[component]
 pub fn Expenses(id: Uuid) -> Element {
+    let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
+
+    let _ = use_resource(move || async move {
+        match get_users_by_project_id(id).await {
+            Ok(u) => users.set(u),
+            Err(_) => ()
+        }
+    });
     let today_transactions = vec![
         Transaction { id: 1, category: "Repas".to_string(), paid_by: "Payé par Rober".to_string(), amount: 50.0 },
         Transaction { id: 2, category: "Piscine de Paris".to_string(), paid_by: "Payé par Léo".to_string(), amount: 12.99 },
@@ -53,6 +64,8 @@ struct HeaderProps {
 }
 
 fn Header(props: HeaderProps) -> Element {
+    let mut modal_open = use_signal(|| false);
+    println!("HeaderTest est appelé!");
     rsx! {
         div {
             class: "navbar px-0",
@@ -68,6 +81,10 @@ fn Header(props: HeaderProps) -> Element {
                 class: "navbar-end",
                 button {
                     class: "btn btn-ghost btn-circle",
+                    onclick: move |_| {
+                        println!("ONCLICK DÉCLENCHÉ!");
+                        modal_open.set(true);
+                    },
                     svg {
                         class: "w-6 h-6",
                         fill: "none",
@@ -77,10 +94,12 @@ fn Header(props: HeaderProps) -> Element {
                         "stroke-linejoin": "round",
                         view_box: "0 0 24 24",
                         path { d: "M3 12h18M3 6h18M3 18h18" }
-                    }
+                    },
                 }
             }
         }
+
+        AddUserModal { modal_open }
     }
 }
 
@@ -221,6 +240,38 @@ fn TransactionItem(props: TransactionItemProps) -> Element {
             div {
                 class: "text-right",
                 p { class: "font-bold text-lg text-base-content", "{formatted_amount}" }
+            }
+        }
+    }
+}
+
+#[component]
+fn AddUserModal(modal_open: Signal<bool>) -> Element {    
+    rsx! {
+        "{modal_open()}"
+        dialog {
+            id: "add_user_modal",
+            class: "modal",
+            class: if modal_open() { "modal-open" } else { "" },
+            style: if modal_open() { "display: block;" } else { "display: none;" },
+            div {
+                class: "modal-box",
+                h3 {
+                    class: "text-lg font-bold",
+                    "Hello!"
+                }
+                p {
+                    class: "py-4",
+                    "Press ESC key or click outside to close"
+                }
+            }
+            form {
+                method: "dialog",
+                class: "modal-backdrop",
+                onclick: move |_| modal_open.set(false),
+                button {
+                    "close"
+                }
             }
         }
     }

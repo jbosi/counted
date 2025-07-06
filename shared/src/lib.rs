@@ -50,3 +50,9 @@ pub struct User {
 	pub balance: Option<f64>,
 	pub created_at: Option<NaiveDateTime>
 }
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct CreatableUser {
+	pub name: String,
+	pub project_id: Uuid
+}

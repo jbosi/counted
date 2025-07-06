@@ -31,7 +31,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, Pool, Postgres};
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::Project;
+use shared::{Project, User};
 // use rust_decimal::Decimal;
 // use shared::{
     //     CreateExpensePayload, CreateUserPayload, Expense, ExpenseSummary, FullGroupDetails, Group, User,
@@ -43,25 +43,19 @@ use shared::Project;
     // use tracing_subscriber::FmtSubscriber;
 
 
-// // On utilise les structs de 'shared' mais on a besoin de `FromRow` ici pour les requêtes DB.
-// // On peut dériver FromRow sur des "newtypes" ou des copies locales si nécessaire,
-// // mais pour la simplicité, on utilise des tuples pour les requêtes complexes.
+// --- PROJECTS ---
 
-// type AppState = PgPool;
+#[server()]
+pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
 
-// --- GESTIONNAIRES D'API (API Handlers) ---
-// #[cfg(feature = "sqlx")]
-// #[server(GetProject)]
-// pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
-//     let pool: Pool<Postgres> = get_db().await;
-//
-//     let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
-//         .bind(project_id)
-//         .fetch_all(&pool)
-//         .await?;
-//
-//     Ok(projects)
-// }
+    let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+        .bind(project_id)
+        .fetch_one(&pool)
+        .await?;
+
+    Ok(projects)
+}
 
 #[server()]
 pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
@@ -73,6 +67,32 @@ pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
 
     Ok(projects)
 }
+
+// --- USERS ---
+
+#[server()]
+pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let users: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+        .fetch_all(&pool)
+        .await?;
+
+    Ok(users)
+}
+
+// #[server()]
+// pub async fn get_users_by_project_id() -> Result<Vec<User>, ServerFnError> {
+//     let pool: Pool<Postgres> = get_db().await;
+
+//     let projects: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+//         .bind(project_id)
+//         .fetch_all(&pool)
+//         .await?;
+
+//     Ok(projects)
+// }
+
 
 // async fn get_group_details(
 //     State(pool): State<AppState>,

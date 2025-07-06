@@ -39,3 +39,14 @@ pub struct CreatableProject {
     pub name: String,
     pub users: Vec<i32>,
 }
+
+// -------- USER ---------
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "server", derive(FromRow))]
+pub struct User {
+	pub id: i32,
+	pub name: String,
+	pub balance: Option<f64>,
+	pub created_at: Option<NaiveDateTime>
+}

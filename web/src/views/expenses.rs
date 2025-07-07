@@ -2,16 +2,21 @@ use crate::Route;
 use dioxus::prelude::*;
 use uuid::Uuid;
 use api::{get_users_by_project_id, add_user};
-use shared::{User};
+use shared::{CreatableUser, User};
 use crate::dioxus_elements::button::r#type;
 
 // TODO rename into project_details
+#[derive(PartialEq, Props, Clone)]
+pub struct ExpensesProps {
+    id: Uuid,
+}
+
 #[component]
-pub fn Expenses(id: Uuid) -> Element {
+pub fn Expenses(props: ExpensesProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
 
     let _ = use_resource(move || async move {
-        match get_users_by_project_id(id).await {
+        match get_users_by_project_id(props.id).await {
             Ok(u) => users.set(u),
             Err(_) => ()
         }
@@ -34,7 +39,7 @@ pub fn Expenses(id: Uuid) -> Element {
             class: "container bg-base-100 mx-auto p-4 max-w-md rounded-xl",
 
             Header { title: "Weekend Paris" }
-            UserSection {}
+            UserSection { id: props.id }
             SummaryCard { my_total: 625.0, global_total: 3200.0 }
 
             // Liste des transactions
@@ -96,7 +101,11 @@ fn Header(props: HeaderProps) -> Element {
     }
 }
 
-fn UserSection() -> Element {
+#[derive(PartialEq, Props, Clone)]
+struct UserSectionProps {
+    id: Uuid,
+}
+fn UserSection(props: UserSectionProps) -> Element {
     let mut modal_open = use_signal(|| false);
     rsx! {
         div {
@@ -118,7 +127,7 @@ fn UserSection() -> Element {
             // Espace vide pour équilibrer
             div { class: "w-16" }
         }
-        AddUserModal { modal_open }
+        AddUserModal { modal_open, id: props.id }
     }
 }
 
@@ -241,13 +250,20 @@ fn TransactionItem(props: TransactionItemProps) -> Element {
     }
 }
 
+#[derive(PartialEq, Props, Clone)]
+struct AddUserModalProps {
+    id: Uuid,
+    modal_open: Signal<bool>
+}
 #[component]
-fn AddUserModal(modal_open: Signal<bool>) -> Element {    
+fn AddUserModal(mut props: AddUserModalProps) -> Element {
+    let mut user_name: Signal<String> = use_signal(|| "".to_string());
+
     rsx! {
         dialog {
             id: "add_user_modal",
             class: "modal",
-            class: if modal_open() { "modal-open" } else { "" },
+            class: if (props.modal_open)() { "modal-open" } else { "" },
             div {
                 class: "modal-box",
                 h3 {
@@ -261,13 +277,15 @@ fn AddUserModal(modal_open: Signal<bool>) -> Element {
                         "Nom de l'utilisateur"
                     } 
                     input {
+                        name: "user_name",
                         type: "text",
                         class: "input",
+                        oninput: move |event| user_name.set(event.value())
                     },
                 }
                 form {
                     method: "dialog",
-                    onclick: move |_| modal_open.set(false),
+                     onclick: move |_| props.modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
                     button {
                         "X"
@@ -278,8 +296,17 @@ fn AddUserModal(modal_open: Signal<bool>) -> Element {
                     class: "btn",
                     button {
                         r#type: "submit",
-                        onclick: move |_| modal_open.set(false),
-                        onsubmit: move |event| { println!("Submitted! {event:?}")},
+                        onclick: move |_| {
+                        spawn(async move {
+                            let creatable_user: CreatableUser = CreatableUser {
+                                name: user_name(),
+                                project_id: props.id,
+                            };
+                            add_user(creatable_user).await;
+                                // Utiliser and_then() ?
+                            props.modal_open.set(false)
+                        });
+                    },
                         "Enregistrer"
                     }
                 }
@@ -287,7 +314,7 @@ fn AddUserModal(modal_open: Signal<bool>) -> Element {
             form {
                 method: "dialog",
                 class: "modal-backdrop",
-                onclick: move |_| modal_open.set(false),
+                onclick: move |_| props.modal_open.set(false),
                 button {
                     "close"
                 }

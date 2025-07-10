@@ -5982,11 +5982,13 @@ dependencies = [
  "axum",
  "chrono",
  "dioxus",
+ "dioxus-logger",
  "dotenvy",
  "serde",
  "serde_json",
  "shared",
  "sqlx",
+ "tracing",
  "ui",
  "uuid",
 ]

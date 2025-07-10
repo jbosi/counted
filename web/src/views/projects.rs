@@ -1,7 +1,8 @@
-use crate::{Route};
+use crate::Route;
+use api::{get_projects, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{Project, User};
-use api::{get_projects, get_users_by_project_id};
+use ui::Avatar;
 use uuid::Uuid;
 
 #[component]
@@ -114,37 +115,18 @@ fn Project(props: ProjectProps) -> Element {
                     div {
                         class: "",
                         // On affiche les avatars des users
-                        {users.iter().map(|u| rsx!{
-                            Avatar { text: u.name.get(0..2).unwrap_or("") }
-                        })}
+                        for user in users() {
+                            Avatar { initials: user.name.get(0..2).unwrap_or("") }
+                        }
                         // On affiche le nombre de users supplémentaires
-                        {if more_users() > 0 {
-                            rsx! { Avatar { text: format!("+{}", more_users) } }
-                        } else {
-                            rsx! { "" }
-                        }}
+                        {
+                            if more_users() > 0 {
+                                rsx! { Avatar { initials: format!("+{}", more_users) } }
+                            } else {
+                                rsx! { "" }
+                            }
+                        }
                     }
-                }
-            }
-        }
-    }
-}
-
-#[derive(PartialEq, Props, Clone)]
-struct AvatarProps {
-    text: String,
-}
-
-fn Avatar(props: AvatarProps) -> Element {
-    rsx! {
-        div {
-            // Le "-ml-3" permet de superposer les avatars
-            class: "avatar avatar-placeholder",
-            div {
-                class: "bg-neutral base-neutral-content w-8 rounded-full",
-                span {
-                    class: "text-xs",
-                    "{props.text}"
                 }
             }
         }

@@ -1,9 +1,13 @@
-use crate::Route;
-use dioxus::prelude::*;
-use uuid::Uuid;
-use api::{get_users_by_project_id, add_user};
-use shared::{CreatableUser, User};
+use dioxus::html::a::size;
 use crate::dioxus_elements::button::r#type;
+use crate::Route;
+use api::{add_user, get_users_by_project_id};
+use dioxus::prelude::*;
+use dioxus_logger::tracing::info;
+use shared::{CreatableUser, User};
+use ui::Avatar;
+use uuid::Uuid;
+
 
 // TODO rename into project_details
 #[derive(PartialEq, Props, Clone)]
@@ -39,7 +43,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             class: "container bg-base-100 mx-auto p-4 max-w-md rounded-xl",
 
             Header { title: "Weekend Paris" }
-            UserSection { id: props.id }
+            UserSection { id: props.id, users: users() }
             SummaryCard { my_total: 625.0, global_total: 3200.0 }
 
             // Liste des transactions
@@ -104,6 +108,7 @@ fn Header(props: HeaderProps) -> Element {
 #[derive(PartialEq, Props, Clone)]
 struct UserSectionProps {
     id: Uuid,
+    users: Vec<User>,
 }
 fn UserSection(props: UserSectionProps) -> Element {
     let mut modal_open = use_signal(|| false);
@@ -119,32 +124,15 @@ fn UserSection(props: UserSectionProps) -> Element {
             
             div {
                 class: "avatar-group -space-x-4",
-                Avatar { initials: "MA" }
-                Avatar { initials: "TE" }
-                Avatar { initials: "BU" }
+                for user in props.users {
+                    Avatar { initials: user.name.get(0..2).unwrap_or(""), size: 12 }
+                }
             }
             
             // Espace vide pour équilibrer
             div { class: "w-16" }
         }
         AddUserModal { modal_open, id: props.id }
-    }
-}
-
-#[derive(PartialEq, Props, Clone)]
-struct AvatarProps {
-    initials: String,
-}
-
-fn Avatar(props: AvatarProps) -> Element {
-    rsx! {
-        div {
-            class: "avatar placeholder",
-            div {
-                class: "bg-neutral text-neutral-content rounded-full w-12",
-                span { class: "text-sm font-bold", "{props.initials}" }
-            }
-        }
     }
 }
 
@@ -302,7 +290,7 @@ fn AddUserModal(mut props: AddUserModalProps) -> Element {
                                 name: user_name(),
                                 project_id: props.id,
                             };
-                            add_user(creatable_user).await;
+                            add_user(creatable_user).await.expect("Failed to add new user to this project");
                                 // Utiliser and_then() ?
                             props.modal_open.set(false)
                         });

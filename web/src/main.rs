@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use uuid::Uuid;
-
 use ui::Navbar;
 use views::{Expenses, Projects};
+use dioxus_logger::tracing::{Level, info};
 
 mod views;
 #[derive(Debug, Clone, Routable, PartialEq)]
@@ -21,6 +21,7 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     dioxus::launch(app);
+    dioxus_logger::init(Level::INFO).expect("failed to init logger");
 }
 
 #[component]

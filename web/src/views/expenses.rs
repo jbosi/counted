@@ -5,7 +5,7 @@ use api::{add_user, get_users_by_project_id};
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
 use shared::{CreatableUser, User};
-use ui::Avatar;
+use ui::{AddUserModal, Avatar};
 use uuid::Uuid;
 
 
@@ -190,12 +190,14 @@ fn TransactionList(props: TransactionListProps) -> Element {
     rsx! {
         div {
             class: "space-y-3",
-            {props.transactions.iter().map(|tx| rsx! {
-                TransactionItem {
-                    key: "{tx.id}",
-                    transaction: tx.clone()
-                }
-            })}
+            {
+                props.transactions.iter().map(|tx| rsx! {
+                    TransactionItem {
+                        key: "{tx.id}",
+                        transaction: tx.clone()
+                    }
+                })
+            }
         }
     }
 }
@@ -238,75 +240,3 @@ fn TransactionItem(props: TransactionItemProps) -> Element {
     }
 }
 
-#[derive(PartialEq, Props, Clone)]
-struct AddUserModalProps {
-    id: Uuid,
-    modal_open: Signal<bool>
-}
-#[component]
-fn AddUserModal(mut props: AddUserModalProps) -> Element {
-    let mut user_name: Signal<String> = use_signal(|| "".to_string());
-
-    rsx! {
-        dialog {
-            id: "add_user_modal",
-            class: "modal",
-            class: if (props.modal_open)() { "modal-open" } else { "" },
-            div {
-                class: "modal-box",
-                h3 {
-                    class: "text-lg font-bold",
-                    "Ajouter un utilisateur"
-                }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Nom de l'utilisateur"
-                    } 
-                    input {
-                        name: "user_name",
-                        type: "text",
-                        class: "input",
-                        oninput: move |event| user_name.set(event.value())
-                    },
-                }
-                form {
-                    method: "dialog",
-                     onclick: move |_| props.modal_open.set(false),
-                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button {
-                        "X"
-                    }
-                }
-                form {
-                    method: "dialog",
-                    class: "btn",
-                    button {
-                        r#type: "submit",
-                        onclick: move |_| {
-                        spawn(async move {
-                            let creatable_user: CreatableUser = CreatableUser {
-                                name: user_name(),
-                                project_id: props.id,
-                            };
-                            add_user(creatable_user).await.expect("Failed to add new user to this project");
-                                // Utiliser and_then() ?
-                            props.modal_open.set(false)
-                        });
-                    },
-                        "Enregistrer"
-                    }
-                }
-            }
-            form {
-                method: "dialog",
-                class: "modal-backdrop",
-                onclick: move |_| props.modal_open.set(false),
-                button {
-                    "close"
-                }
-            }
-        }
-    }
-}

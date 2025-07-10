@@ -5,7 +5,7 @@ use api::{add_user, get_users_by_project_id};
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
 use shared::{CreatableUser, User};
-use ui::{AddUserModal, Avatar};
+use ui::{AddUserModal, Avatar, BackButtonArrow};
 use uuid::Uuid;
 
 
@@ -79,7 +79,10 @@ fn Header(props: HeaderProps) -> Element {
             class: "navbar px-0",
             div {
                 class: "navbar-start",
-                // Espace vide pour centrer le titre
+                onclick: move |_| {
+                    navigator().push(Route::Projects {});
+                },
+                BackButtonArrow {},
             }
             div {
                 class: "navbar-center",

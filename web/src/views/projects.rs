@@ -2,43 +2,48 @@ use crate::Route;
 use api::{get_projects, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{Project, User};
-use ui::Avatar;
+use ui::{AddProjectModal, Avatar};
 use uuid::Uuid;
 
 #[component]
 pub fn Projects() -> Element {
-    let mut trips: Signal<Vec<Project>> = use_signal(|| vec![]);
+    let mut projects: Signal<Vec<Project>> = use_signal(|| vec![]);
+    let mut modal_open = use_signal(|| false);
 
     let _ = use_resource(move || async move {
         match get_projects().await {
-            Ok(items) => trips.set(items),
+            Ok(items) => projects.set(items),
             Err(_) => ()
         }
     });
 
     rsx! {
-            h1 {
-                class: "text-4xl text-gray-700 font-light mb-10",
-                "Bonjour Jonathan"
-            }
+        h1 {
+            class: "text-4xl text-gray-700 font-light mb-10",
+            "Bonjour Jonathan"
+        }
 
-            div {
-                class: "space-y-4 min-w-md",
+        div {
+            class: "space-y-4 min-w-md",
 
-                {
-                    trips.iter().map(|trip| rsx!{
-                        Project {
-                            id: trip.id,
-                            title: trip.name.to_string(),
-                            current_reimbursements: 0,
-                            total_reimbursements: 0,
-                            // users: vec!["JB".to_string(), "AE".to_string(), "JC".to_string()],
-                            // more_users: 3,
-                            description: "A card component has a figure, a body part, and inside body there are title and actions parts",
-                        }
-                    })
-                }
+            {
+                projects.iter().map(|project| rsx!{
+                    Project {
+                        id: project.id,
+                        title: project.name.to_string(),
+                        current_reimbursements: 0,
+                        total_reimbursements: 0,
+                        description: project.description.clone().unwrap_or_else(|| "".to_string()),
+                    }
+                })
             }
+        }
+        button {
+            class: "btn btn-circle btn-outline btn-lg bg-base-100",
+            onclick: move |_| modal_open.set(true),
+            "+"
+        }
+        AddProjectModal { modal_open }
     }
 }
 

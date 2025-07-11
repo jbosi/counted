@@ -520,17 +520,6 @@
     cursor: pointer;
   }
 }
-.hero {
-  display: grid;
-  width: 100%;
-  place-items: center;
-  background-size: cover;
-  background-position: center;
-  & > * {
-    grid-column-start: 1;
-    grid-row-start: 1;
-  }
-}
 .modal-box {
   grid-column-start: 1;
   grid-row-start: 1;
@@ -809,9 +798,6 @@
   @supports (color: color-mix(in lab, red, red)) {
     color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
   }
-}
-.text-neutral-content {
-  color: var(--color-neutral-content);
 }
 .text-primary {
   color: var(--color-primary);

@@ -13,3 +13,6 @@ pub use add_user_modal::AddUserModal;
 
 mod back_button_arrow;
 pub use back_button_arrow::BackButtonArrow;
+
+mod add_project_modal;
+pub use add_project_modal::AddProjectModal;

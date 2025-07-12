@@ -5,7 +5,7 @@ use api::{add_user, get_users_by_project_id};
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
 use shared::{CreatableUser, User};
-use ui::{AddUserModal, Avatar, BackButtonArrow};
+use ui::{AddExpenseModal, AddUserModal, Avatar, BackButtonArrow};
 use uuid::Uuid;
 
 
@@ -18,6 +18,7 @@ pub struct ExpensesProps {
 #[component]
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
+    let mut is_expense_modal_open = use_signal(|| false);
 
     let _ = use_resource(move || async move {
         match get_users_by_project_id(props.id).await {
@@ -56,6 +57,12 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 DateSeparator { label: "Yesterday" }
                 TransactionList { transactions: yesterday_transactions }
             }
+            button {
+                class: "btn btn-circle btn-outline btn-lg bg-base-100",
+                onclick: move |_| is_expense_modal_open.set(true),
+                "+"
+            },
+            AddExpenseModal { is_expense_modal_open, users: users() }
         }
     }
 }
@@ -114,14 +121,14 @@ struct UserSectionProps {
     users: Vec<User>,
 }
 fn UserSection(props: UserSectionProps) -> Element {
-    let mut modal_open = use_signal(|| false);
+    let mut is_user_modal_open = use_signal(|| false);
     rsx! {
         div {
             class: "flex justify-between items-center my-6",
             
             button {
                 class: "btn btn-circle btn-outline btn-lg",
-                onclick: move |_| modal_open.set(true),
+                onclick: move |_| is_user_modal_open.set(true),
                 "+"
             }
             
@@ -132,10 +139,9 @@ fn UserSection(props: UserSectionProps) -> Element {
                 }
             }
             
-            // Espace vide pour équilibrer
             div { class: "w-16" }
         }
-        AddUserModal { modal_open, id: props.id }
+        AddUserModal { is_user_modal_open, id: props.id }
     }
 }
 

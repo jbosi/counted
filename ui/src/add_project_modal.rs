@@ -14,14 +14,14 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
 
     rsx! {
         dialog {
-            id: "add_user_modal",
+            id: "add_project_modal",
             class: "modal",
             class: if (props.modal_open)() { "modal-open" } else { "" },
             div {
                 class: "modal-box",
                 h3 {
                     class: "text-lg font-bold",
-                    "Ajouter un utilisateur"
+                    "Ajouter un projet"
                 }
                 fieldset {
                     class:"fieldset",

@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, Pool, QueryBuilder, Postgres};
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense};
+use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType};
 
 
 // --- PROJECTS ---
@@ -125,13 +125,110 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
 pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let user_id: i32 = sqlx::query_scalar!("INSERT INTO users(name) VALUES ($1) RETURNING id", user.name)
+    let created_expense_id: i32 = sqlx::query!(r"
+            INSERT INTO expenses
+            (
+                name,
+                amount,
+                expense_type,
+                project_id,
+                author_id,
+                description
+            ) VALUES (
+                $1,
+                $2,
+                $3,
+                $4,
+                $5,
+                $6
+            ) RETURNING id",
+            expense.clone().name,
+            expense.clone().amount,
+            expense.clone().expense_type as ExpenseType,
+            expense.clone().project_id,
+            expense.clone().author_id,
+            expense.clone().description
+        )
         .fetch_one(&pool)
-        .await?;
+        .await?
+        .id;
 
-    sqlx::query!("INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)", user_id, user.project_id)
-        .execute(&pool)
-        .await?;
+    let payers = Some(expense.clone().payers);
+    let debtors = Some(expense.clone().debtors);
 
-    Ok(user_id)
+    let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payers, debtors, created_expense_id);
+
+    let expense_ids: Vec<i32> = creatable_payments.iter().map(|p| p.expense_id).collect();
+    let user_ids: Vec<i32> = creatable_payments.iter().map(|p| p.user_id).collect();
+    let is_debts: Vec<bool> = creatable_payments.iter().map(|p| p.is_debt).collect();
+    let amounts: Vec<f64> = creatable_payments.iter().map(|p| p.amount).collect();
+
+    let sql = r"
+        INSERT INTO payments
+         (
+            expense_id,
+            user_id,
+            is_debt,
+            amount
+        ) SELECT * FROM UNNEST(
+            $1::INT4[],
+            $2::INT4[],
+            $3::BOOL[],
+            $4::FLOAT8[]
+        ) RETURNING id";
+
+    sqlx::query!(r"
+        INSERT INTO payments
+         (
+            expense_id,
+            user_id,
+            is_debt,
+            amount
+        ) SELECT * FROM UNNEST(
+            $1::INT4[],
+            $2::INT4[],
+            $3::BOOL[],
+            $4::FLOAT8[]
+        ) RETURNING id",
+        &expense_ids,
+        &user_ids,
+        &is_debts,
+        &amounts
+    )
+    .fetch_all(&pool)
+    .await?;
+
+    Ok(created_expense_id)
+}
+
+fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
+    let mut debtors_result: Vec<UserAmount> = vec![];
+    if let Some(debtors_unwrapped) = debtors {
+        debtors_result = debtors_unwrapped;
+    }
+
+    let mut payers_result: Vec<UserAmount> = vec![];
+    if let Some(payers_unwrapped) = payers {
+        payers_result = payers_unwrapped;
+    }
+
+    let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter()
+        .filter(|d| d.amount != 0.0)
+        .map(|d| NewPayment {
+            amount: d.amount,
+            expense_id: created_expense_id,
+            user_id: d.user_id,
+            is_debt: true
+        }).collect();
+
+    let creatable_payers: Vec<NewPayment> = payers_result.into_iter()
+        .filter(|d| d.amount != 0.0)
+        .map(|p| NewPayment {
+            amount: p.amount,
+            expense_id: created_expense_id,
+            user_id: p.user_id,
+            is_debt: false
+        }).collect();
+
+    [creatable_debtors, creatable_payers].concat()
 }

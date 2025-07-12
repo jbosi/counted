@@ -6,7 +6,7 @@ use shared::{CreatableUser};
 #[derive(PartialEq, Props, Clone)]
 pub struct AddUserModalProps {
     id: Uuid,
-    modal_open: Signal<bool>
+    is_user_modal_open: Signal<bool>
 }
 #[component]
 pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
@@ -16,7 +16,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
         dialog {
             id: "add_user_modal",
             class: "modal",
-            class: if (props.modal_open)() { "modal-open" } else { "" },
+            class: if (props.is_user_modal_open)() { "modal-open" } else { "" },
             div {
                 class: "modal-box",
                 h3 {
@@ -38,7 +38,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                 }
                 form {
                     method: "dialog",
-                     onclick: move |_| props.modal_open.set(false),
+                     onclick: move |_| props.is_user_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
                     button {
                         "X"
@@ -57,7 +57,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                             };
 
                             add_user(creatable_user).await.expect("Failed to add new user to this project");
-                            props.modal_open.set(false)
+                            props.is_user_modal_open.set(false)
                         });
                     },
                         "Enregistrer"
@@ -67,7 +67,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
             form {
                 method: "dialog",
                 class: "modal-backdrop",
-                onclick: move |_| props.modal_open.set(false),
+                onclick: move |_| props.is_user_modal_open.set(false),
                 button {
                     "close"
                 }

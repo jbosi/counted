@@ -62,11 +62,12 @@ pub struct CreatableUser {
 // -------- EXPENSE ---------
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "server", derive(FromRow))]
 pub struct Expense {
     pub id: i32,
     pub author_id: i32,
     pub project_id: Uuid,
-    pub date: NaiveDate,
+    pub date: NaiveDateTime,
     pub amount: f64,
     pub description: Option<String>,
     pub name: String,
@@ -104,8 +105,40 @@ pub struct UserAmount {
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "server", derive(sqlx::Type), sqlx(type_name = "expense_type", rename_all = "lowercase"))]
 pub enum ExpenseType {
     Expense,
     Transfer,
     Gain
+}
+
+
+// -------- PAYMENT ---------
+
+#[cfg_attr(feature = "server", derive(FromRow))]
+
+pub struct Payment {
+    pub id: i32,
+    pub expense_id: i32,
+    pub user_id: i32,
+    pub is_debt: bool,
+    pub amount: f64,
+    pub created_at: NaiveDateTime
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NewPayment {
+    pub expense_id: i32,
+    pub user_id: i32,
+    pub is_debt: bool,
+    pub amount: f64,
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct EditablePayment {
+    pub expense_id: i32,
+    pub user_id: i32,
+    pub is_debt: bool,
+    pub amount: f64,
 }

@@ -150,6 +150,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                     button {
                         r#type: "submit",
                         onclick: move |_| {
+                            let users = props.users.clone();
                             spawn(async move {
                                 let creatable_expense: CreatableExpense = CreatableExpense {
                                     name: expense_name(),
@@ -165,7 +166,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                         amount: payer.amount,
                                         user_id: payer.user_id
                                     }).collect(),
-                                    author_id: props.users[0].id, // TODO when authentication or partial authentication works
+                                    author_id: users[0].id, // TODO when authentication or partial authentication works
                                 };
 
                                 add_expense(creatable_expense).await.expect("Failed to add new expense");

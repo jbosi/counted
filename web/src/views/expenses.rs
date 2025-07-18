@@ -62,7 +62,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 onclick: move |_| is_expense_modal_open.set(true),
                 "+"
             },
-            AddExpenseModal { is_expense_modal_open, users: users() }
+            AddExpenseModal { is_expense_modal_open, users: users(), project_id: props.id }
         }
     }
 }

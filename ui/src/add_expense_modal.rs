@@ -22,39 +22,19 @@ struct FormCheckboxAmount {
 pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
     let mut expense_name: Signal<String> = use_signal(|| "".to_string());
     let mut expense_description: Signal<Option<String>> = use_signal(|| None);
-    let mut expense_amount: Signal<f64> = use_signal(|| 0.0);
     let mut expense_type: Signal<ExpenseType> = use_signal(|| ExpenseType::Expense);
-    let mut expense_debtors: Signal<Vec<FormCheckboxAmount>> = use_signal(|| vec![
-        FormCheckboxAmount {
-            label: "Nom".to_string(),
-            is_checked: false,
-            amount: 0.0,
-            user_id: 1
-        },
-        FormCheckboxAmount {
-            label: "Email".to_string(),
-            is_checked: false,
-            amount: 0.0,
-            user_id: 2
-        }
-    ]);
 
-    let mut expense_payers: Signal<Vec<FormCheckboxAmount>> = use_signal(|| vec![
-        FormCheckboxAmount {
-            label: "Téléphone".to_string(),
-            is_checked: false,
-            amount: 0.0,
-            user_id: 1
-        },
-        FormCheckboxAmount {
-           label: "Adresse".to_string(),
-           is_checked: false,
-           amount: 0.0,
-           user_id: 2
-       }
-    ]);
+    let checkbox_list: Vec<FormCheckboxAmount> = props.users.iter().map(|user| FormCheckboxAmount {
+        label: user.name.clone(),
+        is_checked: false,
+        amount: 0.0,
+        user_id: user.id
+    }).collect();
 
-    let handle_checkbox_change = move |data: (usize, bool)| {
+    let mut expense_debtors: Signal<Vec<FormCheckboxAmount>> = use_signal(|| checkbox_list.clone());
+    let mut expense_payers: Signal<Vec<FormCheckboxAmount>> = use_signal(|| checkbox_list.clone());
+
+    let handle_checkbox_change_debtors = move |data: (usize, bool)| {
         let (index, checked) = data;
         expense_debtors.with_mut(|items| {
             if let Some(item) = items.get_mut(index) {
@@ -67,9 +47,31 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
         });
     };
 
-    let handle_amount_change = move |data: (usize, f64)| {
+    let handle_checkbox_change_payers = move |data: (usize, bool)| {
+        let (index, checked) = data;
+        expense_payers.with_mut(|items| {
+            if let Some(item) = items.get_mut(index) {
+                item.is_checked = checked;
+                // Optionnel : vider le texte si la case est décochée
+                if !checked {
+                    item.amount = 0.0;
+                }
+            }
+        });
+    };
+
+    let handle_amount_change_debtors = move |data: (usize, f64)| {
         let (index, value) = data;
         expense_debtors.with_mut(|items| {
+            if let Some(item) = items.get_mut(index) {
+                item.amount = value;
+            }
+        });
+    };
+
+    let handle_amount_change_payers = move |data: (usize, f64)| {
+        let (index, value) = data;
+        expense_payers.with_mut(|items| {
             if let Some(item) = items.get_mut(index) {
                 item.amount = value;
             }
@@ -113,27 +115,34 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                         oninput: move |event| expense_description.set(Some(event.value()))
                     },
                 }
-                // fieldset {
-                //     class:"fieldset",
-                //     legend {
-                //         class: "fieldset-legend",
-                //         "Liste des personnes ayant payé"
-                //     }
-                //     for payor in props.users {
-                //         input {
-                //             name: "expense_description",
-                //             type: "text",
-                //             class: "input",
-                //             oninput: move |event| expense_description.set(Some(event.value()))
-                //         },
-                //     }
-                // }
-                for (index, item) in expense_debtors.read().iter().enumerate() {
-                    CheckboxFormItem {
-                        item: item.clone(),
-                        index,
-                        on_checkbox_change: handle_checkbox_change,
-                        on_amount_change: handle_amount_change,
+                fieldset {
+                    class:"fieldset",
+                    legend {
+                        class: "fieldset-legend",
+                        "Qui a payé ?"
+                    }
+                    for (index, item) in expense_payers().iter().enumerate() {
+                        CheckboxFormItem {
+                            index,
+                            item: item.clone(),
+                            on_checkbox_change: handle_checkbox_change_payers,
+                            on_amount_change: handle_amount_change_payers,
+                        }
+                    }
+                }
+                fieldset {
+                    class:"fieldset",
+                    legend {
+                        class: "fieldset-legend",
+                        "Qui a doit rembourser ?"
+                    }
+                    for (index, item) in expense_debtors().iter().enumerate() {
+                        CheckboxFormItem {
+                            index,
+                            item: item.clone(),
+                            on_checkbox_change: handle_checkbox_change_debtors,
+                            on_amount_change: handle_amount_change_debtors,
+                        }
                     }
                 }
                 form {
@@ -155,7 +164,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                 let creatable_expense: CreatableExpense = CreatableExpense {
                                     name: expense_name(),
                                     description: expense_description(),
-                                    amount: expense_amount(),
+                                    amount: expense_payers().iter().map(|payer| payer.amount).reduce(|acc, expense| acc + expense).expect("ERROR while trying to compute expense amount sum"),
                                     expense_type: expense_type(),
                                     project_id: props.project_id,
                                     debtors: expense_debtors().iter().map(|debtor| UserAmount {
@@ -191,8 +200,8 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
 
 #[component]
 fn CheckboxFormItem(
-    item: FormCheckboxAmount,
     index: usize,
+    item: FormCheckboxAmount,
     on_checkbox_change: EventHandler<(usize, bool)>,
     on_amount_change: EventHandler<(usize, f64)>,
 ) -> Element {
@@ -212,7 +221,7 @@ fn CheckboxFormItem(
 
             // Label
             label {
-                class: "text-sm font-medium text-gray-900",
+                class: "text-sm font-medium text-base-content",
                 "{item.label}"
             }
 
@@ -221,7 +230,7 @@ fn CheckboxFormItem(
                 r#type: "number",
                 class: format!(
                     "flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {}",
-                    if item.is_checked { "" } else { "bg-gray-100 cursor-not-allowed" }
+                    if item.is_checked { "" } else { "bg-gray-500 cursor-not-allowed" }
                 ),
                 disabled: !item.is_checked,
                 value: item.amount,

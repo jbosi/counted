@@ -14,7 +14,7 @@ CREATE TABLE expenses (
   id SERIAL PRIMARY KEY,
   author_id integer REFERENCES users(id) NOT NULL,
   project_id uuid REFERENCES projects(id) NOT NULL,
-  date date NOT NULL,
+  created_at timestamp default current_timestamp,
   amount double precision NOT NULL,
   description character varying NULL,
   name character varying NOT NULL,

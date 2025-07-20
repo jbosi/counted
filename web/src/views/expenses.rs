@@ -6,7 +6,12 @@ use shared::{CreatableUser, Expense, User};
 use ui::{AddExpenseModal, AddUserModal, Avatar, BackButtonArrow};
 use uuid::Uuid;
 
-// TODO rename into project_details
+pub mod expense_item;
+pub mod expense_list;
+pub mod expenses_header;
+pub mod expenses_user_section;
+pub mod summary_card;
+
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpensesProps {
     id: Uuid,

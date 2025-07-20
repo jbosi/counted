@@ -14,7 +14,7 @@ pub mod summary_card;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpensesProps {
-    id: Uuid,
+    project_id: Uuid,
 }
 
 #[component]
@@ -24,14 +24,14 @@ pub fn Expenses(props: ExpensesProps) -> Element {
     let mut expenses: Signal<Vec<Expense>> = use_signal(|| vec![]);
 
     let _ = use_resource(move || async move {
-        match get_users_by_project_id(props.id).await {
+        match get_users_by_project_id(props.project_id).await {
             Ok(u) => users.set(u),
             Err(_) => ()
         }
     });
 
     let _ = use_resource(move || async move {
-        match get_expenses_by_project_id(props.id).await {
+        match get_expenses_by_project_id(props.project_id).await {
             Ok(e) => expenses.set(e),
             Err(_) => ()
         }
@@ -44,7 +44,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             class: "container bg-base-100 p-4 max-w-md rounded-xl flex flex-col",
 
             ExpensesHeader { title: "Weekend Paris" }
-            ExpensesUserSection { id: props.id, users: users() }
+            ExpensesUserSection { id: props.project_id, users: users() }
             SummaryCard { my_total: 625.0, global_total }
 
             // Expense list
@@ -61,7 +61,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                     onclick: move |_| is_expense_modal_open.set(true),
                     "+"
                 },
-                AddExpenseModal { is_expense_modal_open, users: users(), project_id: props.id }
+                AddExpenseModal { is_expense_modal_open, users: users(), project_id: props.project_id }
             }
         }
     }

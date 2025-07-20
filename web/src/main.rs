@@ -11,8 +11,8 @@ enum Route {
     #[layout(WebNavbar)]
     #[route("/")]
     Projects {},
-    #[route("/expenses/:id")]
-    Expenses { id: Uuid },
+    #[route("/projects/:project_id")]
+    Expenses { project_id: Uuid },
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

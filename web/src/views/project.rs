@@ -45,7 +45,7 @@ pub fn Project(props: ProjectProps) -> Element {
         div {
             class: "card bg-base-100 w-96 shadow-sm",
             onclick: move |_| {
-                navigator().push(Route::Expenses { id: props.id });
+                navigator().push(Route::Expenses { project_id: props.id });
             },
             div {
                 class: "card-body",

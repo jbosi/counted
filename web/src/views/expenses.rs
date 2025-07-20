@@ -35,15 +35,17 @@ pub fn Expenses(props: ExpensesProps) -> Element {
         }
     });
 
+    let global_total: f64 = expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0);
+
     rsx! {
         div {
-            class: "container bg-base-100 p-4 max-w-md rounded-xl",
+            class: "container bg-base-100 p-4 max-w-md rounded-xl flex flex-col",
 
             Header { title: "Weekend Paris" }
             UserSection { id: props.id, users: users() }
-            SummaryCard { my_total: 625.0, global_total: expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0) }
+            SummaryCard { my_total: 625.0, global_total }
 
-            // Liste des transactions
+            // Expense list
             div {
                 class: "mt-6",
 
@@ -53,7 +55,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             }
             if (users().len() > 0) {
                 button {
-                    class: "btn btn-circle btn-outline btn-lg bg-base-100",
+                    class: "btn btn-circle btn-outline btn-lg bg-base-100 self-center mt-6",
                     onclick: move |_| is_expense_modal_open.set(true),
                     "+"
                 },
@@ -112,7 +114,7 @@ fn UserSection(props: UserSectionProps) -> Element {
     let mut is_user_modal_open = use_signal(|| false);
     rsx! {
         div {
-            class: "flex justify-between items-center my-6",
+            class: "flex justify-between items-center my-6 p-4",
             
             button {
                 class: "btn btn-circle btn-outline btn-lg",
@@ -186,7 +188,6 @@ struct ExpenseListProps {
 fn ExpenseList(props: ExpenseListProps) -> Element {
     rsx! {
         div {
-            class: "space-y-3",
             for expense in props.expenses {
                 ExpenseItem {
                     key: "{expense.id}",

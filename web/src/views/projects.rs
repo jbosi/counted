@@ -25,17 +25,14 @@ pub fn Projects() -> Element {
 
         div {
             class: "space-y-4 min-w-md",
-
-            {
-                projects.iter().map(|project| rsx!{
-                    Project {
-                        id: project.id,
-                        title: project.name.to_string(),
-                        current_reimbursements: 0,
-                        total_reimbursements: 0,
-                        description: project.description.clone().unwrap_or_else(|| "".to_string()),
-                    }
-                })
+            for project in projects() {
+                Project {
+                    id: project.id,
+                    title: project.name.to_string(),
+                    current_reimbursements: 0,
+                    total_reimbursements: 0,
+                    description: project.description.clone().unwrap_or_else(|| "".to_string()),
+                }
             }
         }
         button {
@@ -124,12 +121,10 @@ fn Project(props: ProjectProps) -> Element {
                             Avatar { initials: user.name.get(0..2).unwrap_or("") }
                         }
                         // On affiche le nombre de users supplémentaires
-                        {
-                            if more_users() > 0 {
-                                rsx! { Avatar { initials: format!("+{}", more_users) } }
-                            } else {
-                                rsx! { "" }
-                            }
+                        if more_users() > 0 {
+                            Avatar { initials: format!("+{}", more_users) }
+                        } else {
+                            ""
                         }
                     }
                 }

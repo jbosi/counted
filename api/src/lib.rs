@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, Pool, QueryBuilder, Postgres};
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType};
+use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType, Expense};
 
 
 // --- PROJECTS ---
@@ -110,11 +110,22 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
         separated.push_bind(id);
     }
     separated.push_unseparated(")");
-        
+
     let query = query_builder.build_query_as::<User>();
     let users: Vec<User> = query
         .fetch_all(&pool)
         .await?;
+
+    // TODO
+    // const QUERY: &str = "SELECT u.id, u.name, u.balance, u.created_at
+    //     FROM users u
+    //     JOIN user_projects up ON up.user_id = u.id
+    //     JOIN projects p ON p.id = up.project_id
+    //     WHERE project_id = '553b5fc6-3e91-4c85-af6f-5d7a2e6bf9ff'";
+    //
+    // let users: Vec<User> = sqlx::query(QUERY)
+    //     .fetch_all(&pool)
+    //     .await?;
 
     Ok(users)
 }
@@ -199,6 +210,22 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
     .await?;
 
     Ok(created_expense_id)
+}
+
+#[server()]
+pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+    let expenses: Vec<Expense> = sqlx::query_as!(
+        Expense,
+        "SELECT \
+        id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
+        FROM expenses \
+        WHERE project_id = $1",
+        project_id)
+        .fetch_all(&pool)
+        .await?;
+
+    Ok(expenses)
 }
 
 fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {

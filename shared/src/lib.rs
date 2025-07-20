@@ -1,3 +1,4 @@
+use std::fmt;
 #[cfg(feature = "server")]
 use sqlx::FromRow;
 
@@ -61,13 +62,13 @@ pub struct CreatableUser {
 
 // -------- EXPENSE ---------
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "server", derive(FromRow))]
 pub struct Expense {
     pub id: i32,
     pub author_id: i32,
     pub project_id: Uuid,
-    pub date: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub amount: f64,
     pub description: Option<String>,
     pub name: String,
@@ -110,6 +111,12 @@ pub enum ExpenseType {
     Expense,
     Transfer,
     Gain
+}
+
+impl fmt::Display for ExpenseType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 

@@ -21,7 +21,6 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     dioxus::launch(app);
-    dioxus_logger::init(Level::INFO).expect("failed to init logger");
 }
 
 #[component]

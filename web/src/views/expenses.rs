@@ -1,10 +1,10 @@
 use dioxus::html::a::size;
 use crate::dioxus_elements::button::r#type;
 use crate::Route;
-use api::{add_user, get_users_by_project_id};
+use api::{add_user, get_expenses_by_project_id, get_users_by_project_id};
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
-use shared::{CreatableUser, User};
+use shared::{CreatableUser, Expense, User};
 use ui::{AddExpenseModal, AddUserModal, Avatar, BackButtonArrow};
 use uuid::Uuid;
 
@@ -19,6 +19,7 @@ pub struct ExpensesProps {
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
     let mut is_expense_modal_open = use_signal(|| false);
+    let mut expenses: Signal<Vec<Expense>> = use_signal(|| vec![]);
 
     let _ = use_resource(move || async move {
         match get_users_by_project_id(props.id).await {
@@ -26,36 +27,29 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             Err(_) => ()
         }
     });
-    let today_transactions = vec![
-        Transaction { id: 1, category: "Repas".to_string(), paid_by: "Payé par Rober".to_string(), amount: 50.0 },
-        Transaction { id: 2, category: "Piscine de Paris".to_string(), paid_by: "Payé par Léo".to_string(), amount: 12.99 },
-    ];
 
-    let yesterday_transactions = vec![
-        Transaction { id: 3, category: "Repas".to_string(), paid_by: "Payé par Rober".to_string(), amount: 50.0 },
-        Transaction { id: 4, category: "Piscine".to_string(), paid_by: "Payé par Léo et Louise".to_string(), amount: 12.99 },
-        Transaction { id: 5, category: "Piscine".to_string(), paid_by: "Payé par Téo et Bertrant".to_string(), amount: 50.99 },
-        Transaction { id: 6, category: "Piscine".to_string(), paid_by: "Payé par Léo".to_string(), amount: 12.99 },
-        Transaction { id: 7, category: "Piscine".to_string(), paid_by: "Payé par Léo".to_string(), amount: 12.99 },
-    ];
+    let _ = use_resource(move || async move {
+        match get_expenses_by_project_id(props.id).await {
+            Ok(e) => expenses.set(e),
+            Err(_) => ()
+        }
+    });
 
     rsx! {
         div {
-            class: "container bg-base-100 mx-auto p-4 max-w-md rounded-xl",
+            class: "container bg-base-100 p-4 max-w-md rounded-xl",
 
             Header { title: "Weekend Paris" }
             UserSection { id: props.id, users: users() }
-            SummaryCard { my_total: 625.0, global_total: 3200.0 }
+            SummaryCard { my_total: 625.0, global_total: expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0) }
 
             // Liste des transactions
             div {
                 class: "mt-6",
 
-                DateSeparator { label: "Today" }
-                TransactionList { transactions: today_transactions }
-
-                DateSeparator { label: "Yesterday" }
-                TransactionList { transactions: yesterday_transactions }
+                // DateSeparator { label: "Today" }
+                ExpenseList { expenses: expenses() }
+                // DateSeparator { label: "Yesterday" }
             }
             if (users().len() > 0) {
                 button {
@@ -67,14 +61,6 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             }
         }
     }
-}
-
-#[derive(Clone, PartialEq)]
-struct Transaction {
-    id: u32,
-    category: String,
-    paid_by: String,
-    amount: f32,
 }
 
 #[derive(PartialEq, Props, Clone)]
@@ -149,12 +135,12 @@ fn UserSection(props: UserSectionProps) -> Element {
 
 #[derive(PartialEq, Props, Clone)]
 struct SummaryCardProps {
-    my_total: f32,
-    global_total: f32,
+    my_total: f64,
+    global_total: f64,
 }
 
 fn SummaryCard(props: SummaryCardProps) -> Element {
-    let format_currency = |val: f32| format!("{:.2}€", val).replace('.', ",");
+    let format_currency = |val: f64| format!("{:.2}€", val).replace('.', ",");
 
     rsx! {
         div {
@@ -193,59 +179,56 @@ fn DateSeparator(props: DateSeparatorProps) -> Element {
 }
 
 #[derive(PartialEq, Props, Clone)]
-struct TransactionListProps {
-    transactions: Vec<Transaction>,
+struct ExpenseListProps {
+    expenses: Vec<Expense>,
 }
 
-fn TransactionList(props: TransactionListProps) -> Element {
+fn ExpenseList(props: ExpenseListProps) -> Element {
     rsx! {
         div {
             class: "space-y-3",
-            {
-                props.transactions.iter().map(|tx| rsx! {
-                    TransactionItem {
-                        key: "{tx.id}",
-                        transaction: tx.clone()
-                    }
-                })
+            for expense in props.expenses {
+                ExpenseItem {
+                    key: "{expense.id}",
+                    expense: expense.clone()
+                }
             }
         }
     }
 }
 
 #[derive(PartialEq, Props, Clone)]
-struct TransactionItemProps {
-    transaction: Transaction,
+struct ExpenseItemProps {
+    expense: Expense,
 }
 
-fn TransactionItem(props: TransactionItemProps) -> Element {
-    let tx = &props.transaction;
-    let formatted_amount = format!("{:.2}€", tx.amount).replace('.', ",");
+fn ExpenseItem(props: ExpenseItemProps) -> Element {
+    let expense: &Expense = &props.expense;
+    let formatted_amount = format!("{:.2}€", expense.amount).replace('.', ",");
 
     rsx! {
         div {
             class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
-            
-            // Icône de catégorie
-            div {
-                class: "avatar placeholder",
-                div {
-                    class: "bg-base-300 text-base-content rounded-full w-11",
-                    span { class: "text-lg", "💰" }
-                }
-            }
-            
-            // Détails de la transaction
+
+            // Category
+            Avatar { initials: "💰", size: 10 }
+
+            // Name
             div {
                 class: "flex-1 min-w-0",
-                p { class: "font-semibold text-base-content truncate", "{tx.category}" }
-                p { class: "text-sm text-base-content/70 truncate", "{tx.paid_by}" }
+                p {
+                    class: "font-semibold text-base-content truncate",
+                    "{expense.name}"
+                }
             }
-            
-            // Montant
+
+            // Amount
             div {
                 class: "text-right",
-                p { class: "font-bold text-lg text-base-content", "{formatted_amount}" }
+                p {
+                    class: "font-bold text-lg text-base-content",
+                    "{formatted_amount}"
+                }
             }
         }
     }

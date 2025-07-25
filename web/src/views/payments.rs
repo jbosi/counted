@@ -4,7 +4,7 @@ use tracing::info;
 use uuid::Uuid;
 use api::{get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id, get_users_by_project_id};
 use shared::{Expense, Payment, PaymentViewModel, User};
-use ui::Avatar;
+use ui::{Avatar, BackButtonArrow};
 
 #[derive(PartialEq, Props, Clone)]
 pub struct PaymentsProps {
@@ -70,9 +70,19 @@ pub fn Payments(props: PaymentsProps) -> Element {
             if let Some(expense) = &*expense_resource.read() {
                 match expense {
                     Ok(e) => rsx! {
-                        h1 {
-                            class: "self-center",
-                            "{e.name}"
+                        div {
+                            class: "flex flex-row",
+                            div {
+                                class: "navbar-start flex-1",
+                                onclick: move |_| {
+                                    navigator().push(Route::Expenses { project_id: props.project_id });
+                                },
+                                BackButtonArrow {},
+                            }
+                            h1 {
+                                class: "text-xl font-bold self-center",
+                                "{e.name}"
+                            }
                         }
                         span {
                             class: "self-center",

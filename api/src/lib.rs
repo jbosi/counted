@@ -227,6 +227,18 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
     Ok(expenses)
 }
 
+#[server()]
+pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+    let expense: Expense = sqlx::query_as!(
+        Expense,
+        "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1", expense_id)
+        .fetch_one(&pool)
+        .await?;
+
+    Ok(expense)
+}
+
 fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
     let mut debtors_result: Vec<UserAmount> = vec![];
     if let Some(debtors_unwrapped) = debtors {

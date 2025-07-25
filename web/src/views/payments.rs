@@ -2,7 +2,7 @@ use crate::Route;
 use dioxus::prelude::*;
 use tracing::info;
 use uuid::Uuid;
-use api::{get_payments_by_expense_id, get_users_by_project_id};
+use api::{get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id, get_users_by_project_id};
 use shared::{Expense, Payment, PaymentViewModel, User};
 use ui::Avatar;
 
@@ -16,6 +16,7 @@ pub struct PaymentsProps {
 pub fn Payments(props: PaymentsProps) -> Element {
     let mut payments: Signal<Vec<PaymentViewModel>> = use_signal(|| vec![]);
     let users_resource = use_resource(move || async move { get_users_by_project_id(props.project_id).await });
+    let expense_resource = use_resource(move || async move { get_expense_by_id(props.expense_id).await });
 
     use_resource({
         move || async move {
@@ -57,23 +58,55 @@ pub fn Payments(props: PaymentsProps) -> Element {
         .filter(|p| !p.is_debt)
         .collect();
 
+    let total_payment: f64 = payers.clone()
+        .into_iter()
+        .map(|p| p.amount)
+        .reduce(|acc, e| acc + e)
+        .unwrap_or(0.0);
+
     rsx! {
         section {
-            class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-xl",
+            class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",
+            if let Some(expense) = &*expense_resource.read() {
+                match expense {
+                    Ok(e) => rsx! {
+                        h1 {
+                            class: "self-center",
+                            "{e.name}"
+                        }
+                        span {
+                            class: "self-center",
+                            "Dépense de {total_payment} €"
+                        }
+                        match e.clone().description {
+                            Some(description) => rsx! {
+                                span {
+                                    "{description}"
+                                }
+                            },
+                            None => rsx! {""}
+                        }
+                    },
+                    Err(err) => rsx!{ "{err}" }
+                }
+            }
+        }
+        section {
+            class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-b-xl",
             div {
                     class: "flex",
                     span {
                         "Répartition du payment"
                     }
                 }
-                PaymentList { payments: payers }
+                PaymentList { payments: payers, is_debt: false }
                 div {
                     class: "flex ",
                     span {
                         "Répartition de la dette"
                     }
                 }
-                PaymentList { payments: debtors }
+                PaymentList { payments: debtors, is_debt: true }
         }
     }
 }
@@ -81,6 +114,7 @@ pub fn Payments(props: PaymentsProps) -> Element {
 #[derive(PartialEq, Props, Clone)]
 pub struct PaymentListProps {
     payments: Vec<PaymentViewModel>,
+    is_debt: bool,
 }
 
 #[component]
@@ -101,6 +135,7 @@ pub fn PaymentList(props: PaymentListProps) -> Element {
                         p {
                             class: "font-semibold text-base-content truncate",
                             "{payment.user.name}"
+                            if props.is_debt { " doit" } else { " a payé" }
                         }
                     }
 

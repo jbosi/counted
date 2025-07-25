@@ -37,7 +37,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
         }
     });
 
-    let project = use_resource(move || async move {
+    let project_resource = use_resource(move || async move {
         get_project(props.project_id).await
     });
 
@@ -47,8 +47,8 @@ pub fn Expenses(props: ExpensesProps) -> Element {
         div {
             class: "container bg-base-100 p-4 max-w-md rounded-xl flex flex-col",
 
-             if let Some(response) = &*project.read() {
-                match response {
+             if let Some(project) = &*project_resource.read() {
+                match project {
                     Ok(p) => rsx! { ExpensesHeader { title: p.name.clone()  } },
                     Err(err) => rsx! { "Failed to fetch response: {err}" },
                 }

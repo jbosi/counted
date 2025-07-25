@@ -1189,9 +1189,6 @@
     }
   }
 }
-.mx-auto {
-  margin-inline: auto;
-}
 .label {
   display: inline-flex;
   align-items: center;
@@ -1456,6 +1453,9 @@
 .flex-col {
   flex-direction: column;
 }
+.flex-row {
+  flex-direction: row;
+}
 .flex-wrap {
   flex-wrap: wrap;
 }
@@ -1486,9 +1486,6 @@
 }
 .bg-base-100 {
   background-color: var(--color-base-100);
-}
-.bg-base-300 {
-  background-color: var(--color-base-300);
 }
 .bg-neutral {
   background-color: var(--color-neutral);

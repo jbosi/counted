@@ -1,8 +1,10 @@
 mod projects;
 mod expenses;
 mod project;
+mod payments;
 
 pub use projects::Projects;
+pub use payments::Payments;
 pub use project::Project;
 pub use expenses::Expenses;
 pub use expenses::expense_list::ExpenseList;

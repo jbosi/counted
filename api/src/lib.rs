@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool, Pool, QueryBuilder, Postgres};
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType, Expense};
+use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType, Expense, Payment};
 
 
 // --- PROJECTS ---
@@ -217,8 +217,7 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
     let pool: Pool<Postgres> = get_db().await;
     let expenses: Vec<Expense> = sqlx::query_as!(
         Expense,
-        "SELECT \
-        id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
+        "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
         FROM expenses \
         WHERE project_id = $1",
         project_id)
@@ -258,4 +257,22 @@ fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtor
         }).collect();
 
     [creatable_debtors, creatable_payers].concat()
+}
+
+// --- PAYMENTS ---
+
+#[server()]
+pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let payments: Vec<Payment> = sqlx::query_as!(
+        Payment,
+        "SELECT id, expense_id, user_id, is_debt, amount, created_at \
+        FROM payments \
+        WHERE expense_id = $1",
+        expense_id)
+        .fetch_all(&pool)
+        .await?;
+
+    Ok(payments)
 }

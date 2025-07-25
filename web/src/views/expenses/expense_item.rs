@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
-use shared::Expense;
+use uuid::Uuid;
+use shared::{Expense, User};
 use ui::Avatar;
+use crate::Route;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpenseItemProps {
@@ -14,7 +16,9 @@ pub fn ExpenseItem(props: ExpenseItemProps) -> Element {
     rsx! {
         div {
             class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
-
+            onclick: move |_| {
+                navigator().push(Route::Payments { project_id: props.expense.project_id, expense_id: props.expense.id });
+            },
             // Category
             Avatar { initials: "💰", size: 10 }
 

@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
-use uuid::Uuid;
 use ui::Navbar;
-use views::{Expenses, Projects};
-use dioxus_logger::tracing::{Level, info};
+use uuid::Uuid;
+use shared::User;
+use views::{Expenses, Projects, Payments};
 
 mod views;
 #[derive(Debug, Clone, Routable, PartialEq)]
@@ -13,6 +13,8 @@ enum Route {
     Projects {},
     #[route("/projects/:project_id")]
     Expenses { project_id: Uuid },
+    #[route("/projects/:project_id/expenses/:expense_id")]
+    Payments { project_id: Uuid, expense_id: i32 },
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

@@ -21,7 +21,7 @@ pub fn Project(props: ProjectProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
     let mut more_users: Signal<i32> = use_signal(|| 0);
 
-    let _ = use_resource(move || async move {
+    use_resource(move || async move {
         match get_users_by_project_id(props.id).await {
             Ok(u) => {
                 if u.len() > 3 {
@@ -33,7 +33,6 @@ pub fn Project(props: ProjectProps) -> Element {
         }
     });
 
-    // Calcul du pourcentage pour la barre de progression
     let progress_percentage: u32 = ((props.current_reimbursements as f32 / props.total_reimbursements as f32) * 100.0).round() as u32;
 
     let description = match &props.description {
@@ -77,11 +76,9 @@ pub fn Project(props: ProjectProps) -> Element {
                     }
                     div {
                         class: "",
-                        // On affiche les avatars des users
                         for user in users() {
                             Avatar { initials: user.name.get(0..2).unwrap_or("") }
                         }
-                        // On affiche le nombre de users supplémentaires
                         if more_users() > 0 {
                             Avatar { initials: format!("+{}", more_users) }
                         } else {

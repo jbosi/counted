@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use shared::Expense;
+use shared::{Expense, User};
 use crate::views::ExpenseItem;
 
 #[derive(PartialEq, Props, Clone)]
@@ -13,7 +13,7 @@ pub fn ExpenseList(props: ExpenseListProps) -> Element {
             for expense in props.expenses {
                 ExpenseItem {
                     key: "{expense.id}",
-                    expense: expense.clone()
+                    expense: expense.clone(),
                 }
             }
         }

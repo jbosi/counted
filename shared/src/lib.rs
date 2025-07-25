@@ -122,12 +122,24 @@ impl fmt::Display for ExpenseType {
 
 // -------- PAYMENT ---------
 
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "server", derive(FromRow))]
 
 pub struct Payment {
     pub id: i32,
     pub expense_id: i32,
     pub user_id: i32,
+    pub is_debt: bool,
+    pub amount: f64,
+    pub created_at: NaiveDateTime
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+
+pub struct PaymentViewModel {
+    pub id: i32,
+    pub expense_id: i32,
+    pub user: User,
     pub is_debt: bool,
     pub amount: f64,
     pub created_at: NaiveDateTime

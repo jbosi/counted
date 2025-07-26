@@ -1,4 +1,4 @@
-use api::add_user;
+use api::users::add_user;
 use dioxus::prelude::*;
 use shared::CreatableUser;
 use uuid::Uuid;

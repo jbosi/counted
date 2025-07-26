@@ -1,6 +1,6 @@
 use crate::common::Avatar;
 use crate::route::Route;
-use api::get_users_by_project_id;
+use api::users::get_users_by_project_id;
 use dioxus::hooks::{use_resource, use_signal};
 use dioxus::prelude::*;
 use shared::User;

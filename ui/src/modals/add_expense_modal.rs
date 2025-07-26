@@ -1,4 +1,5 @@
-use api::{add_expense, add_project};
+use api::expenses::add_expense;
+use api::projects::add_project;
 use dioxus::prelude::*;
 use shared::{CreatableExpense, CreatableProject, ExpenseType, User, UserAmount};
 use uuid::Uuid;

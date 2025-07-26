@@ -1,4 +1,4 @@
-use api::add_project;
+use api::projects::add_project;
 use dioxus::prelude::*;
 use shared::CreatableProject;
 use uuid::Uuid;

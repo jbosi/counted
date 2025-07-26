@@ -1,7 +1,8 @@
 use crate::common::Avatar;
 use crate::modals::AddProjectModal;
 use crate::projects::Project;
-use api::{get_projects, get_users_by_project_id};
+use api::projects::get_projects;
+use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
 use shared::{Project, User};
 use uuid::Uuid;

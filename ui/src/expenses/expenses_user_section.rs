@@ -1,4 +1,5 @@
-use crate::{AddUserModal, Avatar};
+use crate::Avatar;
+use crate::modals::AddUserModal;
 use dioxus::hooks::use_signal;
 use dioxus::prelude::*;
 use shared::User;

@@ -1,4 +1,4 @@
-use crate::ExpenseItem;
+use crate::expenses::ExpenseItem;
 use dioxus::prelude::*;
 use shared::{Expense, User};
 

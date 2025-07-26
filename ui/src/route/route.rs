@@ -1,7 +1,11 @@
+use crate::payments::Payments;
+use crate::projects::Projects;
+use crate::expenses::Expenses;
+use crate::{Navbar};
 use dioxus::prelude::*;
-use uuid::Uuid;
 use shared::User;
-use crate::{Expenses, Projects, Payments, Navbar};
+use uuid::Uuid;
+
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {

@@ -1,8 +1,11 @@
 use dioxus::prelude::*;
-use ui::{Expenses, Projects, Payments, Navbar};
-use ui::route::Route;
-use uuid::Uuid;
 use shared::User;
+use ui::expenses::Expenses;
+use ui::payments::Payments;
+use ui::projects::Projects;
+use ui::route::Route;
+use ui::Navbar;
+use uuid::Uuid;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");

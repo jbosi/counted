@@ -1,14 +1,11 @@
+use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
+use crate::modals::{AddExpenseModal, AddUserModal};
 use crate::route::Route;
-use crate::{AddExpenseModal, AddUserModal, AppHeader, Avatar, BackButtonArrow, ExpenseList, ExpensesUserSection, SummaryCard};
+use crate::{AppHeader, Avatar, BackButtonArrow};
 use api::{add_user, get_expenses_by_project_id, get_project, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{CreatableUser, Expense, User};
 use uuid::Uuid;
-
-pub mod expense_item;
-pub mod expense_list;
-pub mod expenses_user_section;
-pub mod summary_card;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpensesProps {

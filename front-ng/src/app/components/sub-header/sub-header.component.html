@@ -1,9 +1,0 @@
-<div class="subHeader">
-	@for (user of users; track user) {
-		<app-avatar-initials class="subHeader-avatars" [userName]="user.name"></app-avatar-initials>
-	}
-</div>
-
-<div>
-	<app-add-users-modal [existingUsers]="users" (usersAdded)="onUsersAddedAsync()"></app-add-users-modal>
-</div>

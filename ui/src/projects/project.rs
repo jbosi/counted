@@ -43,7 +43,7 @@ pub fn Project(props: ProjectProps) -> Element {
     };
 
     rsx! {
-        div {
+        section {
             class: "card bg-base-100 w-96 shadow-sm",
             onclick: move |_| {
                 navigator()
@@ -53,7 +53,11 @@ pub fn Project(props: ProjectProps) -> Element {
             },
             div { class: "card-body",
                 div {
-                    h2 { class: "card-title", "{props.title}" }
+                    div {
+                        class: "flex flex-row justify-between",
+                        h2 { class: "card-title", "{props.title}" }
+                        button { type: "button", class: "btn btn-ghost btn-circle", "..."  }
+                    }
                     p { "{description}" }
                 }
                 div { class: "flex justify-between",

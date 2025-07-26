@@ -34,6 +34,7 @@ pub fn Projects() -> Element {
             }
         }
         button {
+            type: "button",
             class: "btn btn-circle btn-outline btn-lg bg-base-100",
             onclick: move |_| modal_open.set(true),
             "+"

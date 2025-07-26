@@ -64,6 +64,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             }
             if (users().len() > 0) {
                 button {
+                    type: "button",
                     class: "btn btn-circle btn-outline btn-lg bg-base-100 self-center mt-6",
                     onclick: move |_| is_expense_modal_open.set(true),
                     "+"

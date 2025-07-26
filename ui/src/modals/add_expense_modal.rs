@@ -134,7 +134,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                     method: "dialog",
                     onclick: move |_| props.is_expense_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { "X" }
+                    button { type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -180,7 +180,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_expense_modal_open.set(false),
-                button { "close" }
+                button { type: "button", "close" }
             }
         }
     }

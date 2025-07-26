@@ -17,6 +17,7 @@ pub fn ExpensesUserSection(props: ExpensesUserSectionProps) -> Element {
         div { class: "flex justify-between items-center my-6 p-4",
 
             button {
+                type: "button",
                 class: "btn btn-circle btn-outline btn-lg",
                 onclick: move |_| is_user_modal_open.set(true),
                 "+"

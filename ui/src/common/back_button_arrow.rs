@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 pub fn BackButtonArrow() -> Element {
     rsx! {
-        button { class: "btn btn-circle",
+        button { type: "button", class: "btn btn-circle",
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
                 width: "24",

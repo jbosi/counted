@@ -56,7 +56,26 @@ pub fn Project(props: ProjectProps) -> Element {
                     div {
                         class: "flex flex-row justify-between",
                         h2 { class: "card-title", "{props.title}" }
-                        button { type: "button", class: "btn btn-ghost btn-circle", "..."  }
+                        details {
+                            class: "dropdown",
+                            onclick: move |event| {
+                                event.stop_propagation();
+                            },
+                            summary {
+                                class: "btn btn-ghost btn-circle",
+                                "..."
+                            },
+                            ul {
+                                class: "menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm",
+                                popover: "",
+                                id: "popover-project-dot",
+                                style: "position-anchor:--anchor-project-dot",
+                                li {
+                                    a { "test" }
+                                    a { "test 2" }
+                                }
+                            }
+                        }
                     }
                     p { "{description}" }
                 }

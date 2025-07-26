@@ -1,5 +1,5 @@
+use crate::common::Avatar;
 use crate::route::Route;
-use crate::Avatar;
 use dioxus::prelude::*;
 use shared::{Expense, User};
 use uuid::Uuid;

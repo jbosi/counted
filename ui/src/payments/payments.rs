@@ -1,5 +1,5 @@
+use crate::common::{Avatar, BackButtonArrow};
 use crate::route::Route;
-use crate::{Avatar, BackButtonArrow};
 use api::{get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{Expense, Payment, PaymentViewModel, User};

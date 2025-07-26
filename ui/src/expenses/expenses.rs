@@ -1,7 +1,7 @@
+use crate::common::{AppHeader, Avatar, BackButtonArrow};
 use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
 use crate::modals::{AddExpenseModal, AddUserModal};
 use crate::route::Route;
-use crate::{AppHeader, Avatar, BackButtonArrow};
 use api::{add_user, get_expenses_by_project_id, get_project, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{CreatableUser, Expense, User};

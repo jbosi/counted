@@ -1,6 +1,6 @@
-use crate::Avatar;
-use crate::projects::Project;
+use crate::common::Avatar;
 use crate::modals::AddProjectModal;
+use crate::projects::Project;
 use api::{get_projects, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{Project, User};

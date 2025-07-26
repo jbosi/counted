@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 use shared::User;
+use ui::common::Navbar;
 use ui::expenses::Expenses;
 use ui::payments::Payments;
 use ui::projects::Projects;
 use ui::route::Route;
-use ui::Navbar;
 use uuid::Uuid;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

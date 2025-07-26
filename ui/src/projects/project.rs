@@ -1,5 +1,5 @@
+use crate::common::Avatar;
 use crate::route::Route;
-use crate::Avatar;
 use api::get_users_by_project_id;
 use dioxus::hooks::{use_resource, use_signal};
 use dioxus::prelude::*;

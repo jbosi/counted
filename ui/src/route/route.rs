@@ -1,7 +1,7 @@
+use crate::common::Navbar;
+use crate::expenses::Expenses;
 use crate::payments::Payments;
 use crate::projects::Projects;
-use crate::expenses::Expenses;
-use crate::{Navbar};
 use dioxus::prelude::*;
 use shared::User;
 use uuid::Uuid;

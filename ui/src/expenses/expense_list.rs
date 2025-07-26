@@ -1,6 +1,6 @@
+use crate::ExpenseItem;
 use dioxus::prelude::*;
 use shared::{Expense, User};
-use crate::views::ExpenseItem;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpenseListProps {

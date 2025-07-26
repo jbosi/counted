@@ -1,14 +1,12 @@
-use crate::views::{ExpenseList, ExpensesHeader, ExpensesUserSection, SummaryCard};
-use crate::Route;
+use crate::route::Route;
+use crate::{AddExpenseModal, AddUserModal, AppHeader, Avatar, BackButtonArrow, ExpenseList, ExpensesUserSection, SummaryCard};
 use api::{add_user, get_expenses_by_project_id, get_project, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{CreatableUser, Expense, User};
-use ui::{AddExpenseModal, AddUserModal, Avatar, BackButtonArrow};
 use uuid::Uuid;
 
 pub mod expense_item;
 pub mod expense_list;
-pub mod expenses_header;
 pub mod expenses_user_section;
 pub mod summary_card;
 
@@ -49,7 +47,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
 
              if let Some(project) = &*project_resource.read() {
                 match project {
-                    Ok(p) => rsx! { ExpensesHeader { title: p.name.clone()  } },
+                    Ok(p) => rsx! { AppHeader { title: p.name.clone(), back_button_route: Route::Projects { }  } },
                     Err(err) => rsx! { "Failed to fetch response: {err}" },
                 }
             }

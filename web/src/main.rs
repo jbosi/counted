@@ -1,21 +1,8 @@
 use dioxus::prelude::*;
-use ui::Navbar;
+use ui::{Expenses, Projects, Payments, Navbar};
+use ui::route::Route;
 use uuid::Uuid;
 use shared::User;
-use views::{Expenses, Projects, Payments};
-
-mod views;
-#[derive(Debug, Clone, Routable, PartialEq)]
-#[rustfmt::skip]
-enum Route {
-    #[layout(WebNavbar)]
-    #[route("/")]
-    Projects {},
-    #[route("/projects/:project_id")]
-    Expenses { project_id: Uuid },
-    #[route("/projects/:project_id/expenses/:expense_id")]
-    Payments { project_id: Uuid, expense_id: i32 },
-}
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
@@ -38,22 +25,5 @@ fn app() -> Element {
             link { rel: "stylesheet", href: "https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css" },
             Router::<Route> {}
         }
-    }
-}
-
-
-/// A web-specific Router around the shared `Navbar` component
-/// which allows us to use the web-specific `Route` enum.
-#[component]
-fn WebNavbar() -> Element {
-    rsx! {
-        Navbar {
-            Link {
-                to: Route::Projects {},
-                "Projects"
-            }
-        }
-
-        Outlet::<Route> {}
     }
 }

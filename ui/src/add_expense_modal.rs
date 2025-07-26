@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
-use uuid::Uuid;
 use api::{add_expense, add_project};
+use dioxus::prelude::*;
 use shared::{CreatableExpense, CreatableProject, ExpenseType, User, UserAmount};
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AddExpenseModalProps {

@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
-use uuid::Uuid;
 use api::add_project;
+use dioxus::prelude::*;
 use shared::CreatableProject;
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AddProjectModalProps {

@@ -1,9 +1,7 @@
-use crate::views::Project;
-use crate::Route;
+use crate::{AddProjectModal, Avatar, Project};
 use api::{get_projects, get_users_by_project_id};
 use dioxus::prelude::*;
 use shared::{Project, User};
-use ui::{AddProjectModal, Avatar};
 use uuid::Uuid;
 
 #[component]

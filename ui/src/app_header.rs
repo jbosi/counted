@@ -1,26 +1,29 @@
 use dioxus::prelude::*;
-use ui::BackButtonArrow;
-use crate::Route;
+use crate::BackButtonArrow;
+use crate::route::Route;
 
 #[derive(PartialEq, Props, Clone)]
-pub struct ExpensesHeaderProps {
+pub struct AppHeaderProps {
     title: String,
+    back_button_route: Route
 }
 
-pub fn ExpensesHeader(props: ExpensesHeaderProps) -> Element {
+pub fn AppHeader(props: AppHeaderProps) -> Element {
     rsx! {
         div {
             class: "navbar px-0",
             div {
                 class: "navbar-start",
                 onclick: move |_| {
-                    navigator().push(Route::Projects {});
+                    navigator().push(props.back_button_route.clone());
                 },
                 BackButtonArrow {},
             }
             div {
                 class: "navbar-center",
-                h1 { class: "text-xl font-bold", "{props.title}" }
+                h1 {
+                    class: "text-xl font-bold", "{props.title}"
+                }
             }
             div {
                 class: "navbar-end",

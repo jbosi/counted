@@ -1,7 +1,7 @@
+use crate::{AddUserModal, Avatar};
 use dioxus::hooks::use_signal;
 use dioxus::prelude::*;
 use shared::User;
-use ui::{AddUserModal, Avatar};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]

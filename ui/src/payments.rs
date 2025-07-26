@@ -1,10 +1,9 @@
-use crate::Route;
-use dioxus::prelude::*;
-use tracing::info;
-use uuid::Uuid;
+use crate::route::Route;
+use crate::{Avatar, BackButtonArrow};
 use api::{get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id, get_users_by_project_id};
+use dioxus::prelude::*;
 use shared::{Expense, Payment, PaymentViewModel, User};
-use ui::{Avatar, BackButtonArrow};
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct PaymentsProps {
@@ -70,6 +69,7 @@ pub fn Payments(props: PaymentsProps) -> Element {
             if let Some(expense) = &*expense_resource.read() {
                 match expense {
                     Ok(e) => rsx! {
+                        // AppHeader { title: e.name.clone()  },
                         div {
                             class: "flex flex-row",
                             div {
@@ -80,7 +80,7 @@ pub fn Payments(props: PaymentsProps) -> Element {
                                 BackButtonArrow {},
                             }
                             h1 {
-                                class: "text-xl font-bold self-center",
+                                class: "text-xl font-bold self-center flex-grow",
                                 "{e.name}"
                             }
                         }

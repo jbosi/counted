@@ -1,8 +1,8 @@
+use crate::route::Route;
+use crate::Avatar;
 use dioxus::prelude::*;
-use uuid::Uuid;
 use shared::{Expense, User};
-use ui::Avatar;
-use crate::Route;
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpenseItemProps {

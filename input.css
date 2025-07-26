@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind utilities;
+
+@plugin "daisyui" {
+    /* themes: light --default */
+}

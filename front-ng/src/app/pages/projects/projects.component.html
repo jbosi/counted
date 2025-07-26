@@ -1,9 +1,0 @@
-<div class="card-list">
-	@for (project of projects; track project) {
-		<app-card [project]="project"></app-card>
-	}
-</div>
-
-<div>
-	<app-add-project-modal [users]="users" (projectAdded)="onProjectAddedAsync()"></app-add-project-modal>
-</div>

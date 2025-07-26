@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Props, Clone)]
 pub struct AppHeaderProps {
     title: String,
-    back_button_route: Route
+    back_button_route: Route,
 }
 
 pub fn AppHeader(props: AppHeaderProps) -> Element {

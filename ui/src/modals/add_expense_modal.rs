@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub struct AddExpenseModalProps {
     project_id: Uuid,
     is_expense_modal_open: Signal<bool>,
-    users: Vec<User>
+    users: Vec<User>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -24,12 +24,16 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
     let mut expense_description: Signal<Option<String>> = use_signal(|| None);
     let mut expense_type: Signal<ExpenseType> = use_signal(|| ExpenseType::Expense);
 
-    let checkbox_list: Vec<FormCheckboxAmount> = props.users.iter().map(|user| FormCheckboxAmount {
-        label: user.name.clone(),
-        is_checked: false,
-        amount: 0.0,
-        user_id: user.id
-    }).collect();
+    let checkbox_list: Vec<FormCheckboxAmount> = props
+        .users
+        .iter()
+        .map(|user| FormCheckboxAmount {
+            label: user.name.clone(),
+            is_checked: false,
+            amount: 0.0,
+            user_id: user.id,
+        })
+        .collect();
 
     let mut expense_debtors: Signal<Vec<FormCheckboxAmount>> = use_signal(|| checkbox_list.clone());
     let mut expense_payers: Signal<Vec<FormCheckboxAmount>> = use_signal(|| checkbox_list.clone());

@@ -1,10 +1,10 @@
-use std::fmt;
 #[cfg(feature = "server")]
 use sqlx::FromRow;
+use std::fmt;
 
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::NaiveDateTime;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "server", derive(FromRow))]
@@ -48,16 +48,16 @@ pub struct CreatableProject {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "server", derive(FromRow))]
 pub struct User {
-	pub id: i32,
-	pub name: String,
-	pub balance: Option<f64>,
-	pub created_at: Option<NaiveDateTime>
+    pub id: i32,
+    pub name: String,
+    pub balance: Option<f64>,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct CreatableUser {
-	pub name: String,
-	pub project_id: Uuid
+    pub name: String,
+    pub project_id: Uuid,
 }
 
 // -------- EXPENSE ---------
@@ -102,15 +102,19 @@ pub struct CreatableExpense {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UserAmount {
     pub user_id: i32,
-    pub amount: f64
+    pub amount: f64,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "server", derive(sqlx::Type), sqlx(type_name = "expense_type", rename_all = "lowercase"))]
+#[cfg_attr(
+    feature = "server",
+    derive(sqlx::Type),
+    sqlx(type_name = "expense_type", rename_all = "lowercase")
+)]
 pub enum ExpenseType {
     Expense,
     Transfer,
-    Gain
+    Gain,
 }
 
 impl fmt::Display for ExpenseType {
@@ -118,7 +122,6 @@ impl fmt::Display for ExpenseType {
         write!(f, "{:?}", self)
     }
 }
-
 
 // -------- PAYMENT ---------
 
@@ -131,7 +134,7 @@ pub struct Payment {
     pub user_id: i32,
     pub is_debt: bool,
     pub amount: f64,
-    pub created_at: NaiveDateTime
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -142,7 +145,7 @@ pub struct PaymentViewModel {
     pub user: User,
     pub is_debt: bool,
     pub amount: f64,
-    pub created_at: NaiveDateTime
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -152,7 +155,6 @@ pub struct NewPayment {
     pub is_debt: bool,
     pub amount: f64,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EditablePayment {

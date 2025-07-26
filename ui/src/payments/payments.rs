@@ -1,6 +1,9 @@
 use crate::common::{Avatar, BackButtonArrow};
 use crate::route::Route;
-use api::{get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id, get_users_by_project_id};
+use api::{
+    get_expense_by_id, get_expenses_by_project_id, get_payments_by_expense_id,
+    get_users_by_project_id,
+};
 use dioxus::prelude::*;
 use shared::{Expense, Payment, PaymentViewModel, User};
 use uuid::Uuid;
@@ -14,8 +17,10 @@ pub struct PaymentsProps {
 #[component]
 pub fn Payments(props: PaymentsProps) -> Element {
     let mut payments: Signal<Vec<PaymentViewModel>> = use_signal(|| vec![]);
-    let users_resource = use_resource(move || async move { get_users_by_project_id(props.project_id).await });
-    let expense_resource = use_resource(move || async move { get_expense_by_id(props.expense_id).await });
+    let users_resource =
+        use_resource(move || async move { get_users_by_project_id(props.project_id).await });
+    let expense_resource =
+        use_resource(move || async move { get_expense_by_id(props.expense_id).await });
 
     use_resource({
         move || async move {
@@ -24,44 +29,42 @@ pub fn Payments(props: PaymentsProps) -> Element {
                     let user_ids: Vec<i32> = users.iter().map(|u| u.id).collect();
                     match get_payments_by_expense_id(props.expense_id).await {
                         Ok(response) => {
-                            let result = response.into_iter().map(|p| {
-                                let user: User = users.clone().into_iter().find(|u| u.id == p.user_id).unwrap();
+                            let result = response
+                                .into_iter()
+                                .map(|p| {
+                                    let user: User = users
+                                        .clone()
+                                        .into_iter()
+                                        .find(|u| u.id == p.user_id)
+                                        .unwrap();
 
-                                PaymentViewModel {
-                                    id: p.id,
-                                    created_at: p.created_at,
-                                    is_debt: p.is_debt,
-                                    expense_id: p.expense_id,
-                                    amount: p.amount,
-                                    user,
-                                }
-                            }).collect();
+                                    PaymentViewModel {
+                                        id: p.id,
+                                        created_at: p.created_at,
+                                        is_debt: p.is_debt,
+                                        expense_id: p.expense_id,
+                                        amount: p.amount,
+                                        user,
+                                    }
+                                })
+                                .collect();
                             payments.set(result);
                         }
-                        Err(_) => ()
+                        Err(_) => (),
                     }
                 }
                 Some(Err(e)) => (),
                 _ => {}
             }
-    }});
+        }
+    });
 
+    let debtors: Vec<PaymentViewModel> = payments().into_iter().filter(|p| p.is_debt).collect();
 
-    let debtors: Vec<PaymentViewModel> = payments()
-        .into_iter()
-        .filter(|p| p.is_debt)
-        .collect();
+    let payers: Vec<PaymentViewModel> = payments().into_iter().filter(|p| !p.is_debt).collect();
 
-    let payers: Vec<PaymentViewModel> = payments()
-        .into_iter()
-        .filter(|p| !p.is_debt)
-        .collect();
-
-    let total_payment: f64 = payers.clone()
-        .into_iter()
-        .map(|p| p.amount)
-        .reduce(|acc, e| acc + e)
-        .unwrap_or(0.0);
+    let total_payment: f64 =
+        payers.clone().into_iter().map(|p| p.amount).reduce(|acc, e| acc + e).unwrap_or(0.0);
 
     rsx! {
         section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",

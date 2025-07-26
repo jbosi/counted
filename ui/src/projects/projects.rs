@@ -14,7 +14,7 @@ pub fn Projects() -> Element {
     use_resource(move || async move {
         match get_projects().await {
             Ok(items) => projects.set(items),
-            Err(_) => ()
+            Err(_) => (),
         }
     });
 
@@ -40,5 +40,3 @@ pub fn Projects() -> Element {
         AddProjectModal { modal_open }
     }
 }
-
-

@@ -17,11 +17,13 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, QueryBuilder, Postgres};
-#[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{Project, User, CreatableUser, CreatableProject, CreatableExpense, UserAmount, NewPayment, ExpenseType, Expense, Payment};
-
+use shared::{
+    CreatableExpense, CreatableProject, CreatableUser, Expense, ExpenseType, NewPayment, Payment,
+    Project, User, UserAmount,
+};
+#[cfg(feature = "server")]
+use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 // --- PROJECTS ---
 
@@ -41,9 +43,14 @@ pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
 pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let project_id: Uuid = sqlx::query_scalar!("INSERT INTO projects(name, description, currency) VALUES ($1, $2, $3) RETURNING id", project.name, project.description, "EUR")
-        .fetch_one(&pool)
-        .await?;
+    let project_id: Uuid = sqlx::query_scalar!(
+        "INSERT INTO projects(name, description, currency) VALUES ($1, $2, $3) RETURNING id",
+        project.name,
+        project.description,
+        "EUR"
+    )
+    .fetch_one(&pool)
+    .await?;
 
     Ok(project_id)
 }
@@ -52,9 +59,10 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
 pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: Vec<Project> = sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
-        .fetch_all(&pool)
-        .await?;
+    let projects: Vec<Project> =
+        sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
+            .fetch_all(&pool)
+            .await?;
 
     Ok(projects)
 }
@@ -66,9 +74,8 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     // TODO Passer directement la struct en 1er argument
-    let users: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
-        .fetch_all(&pool)
-        .await?;
+    let users: Vec<User> =
+        sqlx::query_as("SELECT id, name, balance, created_at FROM users").fetch_all(&pool).await?;
 
     Ok(users)
 }
@@ -77,13 +84,18 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
 pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let user_id: i32 = sqlx::query_scalar!("INSERT INTO users(name) VALUES ($1) RETURNING id", user.name)
-        .fetch_one(&pool)
-        .await?;
+    let user_id: i32 =
+        sqlx::query_scalar!("INSERT INTO users(name) VALUES ($1) RETURNING id", user.name)
+            .fetch_one(&pool)
+            .await?;
 
-    sqlx::query!("INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)", user_id, user.project_id)
-        .execute(&pool)
-        .await?;
+    sqlx::query!(
+        "INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)",
+        user_id,
+        user.project_id
+    )
+    .execute(&pool)
+    .await?;
 
     Ok(user_id)
 }
@@ -92,18 +104,20 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
 pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let user_ids: Vec<i32> = sqlx::query!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
-        .fetch_all(&pool)
-        .await?
-        .into_iter()
-        .map(|row| row.user_id)
-        .collect();
+    let user_ids: Vec<i32> =
+        sqlx::query!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
+            .fetch_all(&pool)
+            .await?
+            .into_iter()
+            .map(|row| row.user_id)
+            .collect();
 
     if user_ids.is_empty() {
         return Ok(Vec::new());
     }
 
-    let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("SELECT id, name, balance, created_at FROM users WHERE id IN (");
+    let mut query_builder: QueryBuilder<Postgres> =
+        QueryBuilder::new("SELECT id, name, balance, created_at FROM users WHERE id IN (");
 
     let mut separated = query_builder.separated(", ");
     for id in user_ids {
@@ -112,9 +126,7 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
     separated.push_unseparated(")");
 
     let query = query_builder.build_query_as::<User>();
-    let users: Vec<User> = query
-        .fetch_all(&pool)
-        .await?;
+    let users: Vec<User> = query.fetch_all(&pool).await?;
 
     // TODO
     // const QUERY: &str = "SELECT u.id, u.name, u.balance, u.created_at
@@ -136,7 +148,8 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
 pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let created_expense_id: i32 = sqlx::query!(r"
+    let created_expense_id: i32 = sqlx::query!(
+        r"
             INSERT INTO expenses
             (
                 name,
@@ -153,21 +166,22 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
                 $5,
                 $6
             ) RETURNING id",
-            expense.clone().name,
-            expense.clone().amount,
-            expense.clone().expense_type as ExpenseType,
-            expense.clone().project_id,
-            expense.clone().author_id,
-            expense.clone().description
-        )
-        .fetch_one(&pool)
-        .await?
-        .id;
+        expense.clone().name,
+        expense.clone().amount,
+        expense.clone().expense_type as ExpenseType,
+        expense.clone().project_id,
+        expense.clone().author_id,
+        expense.clone().description
+    )
+    .fetch_one(&pool)
+    .await?
+    .id;
 
     let payers = Some(expense.clone().payers);
     let debtors = Some(expense.clone().debtors);
 
-    let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(payers, debtors, created_expense_id);
+    let creatable_payments: Vec<NewPayment> =
+        forge_creatable_payments_from_expense(payers, debtors, created_expense_id);
 
     let expense_ids: Vec<i32> = creatable_payments.iter().map(|p| p.expense_id).collect();
     let user_ids: Vec<i32> = creatable_payments.iter().map(|p| p.user_id).collect();
@@ -188,7 +202,8 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
             $4::FLOAT8[]
         ) RETURNING id";
 
-    sqlx::query!(r"
+    sqlx::query!(
+        r"
         INSERT INTO payments
          (
             expense_id,
@@ -239,7 +254,11 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
     Ok(expense)
 }
 
-fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtors: Option<Vec<UserAmount>>, created_expense_id: i32) -> Vec<NewPayment> {
+fn forge_creatable_payments_from_expense(
+    payers: Option<Vec<UserAmount>>,
+    debtors: Option<Vec<UserAmount>>,
+    created_expense_id: i32,
+) -> Vec<NewPayment> {
     let mut debtors_result: Vec<UserAmount> = vec![];
     if let Some(debtors_unwrapped) = debtors {
         debtors_result = debtors_unwrapped;
@@ -250,23 +269,27 @@ fn forge_creatable_payments_from_expense(payers: Option<Vec<UserAmount>>, debtor
         payers_result = payers_unwrapped;
     }
 
-    let creatable_debtors: Vec<NewPayment> = debtors_result.into_iter()
+    let creatable_debtors: Vec<NewPayment> = debtors_result
+        .into_iter()
         .filter(|d| d.amount != 0.0)
         .map(|d| NewPayment {
             amount: d.amount,
             expense_id: created_expense_id,
             user_id: d.user_id,
-            is_debt: true
-        }).collect();
+            is_debt: true,
+        })
+        .collect();
 
-    let creatable_payers: Vec<NewPayment> = payers_result.into_iter()
+    let creatable_payers: Vec<NewPayment> = payers_result
+        .into_iter()
         .filter(|d| d.amount != 0.0)
         .map(|p| NewPayment {
             amount: p.amount,
             expense_id: created_expense_id,
             user_id: p.user_id,
-            is_debt: false
-        }).collect();
+            is_debt: false,
+        })
+        .collect();
 
     [creatable_debtors, creatable_payers].concat()
 }
@@ -282,9 +305,10 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
         "SELECT id, expense_id, user_id, is_debt, amount, created_at \
         FROM payments \
         WHERE expense_id = $1",
-        expense_id)
-        .fetch_all(&pool)
-        .await?;
+        expense_id
+    )
+    .fetch_all(&pool)
+    .await?;
 
     Ok(payments)
 }

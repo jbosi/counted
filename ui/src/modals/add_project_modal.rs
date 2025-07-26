@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AddProjectModalProps {
-    modal_open: Signal<bool>
+    modal_open: Signal<bool>,
 }
 #[component]
 pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {

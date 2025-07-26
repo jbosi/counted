@@ -1,12 +1,12 @@
-use dioxus::prelude::*;
-use uuid::Uuid;
 use api::add_user;
-use shared::{CreatableUser};
+use dioxus::prelude::*;
+use shared::CreatableUser;
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AddUserModalProps {
     id: Uuid,
-    is_user_modal_open: Signal<bool>
+    is_user_modal_open: Signal<bool>,
 }
 #[component]
 pub fn AddUserModal(mut props: AddUserModalProps) -> Element {

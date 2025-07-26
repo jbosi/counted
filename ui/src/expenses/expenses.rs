@@ -21,22 +21,21 @@ pub fn Expenses(props: ExpensesProps) -> Element {
     use_resource(move || async move {
         match get_users_by_project_id(props.project_id).await {
             Ok(u) => users.set(u),
-            Err(_) => ()
+            Err(_) => (),
         }
     });
 
     use_resource(move || async move {
         match get_expenses_by_project_id(props.project_id).await {
             Ok(e) => expenses.set(e),
-            Err(_) => ()
+            Err(_) => (),
         }
     });
 
-    let project_resource = use_resource(move || async move {
-        get_project(props.project_id).await
-    });
+    let project_resource = use_resource(move || async move { get_project(props.project_id).await });
 
-    let global_total: f64 = expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0);
+    let global_total: f64 =
+        expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0);
 
     rsx! {
         div { class: "container bg-base-100 p-4 max-w-md rounded-xl flex flex-col",
@@ -87,4 +86,3 @@ fn DateSeparator(props: DateSeparatorProps) -> Element {
         div { class: "divider divider-start text-primary font-bold text-sm my-4", "{props.label}" }
     }
 }
-

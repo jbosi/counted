@@ -28,12 +28,14 @@ pub fn Project(props: ProjectProps) -> Element {
                     more_users.set((u.len() - 3).try_into().unwrap());
                 }
                 return users.set(u);
-            },
-            Err(_) => ()
+            }
+            Err(_) => (),
         }
     });
 
-    let progress_percentage: u32 = ((props.current_reimbursements as f32 / props.total_reimbursements as f32) * 100.0).round() as u32;
+    let progress_percentage: u32 =
+        ((props.current_reimbursements as f32 / props.total_reimbursements as f32) * 100.0).round()
+            as u32;
 
     let description = match &props.description {
         Some(desc) => desc.clone(),

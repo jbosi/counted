@@ -44,38 +44,31 @@ pub fn Project(props: ProjectProps) -> Element {
         div {
             class: "card bg-base-100 w-96 shadow-sm",
             onclick: move |_| {
-                navigator().push(Route::Expenses { project_id: props.id });
+                navigator()
+                    .push(Route::Expenses {
+                        project_id: props.id,
+                    });
             },
-            div {
-                class: "card-body",
+            div { class: "card-body",
                 div {
-                    h2 {
-                        class: "card-title",
-                        "{props.title}"
-                    }
+                    h2 { class: "card-title", "{props.title}" }
                     p { "{description}" }
                 }
-                div {
-                    class: "flex justify-between",
+                div { class: "flex justify-between",
                     span { "Remboursements" }
                     span { "{props.current_reimbursements}/{props.total_reimbursements}" }
                 }
                 progress {
                     class: "progress",
                     value: "{progress_percentage}",
-                    max: 100
+                    max: 100,
                 }
-                div {
-                    class: "card-actions justify-between",
-                    div {
-                        class: "flex gap-2 items-center",
-                        div {
-                            class: "status status-success",
-                        }
-                        span { "En cours" },
+                div { class: "card-actions justify-between",
+                    div { class: "flex gap-2 items-center",
+                        div { class: "status status-success" }
+                        span { "En cours" }
                     }
-                    div {
-                        class: "",
+                    div { class: "",
                         for user in users() {
                             Avatar { initials: user.name.get(0..2).unwrap_or("") }
                         }

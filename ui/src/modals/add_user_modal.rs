@@ -17,49 +17,38 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
             id: "add_user_modal",
             class: "modal",
             class: if (props.is_user_modal_open)() { "modal-open" } else { "" },
-            div {
-                class: "modal-box",
-                h3 {
-                    class: "text-lg font-bold",
-                    "Ajouter un utilisateur"
-                }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Nom de l'utilisateur"
-                    }
+            div { class: "modal-box",
+                h3 { class: "text-lg font-bold", "Ajouter un utilisateur" }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Nom de l'utilisateur" }
                     input {
                         name: "user_name",
-                        type: "text",
+                        r#type: "text",
                         class: "input",
-                        oninput: move |event| user_name.set(event.value())
-                    },
-                }
-                form {
-                    method: "dialog",
-                     onclick: move |_| props.is_user_modal_open.set(false),
-                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button {
-                        "X"
+                        oninput: move |event| user_name.set(event.value()),
                     }
                 }
                 form {
                     method: "dialog",
-                    class: "btn",
+                    onclick: move |_| props.is_user_modal_open.set(false),
+                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
+                    button { "X" }
+                }
+                form { method: "dialog", class: "btn",
                     button {
                         r#type: "submit",
                         onclick: move |_| {
-                        spawn(async move {
-                            let creatable_user: CreatableUser = CreatableUser {
-                                name: user_name(),
-                                project_id: props.id,
-                            };
-
-                            add_user(creatable_user).await.expect("Failed to add new user to this project");
-                            props.is_user_modal_open.set(false)
-                        });
-                    },
+                            spawn(async move {
+                                let creatable_user: CreatableUser = CreatableUser {
+                                    name: user_name(),
+                                    project_id: props.id,
+                                };
+                                add_user(creatable_user)
+                                    .await
+                                    .expect("Failed to add new user to this project");
+                                props.is_user_modal_open.set(false)
+                            });
+                        },
                         "Enregistrer"
                     }
                 }
@@ -68,9 +57,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_user_modal_open.set(false),
-                button {
-                    "close"
-                }
+                button { "close" }
             }
         }
     }

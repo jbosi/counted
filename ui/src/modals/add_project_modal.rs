@@ -17,49 +17,33 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
             id: "add_project_modal",
             class: "modal",
             class: if (props.modal_open)() { "modal-open" } else { "" },
-            div {
-                class: "modal-box",
-                h3 {
-                    class: "text-lg font-bold",
-                    "Ajouter un projet"
-                }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Nom du projet"
-                    }
+            div { class: "modal-box",
+                h3 { class: "text-lg font-bold", "Ajouter un projet" }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Nom du projet" }
                     input {
                         name: "project_name",
-                        type: "text",
+                        r#type: "text",
                         class: "input",
-                        oninput: move |event| project_name.set(event.value())
-                    },
-                },
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Description du projet"
+                        oninput: move |event| project_name.set(event.value()),
                     }
+                }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Description du projet" }
                     input {
                         name: "project_description",
-                        type: "text",
+                        r#type: "text",
                         class: "input",
-                        oninput: move |event| project_description.set(Some(event.value()))
-                    },
-                }
-                form {
-                    method: "dialog",
-                     onclick: move |_| props.modal_open.set(false),
-                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button {
-                        "X"
+                        oninput: move |event| project_description.set(Some(event.value())),
                     }
                 }
                 form {
                     method: "dialog",
-                    class: "btn",
+                    onclick: move |_| props.modal_open.set(false),
+                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
+                    button { "X" }
+                }
+                form { method: "dialog", class: "btn",
                     button {
                         r#type: "submit",
                         onclick: move |_| {
@@ -68,7 +52,6 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                                     name: project_name(),
                                     description: project_description(),
                                 };
-
                                 add_project(creatable_project).await.expect("Failed to add new project");
                                 props.modal_open.set(false)
                             });
@@ -81,9 +64,7 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.modal_open.set(false),
-                button {
-                    "close"
-                }
+                button { "close" }
             }
         }
     }

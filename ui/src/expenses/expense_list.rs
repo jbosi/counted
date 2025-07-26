@@ -11,10 +11,7 @@ pub fn ExpenseList(props: ExpenseListProps) -> Element {
     rsx! {
         div {
             for expense in props.expenses {
-                ExpenseItem {
-                    key: "{expense.id}",
-                    expense: expense.clone(),
-                }
+                ExpenseItem { key: "{expense.id}", expense: expense.clone() }
             }
         }
     }

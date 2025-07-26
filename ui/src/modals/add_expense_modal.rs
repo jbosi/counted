@@ -83,45 +83,29 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
             id: "add_user_modal",
             class: "modal",
             class: if (props.is_expense_modal_open)() { "modal-open" } else { "" },
-            div {
-                class: "modal-box",
-                h3 {
-                    class: "text-lg font-bold",
-                    "Ajouter un dépense"
-                }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Nom de la dépense"
-                    }
+            div { class: "modal-box",
+                h3 { class: "text-lg font-bold", "Ajouter un dépense" }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Nom de la dépense" }
                     input {
                         name: "expense_name",
-                        type: "text",
+                        r#type: "text",
                         class: "input",
-                        oninput: move |event| expense_name.set(event.value())
-                    },
-                },
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Description de la dépense"
+                        oninput: move |event| expense_name.set(event.value()),
                     }
+                }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Description de la dépense" }
                     input {
                         name: "expense_description",
-                        type: "text",
+                        r#type: "text",
                         class: "input",
-                        oninput: move |event| expense_description.set(Some(event.value()))
-                    },
-                }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Qui a payé ?"
+                        oninput: move |event| expense_description.set(Some(event.value())),
                     }
-                    for (index, item) in expense_payers().iter().enumerate() {
+                }
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Qui a payé ?" }
+                    for (index , item) in expense_payers().iter().enumerate() {
                         CheckboxFormItem {
                             index,
                             item: item.clone(),
@@ -130,13 +114,9 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                         }
                     }
                 }
-                fieldset {
-                    class:"fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Qui a doit rembourser ?"
-                    }
-                    for (index, item) in expense_debtors().iter().enumerate() {
+                fieldset { class: "fieldset",
+                    legend { class: "fieldset-legend", "Qui a doit rembourser ?" }
+                    for (index , item) in expense_debtors().iter().enumerate() {
                         CheckboxFormItem {
                             index,
                             item: item.clone(),
@@ -147,15 +127,11 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                 }
                 form {
                     method: "dialog",
-                     onclick: move |_| props.is_expense_modal_open.set(false),
+                    onclick: move |_| props.is_expense_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button {
-                        "X"
-                    }
+                    button { "X" }
                 }
-                form {
-                    method: "dialog",
-                    class: "btn",
+                form { method: "dialog", class: "btn",
                     button {
                         r#type: "submit",
                         onclick: move |_| {
@@ -164,20 +140,29 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                 let creatable_expense: CreatableExpense = CreatableExpense {
                                     name: expense_name(),
                                     description: expense_description(),
-                                    amount: expense_payers().iter().map(|payer| payer.amount).reduce(|acc, expense| acc + expense).expect("ERROR while trying to compute expense amount sum"),
+                                    amount: expense_payers()
+                                        .iter()
+                                        .map(|payer| payer.amount)
+                                        .reduce(|acc, expense| acc + expense)
+                                        .expect("ERROR while trying to compute expense amount sum"),
                                     expense_type: expense_type(),
                                     project_id: props.project_id,
-                                    debtors: expense_debtors().iter().map(|debtor| UserAmount {
-                                        amount: debtor.amount,
-                                        user_id: debtor.user_id
-                                    }).collect(),
-                                    payers: expense_payers().iter().map(|payer| UserAmount {
-                                        amount: payer.amount,
-                                        user_id: payer.user_id
-                                    }).collect(),
-                                    author_id: users[0].id, // TODO when authentication or partial authentication works
+                                    debtors: expense_debtors()
+                                        .iter()
+                                        .map(|debtor| UserAmount {
+                                            amount: debtor.amount,
+                                            user_id: debtor.user_id,
+                                        })
+                                        .collect(),
+                                    payers: expense_payers()
+                                        .iter()
+                                        .map(|payer| UserAmount {
+                                            amount: payer.amount,
+                                            user_id: payer.user_id,
+                                        })
+                                        .collect(),
+                                    author_id: users[0].id,
                                 };
-
                                 add_expense(creatable_expense).await.expect("Failed to add new expense");
                                 props.is_expense_modal_open.set(false)
                             });
@@ -190,9 +175,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_expense_modal_open.set(false),
-                button {
-                    "close"
-                }
+                button { "close" }
             }
         }
     }
@@ -206,8 +189,7 @@ fn CheckboxFormItem(
     on_amount_change: EventHandler<(usize, f64)>,
 ) -> Element {
     rsx! {
-        div {
-            class: "flex items-center space-x-3 p-3 border rounded-lg",
+        div { class: "flex items-center space-x-3 p-3 border rounded-lg",
 
             // Checkbox
             input {
@@ -216,30 +198,27 @@ fn CheckboxFormItem(
                 checked: item.is_checked,
                 onchange: move |evt| {
                     on_checkbox_change.call((index, evt.checked()));
-                }
+                },
             }
 
             // Label
-            label {
-                class: "text-sm font-medium text-base-content",
-                "{item.label}"
-            }
+            label { class: "text-sm font-medium text-base-content", "{item.label}" }
 
             // Input number
             input {
                 r#type: "number",
                 class: format!(
                     "flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {}",
-                    if item.is_checked { "" } else { "bg-gray-500 cursor-not-allowed" }
+                    if item.is_checked { "" } else { "bg-gray-500 cursor-not-allowed" },
                 ),
                 disabled: !item.is_checked,
                 value: item.amount,
                 placeholder: if item.is_checked { "Entrez votre texte..." } else { "Cochez d'abord la case" },
                 oninput: move |evt| {
                     if item.is_checked {
-                        on_amount_change.call((index, evt.parsed().unwrap())); // TODO handle error
+                        on_amount_change.call((index, evt.parsed().unwrap()));
                     }
-                }
+                },
             }
         }
     }

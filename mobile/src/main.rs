@@ -39,14 +39,8 @@ fn App() -> Element {
 fn MobileNavbar() -> Element {
     rsx! {
         Navbar {
-            Link {
-                to: Route::Projects {},
-                "Projects"
-            }
-            Link {
-                to: Route::Blog { id: 1 },
-                "Blog"
-            }
+            Link { to: Route::Projects {}, "Projects" }
+            Link { to: Route::Blog { id: 1 }, "Blog" }
         }
 
         Outlet::<Route> {}

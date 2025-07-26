@@ -19,13 +19,9 @@ pub fn Projects() -> Element {
     });
 
     rsx! {
-        h1 {
-            class: "text-4xl text-gray-700 font-light mb-10",
-            "Bonjour Jonathan"
-        }
+        h1 { class: "text-4xl text-gray-700 font-light mb-10", "Bonjour Jonathan" }
 
-        div {
-            class: "space-y-4 min-w-md",
+        div { class: "space-y-4 min-w-md",
             for project in projects() {
                 Project {
                     id: project.id,

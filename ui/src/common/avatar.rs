@@ -10,14 +10,9 @@ pub fn Avatar(props: AvatarProps) -> Element {
     let size = props.size.unwrap_or_else(|| 8);
 
     rsx! {
-        div {
-            class: "avatar avatar-placeholder",
-            div {
-                class: "bg-neutral base-neutral-content w-{size} rounded-full",
-                span {
-                    class: "text-xs",
-                    "{props.initials}"
-                }
+        div { class: "avatar avatar-placeholder",
+            div { class: "bg-neutral base-neutral-content w-{size} rounded-full",
+                span { class: "text-xs", "{props.initials}" }
             }
         }
     }

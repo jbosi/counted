@@ -24,10 +24,7 @@ pub enum Route {
 pub fn WebNavbar() -> Element {
     rsx! {
         Navbar {
-            Link {
-                to: Route::Projects {},
-                "Projects"
-            }
+            Link { to: Route::Projects {}, "Projects" }
         }
 
         Outlet::<Route> {}

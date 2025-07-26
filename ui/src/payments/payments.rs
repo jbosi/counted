@@ -64,59 +64,47 @@ pub fn Payments(props: PaymentsProps) -> Element {
         .unwrap_or(0.0);
 
     rsx! {
-        section {
-            class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",
+        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",
             if let Some(expense) = &*expense_resource.read() {
                 match expense {
                     Ok(e) => rsx! {
                         // AppHeader { title: e.name.clone()  },
-                        div {
-                            class: "flex flex-row",
+                        div { class: "flex flex-row",
                             div {
                                 class: "navbar-start flex-1",
                                 onclick: move |_| {
-                                    navigator().push(Route::Expenses { project_id: props.project_id });
+                                    navigator()
+                                        .push(Route::Expenses {
+                                            project_id: props.project_id,
+                                        });
                                 },
-                                BackButtonArrow {},
+                                BackButtonArrow {}
                             }
-                            h1 {
-                                class: "text-xl font-bold self-center flex-grow",
-                                "{e.name}"
-                            }
+                            h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
                         }
-                        span {
-                            class: "self-center",
-                            "Dépense de {total_payment} €"
-                        }
+                        span { class: "self-center", "Dépense de {total_payment} €" }
                         match e.clone().description {
                             Some(description) => rsx! {
-                                span {
-                                    "{description}"
-                                }
+                                span { "{description}" }
                             },
-                            None => rsx! {""}
+                            None => rsx! { "" },
                         }
                     },
-                    Err(err) => rsx!{ "{err}" }
+                    Err(err) => rsx! {
+                    "{err}"
+                    },
                 }
             }
         }
-        section {
-            class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-b-xl",
-            div {
-                    class: "flex",
-                    span {
-                        "Répartition du payment"
-                    }
-                }
-                PaymentList { payments: payers, is_debt: false }
-                div {
-                    class: "flex ",
-                    span {
-                        "Répartition de la dette"
-                    }
-                }
-                PaymentList { payments: debtors, is_debt: true }
+        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-b-xl",
+            div { class: "flex",
+                span { "Répartition du payment" }
+            }
+            PaymentList { payments: payers, is_debt: false }
+            div { class: "flex ",
+                span { "Répartition de la dette" }
+            }
+            PaymentList { payments: debtors, is_debt: true }
         }
     }
 }
@@ -130,32 +118,28 @@ pub struct PaymentListProps {
 #[component]
 pub fn PaymentList(props: PaymentListProps) -> Element {
     rsx! {
-        div {
-            class: "container p-4 max-w-md rounded-xl flex flex-col",
+        div { class: "container p-4 max-w-md rounded-xl flex flex-col",
             for payment in props.payments {
-                div {
-                    class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
+                div { class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
                     // Category
                     // Avatar { initials: "💰", size: 10 }
 
                     // Name
-                    div {
-                        class: "flex-1 min-w-0 flex-row flex items-center gap-3",
-                        Avatar { initials: payment.user.name.get(0..2).unwrap_or("") },
-                        p {
-                            class: "font-semibold text-base-content truncate",
+                    div { class: "flex-1 min-w-0 flex-row flex items-center gap-3",
+                        Avatar { initials: payment.user.name.get(0..2).unwrap_or("") }
+                        p { class: "font-semibold text-base-content truncate",
                             "{payment.user.name}"
-                            if props.is_debt { " doit" } else { " a payé" }
+                            if props.is_debt {
+                                " doit"
+                            } else {
+                                " a payé"
+                            }
                         }
                     }
 
                     // Amount
-                    div {
-                        class: "text-right",
-                        p {
-                            class: "font-bold text-lg text-base-content",
-                            "{payment.amount} €"
-                        }
+                    div { class: "text-right",
+                        p { class: "font-bold text-lg text-base-content", "{payment.amount} €" }
                     }
                 }
             }

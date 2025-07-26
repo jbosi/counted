@@ -2,8 +2,7 @@ use dioxus::prelude::*;
 
 pub fn BackButtonArrow() -> Element {
     rsx! {
-        button {
-            class: "btn btn-circle",
+        button { class: "btn btn-circle",
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
                 width: "24",
@@ -15,7 +14,7 @@ pub fn BackButtonArrow() -> Element {
                 stroke_linecap: "round",
                 stroke_linejoin: "round",
                 polyline { points: "15 18 9 12 15 6" }
-            },
+            }
         }
     }
 }

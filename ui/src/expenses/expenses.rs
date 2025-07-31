@@ -1,12 +1,12 @@
-use crate::common::{AppHeader, Avatar, BackButtonArrow};
+use crate::common::AppHeader;
 use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
-use crate::modals::{AddExpenseModal, AddUserModal};
+use crate::modals::AddExpenseModal;
 use crate::route::Route;
 use api::expenses::get_expenses_by_project_id;
 use api::projects::get_project;
-use api::users::{add_user, get_users_by_project_id};
+use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
-use shared::{CreatableUser, Expense, User};
+use shared::{Expense, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -20,14 +20,14 @@ pub fn Expenses(props: ExpensesProps) -> Element {
     let mut is_expense_modal_open = use_signal(|| false);
     let mut expenses: Signal<Vec<Expense>> = use_signal(|| vec![]);
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         match get_users_by_project_id(props.project_id).await {
             Ok(u) => users.set(u),
             Err(_) => (),
         }
     });
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         match get_expenses_by_project_id(props.project_id).await {
             Ok(e) => expenses.set(e),
             Err(_) => (),
@@ -62,7 +62,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 ExpenseList { expenses: expenses() }
                         // DateSeparator { label: "Yesterday" }
             }
-            if (users().len() > 0) {
+            if users().len() > 0 {
                 button {
                     type: "button",
                     class: "btn btn-circle btn-outline btn-lg bg-base-100 self-center mt-6",
@@ -84,6 +84,7 @@ struct DateSeparatorProps {
     label: String,
 }
 
+#[component]
 fn DateSeparator(props: DateSeparatorProps) -> Element {
     rsx! {
         div { class: "divider divider-start text-primary font-bold text-sm my-4", "{props.label}" }

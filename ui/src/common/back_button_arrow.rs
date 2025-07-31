@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+#[component]
 pub fn BackButtonArrow() -> Element {
     rsx! {
         button { type: "button", class: "btn btn-circle",

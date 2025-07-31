@@ -1,12 +1,13 @@
 use crate::expenses::ExpenseItem;
 use dioxus::prelude::*;
-use shared::{Expense, User};
+use shared::Expense;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpenseListProps {
     expenses: Vec<Expense>,
 }
 
+#[component]
 pub fn ExpenseList(props: ExpenseListProps) -> Element {
     rsx! {
         div {

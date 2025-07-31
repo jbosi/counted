@@ -6,6 +6,7 @@ pub struct SummaryCardProps {
     global_total: f64,
 }
 
+#[component]
 pub fn SummaryCard(props: SummaryCardProps) -> Element {
     let format_currency = |val: f64| format!("{:.2}€", val).replace('.', ",");
 

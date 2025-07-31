@@ -6,6 +6,7 @@ pub struct AvatarProps {
     size: Option<u8>,
 }
 
+#[component]
 pub fn Avatar(props: AvatarProps) -> Element {
     let size = props.size.unwrap_or_else(|| 8);
 

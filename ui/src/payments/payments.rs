@@ -1,10 +1,10 @@
 use crate::common::{Avatar, BackButtonArrow};
 use crate::route::Route;
-use api::expenses::{get_expense_by_id, get_expenses_by_project_id};
+use api::expenses::get_expense_by_id;
 use api::payments::get_payments_by_expense_id;
 use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
-use shared::{Expense, Payment, PaymentViewModel, User};
+use shared::{PaymentViewModel, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -21,38 +21,32 @@ pub fn Payments(props: PaymentsProps) -> Element {
     let expense_resource =
         use_resource(move || async move { get_expense_by_id(props.expense_id).await });
 
-    use_resource({
+    let _ = use_resource({
         move || async move {
             match &*users_resource.value().read_unchecked() {
-                Some(Ok(users)) => {
-                    let user_ids: Vec<i32> = users.iter().map(|u| u.id).collect();
-                    match get_payments_by_expense_id(props.expense_id).await {
-                        Ok(response) => {
-                            let result = response
-                                .into_iter()
-                                .map(|p| {
-                                    let user: User = users
-                                        .clone()
-                                        .into_iter()
-                                        .find(|u| u.id == p.user_id)
-                                        .unwrap();
+                Some(Ok(users)) => match get_payments_by_expense_id(props.expense_id).await {
+                    Ok(response) => {
+                        let result = response
+                            .into_iter()
+                            .map(|p| {
+                                let user: User =
+                                    users.clone().into_iter().find(|u| u.id == p.user_id).unwrap();
 
-                                    PaymentViewModel {
-                                        id: p.id,
-                                        created_at: p.created_at,
-                                        is_debt: p.is_debt,
-                                        expense_id: p.expense_id,
-                                        amount: p.amount,
-                                        user,
-                                    }
-                                })
-                                .collect();
-                            payments.set(result);
-                        }
-                        Err(_) => (),
+                                PaymentViewModel {
+                                    id: p.id,
+                                    created_at: p.created_at,
+                                    is_debt: p.is_debt,
+                                    expense_id: p.expense_id,
+                                    amount: p.amount,
+                                    user,
+                                }
+                            })
+                            .collect();
+                        payments.set(result);
                     }
-                }
-                Some(Err(e)) => (),
+                    Err(_) => (),
+                },
+                Some(Err(_e)) => (),
                 _ => {}
             }
         }

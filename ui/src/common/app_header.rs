@@ -8,6 +8,7 @@ pub struct AppHeaderProps {
     back_button_route: Route,
 }
 
+#[component]
 pub fn AppHeader(props: AppHeaderProps) -> Element {
     rsx! {
         div { class: "navbar px-0",

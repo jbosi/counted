@@ -1,18 +1,15 @@
-use crate::common::Avatar;
 use crate::modals::AddProjectModal;
 use crate::projects::Project;
 use api::projects::get_projects;
-use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
-use shared::{Project, User};
-use uuid::Uuid;
+use shared::Project;
 
 #[component]
 pub fn Projects() -> Element {
     let mut projects: Signal<Vec<Project>> = use_signal(|| vec![]);
     let mut modal_open = use_signal(|| false);
 
-    use_resource(move || async move {
+    let _ = use_resource(move || async move {
         match get_projects().await {
             Ok(items) => projects.set(items),
             Err(_) => (),

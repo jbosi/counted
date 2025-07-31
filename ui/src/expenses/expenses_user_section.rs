@@ -11,6 +11,7 @@ pub struct ExpensesUserSectionProps {
     users: Vec<User>,
 }
 
+#[component]
 pub fn ExpensesUserSection(props: ExpensesUserSectionProps) -> Element {
     let mut is_user_modal_open = use_signal(|| false);
     rsx! {

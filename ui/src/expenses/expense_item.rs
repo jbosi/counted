@@ -1,14 +1,14 @@
 use crate::common::Avatar;
 use crate::route::Route;
 use dioxus::prelude::*;
-use shared::{Expense, User};
-use uuid::Uuid;
+use shared::Expense;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpenseItemProps {
     expense: Expense,
 }
 
+#[component]
 pub fn ExpenseItem(props: ExpenseItemProps) -> Element {
     let expense: &Expense = &props.expense;
     let formatted_amount = format!("{:.2}€", expense.amount).replace('.', ",");

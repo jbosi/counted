@@ -12,7 +12,7 @@ use axum::{
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{CreatableProject, Project};
+use shared::{CreatableProject, Project, UpdatableProject};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -24,6 +24,18 @@ pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
         .bind(project_id)
         .fetch_one(&pool)
         .await?;
+
+    Ok(projects)
+}
+
+#[server()]
+pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let projects: Vec<Project> =
+        sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
+            .fetch_all(&pool)
+            .await?;
 
     Ok(projects)
 }
@@ -45,13 +57,45 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
 }
 
 #[server()]
-pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
+pub async fn update_project_by_id(
+    updatable_project: UpdatableProject,
+) -> Result<Project, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: Vec<Project> =
-        sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
-            .fetch_all(&pool)
-            .await?;
+    let mut new_project =
+        get_project(updatable_project.id).await.expect("Unable to find requested project_id");
 
-    Ok(projects)
+    if updatable_project.name.is_some() {
+        new_project.name = updatable_project.name.unwrap();
+    }
+
+    if updatable_project.description.is_some() {
+        new_project.description = updatable_project.description;
+    }
+
+    if updatable_project.currency.is_some() {
+        new_project.currency = updatable_project.currency.unwrap();
+    }
+
+    let update_project: Project = sqlx::query_as!(
+        Project,
+        "UPDATE projects SET name = $1, description = $2, currency = $3 WHERE id = $4 RETURNING id, name, created_at, currency, description",
+        new_project.name,
+        new_project.description,
+        new_project.currency,
+        new_project.id
+    )
+    .fetch_one(&pool)
+    .await?;
+
+    Ok(update_project)
+}
+
+#[server()]
+pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool).await?;
+
+    Ok(())
 }

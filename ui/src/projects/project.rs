@@ -1,9 +1,11 @@
 use crate::common::Avatar;
+use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
+use api::projects::delete_project_by_id;
 use api::users::get_users_by_project_id;
 use dioxus::hooks::{use_resource, use_signal};
 use dioxus::prelude::*;
-use shared::User;
+use shared::{Project, UpdatableProject, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -21,6 +23,7 @@ pub struct ProjectProps {
 pub fn Project(props: ProjectProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
     let mut more_users: Signal<i32> = use_signal(|| 0);
+    let mut update_project_modal_open: Signal<bool> = use_signal(|| false);
 
     let _ = use_resource(move || async move {
         match get_users_by_project_id(props.id).await {
@@ -72,8 +75,22 @@ pub fn Project(props: ProjectProps) -> Element {
                                 id: "popover-project-dot",
                                 style: "position-anchor:--anchor-project-dot",
                                 li {
-                                    a { "test" }
-                                    a { "test 2" }
+                                    button {
+                                        class: "btn btn-ghost",
+                                        onclick: move |_| {
+                                            update_project_modal_open.set(true)
+                                        },
+                                        "Editer"
+                                    }
+                                    button {
+                                        class: "btn btn-ghost",
+                                        onclick: move |_| {
+                                            spawn(async move {
+                                                delete_project_by_id(props.id).await.expect("Failed to delete project");
+                                            });
+                                        },
+                                        "Supprimer"
+                                    }
                                 }
                             }
                         }
@@ -106,6 +123,10 @@ pub fn Project(props: ProjectProps) -> Element {
                     }
                 }
             }
+        }
+        UpdateProjectModal {
+            modal_open: update_project_modal_open,
+            current_project: UpdatableProject { id: props.id, currency: Some("EUR".to_string()), description: props.description, name: Some(props.title) }
         }
     }
 }

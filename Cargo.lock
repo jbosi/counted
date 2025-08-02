@@ -1029,8 +1029,19 @@ dependencies = [
 name = "desktop"
 version = "0.1.0"
 dependencies = [
+ "api",
+ "axum",
+ "chrono",
  "dioxus",
+ "dioxus-logger",
+ "dotenvy",
+ "serde",
+ "serde_json",
+ "shared",
+ "sqlx",
+ "tracing",
  "ui",
+ "uuid",
 ]
 
 [[package]]

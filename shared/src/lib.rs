@@ -1,3 +1,5 @@
+pub mod api;
+
 #[cfg(feature = "server")]
 use sqlx::FromRow;
 use std::fmt;

@@ -1,10 +1,13 @@
-use crate::common::Avatar;
+use crate::common::{Avatar, Toast};
 use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
 use api::projects::delete_project_by_id;
 use api::users::get_users_by_project_id;
+use dioxus::document::{document, Eval};
 use dioxus::hooks::{use_resource, use_signal};
+use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
+use shared::api::{ApiError, ApiState};
 use shared::{Project, UpdatableProject, User};
 use uuid::Uuid;
 
@@ -24,6 +27,7 @@ pub fn Project(props: ProjectProps) -> Element {
     let mut users: Signal<Vec<User>> = use_signal(|| vec![]);
     let mut more_users: Signal<i32> = use_signal(|| 0);
     let mut update_project_modal_open: Signal<bool> = use_signal(|| false);
+    let mut api_project_delete_state = use_signal(|| ApiState::<()>::Loading);
 
     let _ = use_resource(move || async move {
         match get_users_by_project_id(props.id).await {
@@ -77,16 +81,25 @@ pub fn Project(props: ProjectProps) -> Element {
                                 li {
                                     button {
                                         class: "btn btn-ghost",
-                                        onclick: move |_| {
-                                            update_project_modal_open.set(true)
+                                        onclick: move |event| async move {
+                                            close_dropdown().await.unwrap_or("".into());
+
+                                            update_project_modal_open.set(true);
                                         },
                                         "Editer"
                                     }
+                                }
+                                li {
                                     button {
                                         class: "btn btn-ghost",
                                         onclick: move |_| {
                                             spawn(async move {
-                                                delete_project_by_id(props.id).await.expect("Failed to delete project");
+                                                close_dropdown().await.unwrap_or("".into());
+
+                                                match delete_project_by_id(props.id).await {
+                                                    Ok(()) => api_project_delete_state.set(ApiState::Success(())),
+                                                    Err(error) => api_project_delete_state.set(ApiState::Error(ApiError(error.to_string())))
+                                                };
                                             });
                                         },
                                         "Supprimer"
@@ -122,6 +135,14 @@ pub fn Project(props: ProjectProps) -> Element {
                         }
                     }
                 }
+                if let ApiState::Error(error) = api_project_delete_state() {
+                    Toast {
+                        error: error,
+                        onclick: move |event| {
+                            api_project_delete_state.set(ApiState::None)
+                        }
+                    }
+                }
             }
         }
         UpdateProjectModal {
@@ -129,4 +150,10 @@ pub fn Project(props: ProjectProps) -> Element {
             current_project: UpdatableProject { id: props.id, currency: Some("EUR".to_string()), description: props.description, name: Some(props.title) }
         }
     }
+}
+
+fn close_dropdown() -> Eval {
+    document::eval(
+        "document.activeElement.closest('.dropdown').removeAttribute('open'); return null",
+    )
 }

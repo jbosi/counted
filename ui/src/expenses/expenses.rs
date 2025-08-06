@@ -40,7 +40,7 @@ pub fn Expenses(props: ExpensesProps) -> Element {
         expenses().iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0);
 
     rsx! {
-        div { class: "container bg-base-100 p-4 max-w-md rounded-xl flex flex-col",
+        div { class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col",
 
             if let Some(project) = &*project_resource.read() {
                 match project {
@@ -65,10 +65,13 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             if users().len() > 0 {
                 button {
                     type: "button",
-                    class: "btn btn-circle btn-outline btn-lg bg-base-100 self-center mt-6",
+                    class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
                     onclick: move |_| is_expense_modal_open.set(true),
                     "+"
                 }
+                // position: absolute;
+                //   bottom: 3rem;
+                // }
                 AddExpenseModal {
                     is_expense_modal_open,
                     users: users(),

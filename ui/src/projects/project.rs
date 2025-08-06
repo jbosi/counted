@@ -52,7 +52,7 @@ pub fn Project(props: ProjectProps) -> Element {
 
     rsx! {
         section {
-            class: "card bg-base-100 w-96 shadow-sm",
+            class: "card bg-base-200 w-96 shadow-sm",
             onclick: move |_| {
                 navigator()
                     .push(Route::Expenses {
@@ -74,7 +74,7 @@ pub fn Project(props: ProjectProps) -> Element {
                                 "..."
                             },
                             ul {
-                                class: "menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm",
+                                class: "menu dropdown-content rounded-box z-1 w-52 p-2 shadow-sm",
                                 popover: "",
                                 id: "popover-project-dot",
                                 style: "position-anchor:--anchor-project-dot",

@@ -12,8 +12,8 @@ pub fn Avatar(props: AvatarProps) -> Element {
 
     rsx! {
         div { class: "avatar avatar-placeholder",
-            div { class: "bg-neutral base-neutral-content w-{size} rounded-full",
-                span { class: "text-xs", "{props.initials}" }
+            div { class: "bg-primary-content w-{size} rounded-full",
+                span { class: "text-xs text-base-100", "{props.initials}" }
             }
         }
     }

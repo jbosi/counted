@@ -60,47 +60,51 @@ pub fn Payments(props: PaymentsProps) -> Element {
         payers.clone().into_iter().map(|p| p.amount).reduce(|acc, e| acc + e).unwrap_or(0.0);
 
     rsx! {
-        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",
-            if let Some(expense) = &*expense_resource.read() {
-                match expense {
-                    Ok(e) => rsx! {
-                        // AppHeader { title: e.name.clone()  },
-                        div { class: "flex flex-row",
-                            div {
-                                class: "navbar-start flex-1",
-                                onclick: move |_| {
-                                    navigator()
-                                        .push(Route::Expenses {
-                                            project_id: props.project_id,
-                                        });
-                                },
-                                BackButtonArrow {}
+        div {
+            class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-6",
+            section {
+                class: "flex flex-col gap-3",
+                if let Some(expense) = &*expense_resource.read() {
+                    match expense {
+                        Ok(e) => rsx! {
+                            div { class: "flex flex-row",
+                                div {
+                                    class: "navbar-start flex-1",
+                                    onclick: move |_| {
+                                        navigator()
+                                            .push(Route::Expenses {
+                                                project_id: props.project_id,
+                                            });
+                                    },
+                                    BackButtonArrow {}
+                                }
+                                h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
                             }
-                            h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
-                        }
-                        span { class: "self-center", "Dépense de {total_payment} €" }
-                        match e.clone().description {
-                            Some(description) => rsx! {
-                                span { "{description}" }
-                            },
-                            None => rsx! { "" },
-                        }
-                    },
-                    Err(err) => rsx! {
-                    "{err}"
-                    },
+                            span { class: "self-center", "Dépense de {total_payment} €" }
+                            match e.clone().description {
+                                Some(description) => rsx! {
+                                    span { "{description}" }
+                                },
+                                None => rsx! { "" },
+                            }
+                        },
+                        Err(err) => rsx! {
+                        "{err}"
+                        },
+                    }
                 }
             }
-        }
-        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-b-xl",
-            div { class: "flex",
-                span { "Répartition du payment" }
+            section {
+                class: "flex flex-col",
+                div { class: "flex",
+                    span { "Répartition du paiement" }
+                }
+                PaymentList { payments: payers, is_debt: false }
+                div { class: "flex ",
+                    span { "Répartition de la dette" }
+                }
+                PaymentList { payments: debtors, is_debt: true }
             }
-            PaymentList { payments: payers, is_debt: false }
-            div { class: "flex ",
-                span { "Répartition de la dette" }
-            }
-            PaymentList { payments: debtors, is_debt: true }
         }
     }
 }

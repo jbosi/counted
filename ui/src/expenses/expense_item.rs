@@ -15,7 +15,7 @@ pub fn ExpenseItem(props: ExpenseItemProps) -> Element {
 
     rsx! {
         div {
-            class: "flex items-center gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors",
+            class: "flex items-center gap-4 p-3 hover:bg-base-300 rounded-lg transition-colors",
             onclick: move |_| {
                 navigator()
                     .push(Route::Payments {

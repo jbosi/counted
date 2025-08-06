@@ -1,4 +1,4 @@
-use crate::common::{Avatar, Toast};
+use crate::common::{Avatar, DropdownButton, Toast};
 use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
 use api::projects::delete_project_by_id;
@@ -63,50 +63,36 @@ pub fn Project(props: ProjectProps) -> Element {
                 div {
                     div {
                         class: "flex flex-row justify-between",
-                        h2 { class: "card-title", "{props.title}" }
-                        details {
-                            class: "dropdown",
-                            onclick: move |event| {
-                                event.stop_propagation();
+                        h2 { class: "card-title", "{props.title}" },
+                        DropdownButton {
+                            first_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |event| async move {
+                                        close_dropdown().await.unwrap_or("".into());
+
+                                        update_project_modal_open.set(true);
+                                    },
+                                    "Editer"
+                                }
                             },
-                            summary {
-                                class: "btn btn-ghost btn-circle",
-                                "..."
-                            },
-                            ul {
-                                class: "menu dropdown-content rounded-box z-1 w-52 p-2 shadow-sm",
-                                popover: "",
-                                id: "popover-project-dot",
-                                style: "position-anchor:--anchor-project-dot",
-                                li {
-                                    button {
-                                        class: "btn btn-ghost",
-                                        onclick: move |event| async move {
+                            second_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |_| {
+                                        spawn(async move {
                                             close_dropdown().await.unwrap_or("".into());
 
-                                            update_project_modal_open.set(true);
-                                        },
-                                        "Editer"
-                                    }
-                                }
-                                li {
-                                    button {
-                                        class: "btn btn-ghost",
-                                        onclick: move |_| {
-                                            spawn(async move {
-                                                close_dropdown().await.unwrap_or("".into());
-
-                                                match delete_project_by_id(props.id).await {
-                                                    Ok(()) => api_project_delete_state.set(ApiState::Success(())),
-                                                    Err(error) => api_project_delete_state.set(ApiState::Error(ApiError(error.to_string())))
-                                                };
-                                            });
-                                        },
-                                        "Supprimer"
-                                    }
+                                            match delete_project_by_id(props.id).await {
+                                                Ok(()) => api_project_delete_state.set(ApiState::Success(())),
+                                                Err(error) => api_project_delete_state.set(ApiState::Error(ApiError(error.to_string())))
+                                            };
+                                        });
+                                    },
+                                    "Supprimer"
                                 }
                             }
-                        }
+                        },
                     }
                     p { "{description}" }
                 }

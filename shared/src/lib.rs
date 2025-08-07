@@ -1,3 +1,5 @@
+pub mod api;
+
 #[cfg(feature = "server")]
 use sqlx::FromRow;
 use std::fmt;
@@ -29,18 +31,18 @@ pub struct ProjectDto {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NewProject {
-    pub name: String,
-    // pub users: Vec<i32>,
-    // pub total_expenses: f64,
-    pub currency: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CreatableProject {
     pub name: String,
     pub description: Option<String>,
-    // pub users: Vec<i32>,
+    pub currency: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct UpdatableProject {
+    pub id: Uuid,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub currency: Option<String>,
 }
 
 // -------- USER ---------

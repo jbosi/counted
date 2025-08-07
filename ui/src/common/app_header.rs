@@ -8,6 +8,7 @@ pub struct AppHeaderProps {
     back_button_route: Route,
 }
 
+#[component]
 pub fn AppHeader(props: AppHeaderProps) -> Element {
     rsx! {
         div { class: "navbar px-0",
@@ -22,7 +23,7 @@ pub fn AppHeader(props: AppHeaderProps) -> Element {
                 h1 { class: "text-xl font-bold", "{props.title}" }
             }
             div { class: "navbar-end",
-                button { class: "btn btn-ghost btn-circle",
+                button { type: "button", class: "btn btn-ghost btn-circle",
                     svg {
                         class: "w-6 h-6",
                         fill: "none",

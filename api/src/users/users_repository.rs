@@ -10,15 +10,9 @@ use axum::{
     Json, Router,
 };
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{Deserialize, Serialize};
-
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{
-    CreatableExpense, CreatableProject, CreatableUser, Expense, ExpenseType, NewPayment, Payment,
-    Project, User, UserAmount,
-};
+use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 

@@ -10,15 +10,9 @@ use axum::{
     Json, Router,
 };
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{Deserialize, Serialize};
-
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{
-    CreatableExpense, CreatableProject, CreatableUser, Expense, ExpenseType, NewPayment, Payment,
-    Project, User, UserAmount,
-};
+use shared::{CreatableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -130,6 +124,16 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
         .await?;
 
     Ok(expense)
+}
+
+#[server()]
+pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id).execute(&pool).await?;
+    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id).execute(&pool).await?;
+
+    Ok(())
 }
 
 fn forge_creatable_payments_from_expense(

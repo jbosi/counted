@@ -1,11 +1,11 @@
 use crate::common::{Avatar, DropdownButton, Toast};
 use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
+use crate::utils::close_dropdown;
 use api::projects::delete_project_by_id;
 use api::users::get_users_by_project_id;
-use dioxus::document::{document, Eval};
+use dioxus::document::Eval;
 use dioxus::hooks::{use_resource, use_signal};
-use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::{Project, UpdatableProject, User};
@@ -17,8 +17,6 @@ pub struct ProjectProps {
     title: String,
     current_reimbursements: u32,
     total_reimbursements: u32,
-    // users: Vec<String>,
-    // more_users: u32,
     description: Option<String>,
 }
 
@@ -136,10 +134,4 @@ pub fn Project(props: ProjectProps) -> Element {
             current_project: UpdatableProject { id: props.id, currency: Some("EUR".to_string()), description: props.description, name: Some(props.title) }
         }
     }
-}
-
-fn close_dropdown() -> Eval {
-    document::eval(
-        "document.activeElement.closest('.dropdown').removeAttribute('open'); return null",
-    )
 }

@@ -1,9 +1,11 @@
-use crate::common::{Avatar, BackButtonArrow};
+use crate::common::{Avatar, BackButtonArrow, DropdownButton};
 use crate::route::Route;
-use api::expenses::get_expense_by_id;
+use crate::utils::close_dropdown;
+use api::expenses::{delete_expense_by_id, get_expense_by_id};
 use api::payments::get_payments_by_expense_id;
 use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
+use shared::api::{ApiError, ApiState};
 use shared::{PaymentViewModel, User};
 use uuid::Uuid;
 
@@ -59,6 +61,8 @@ pub fn Payments(props: PaymentsProps) -> Element {
     let total_payment: f64 =
         payers.clone().into_iter().map(|p| p.amount).reduce(|acc, e| acc + e).unwrap_or(0.0);
 
+    let mut api_expense_delete_state = use_signal(|| ApiState::<()>::Loading);
+
     rsx! {
         div {
             class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-6",
@@ -79,6 +83,35 @@ pub fn Payments(props: PaymentsProps) -> Element {
                                     BackButtonArrow {}
                                 }
                                 h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
+                                DropdownButton {
+                            first_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |event| async move {
+                                        close_dropdown().await.unwrap_or("".into());
+
+                                        // update_expense_modal_open.set(true);
+                                    },
+                                    "Editer"
+                                }
+                            },
+                            second_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |_| {
+                                        spawn(async move {
+                                            close_dropdown().await.unwrap_or("".into());
+
+                                            match delete_expense_by_id(props.expense_id).await {
+                                                Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
+                                                Err(error) => api_expense_delete_state.set(ApiState::Error(ApiError(error.to_string())))
+                                            };
+                                        });
+                                    },
+                                    "Supprimer"
+                                }
+                            }
+                        },
                             }
                             span { class: "self-center", "Dépense de {total_payment} €" }
                             match e.clone().description {

@@ -1,6 +1,12 @@
-body {
-    background-color: #0f1116;
-    color: #ffffff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 20px;
+.card {
+    padding: 1rem;
+
+    &:hover {
+        cursor: pointer;
+        background-color: var(--color-base-300);
+    }
+}
+
+.app-container {
+    height: calc(100vh - 3rem);
 }

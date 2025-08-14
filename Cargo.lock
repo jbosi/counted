@@ -66,10 +66,13 @@ dependencies = [
  "chrono",
  "dioxus",
  "dotenvy",
+ "futures",
  "serde",
  "serde_json",
  "shared",
  "sqlx",
+ "tokio",
+ "tokio-stream",
  "uuid",
 ]
 
@@ -5747,6 +5750,7 @@ name = "ui"
 version = "0.1.0"
 dependencies = [
  "api",
+ "chrono",
  "dioxus",
  "shared",
  "uuid",

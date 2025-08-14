@@ -1,12 +1,12 @@
 use crate::modals::AddProjectModal;
-use crate::projects::Project;
+use crate::projects::project::ProjectComponent;
 use api::projects::get_projects;
 use dioxus::prelude::*;
-use shared::Project;
+use shared::ProjectDto;
 
 #[component]
 pub fn Projects() -> Element {
-    let mut projects: Signal<Vec<Project>> = use_signal(|| vec![]);
+    let mut projects: Signal<Vec<ProjectDto>> = use_signal(|| vec![]);
     let mut modal_open = use_signal(|| false);
 
     let _ = use_resource(move || async move {
@@ -23,12 +23,14 @@ pub fn Projects() -> Element {
 
             div { class: "space-y-4 min-w-md",
                 for project in projects() {
-                    Project {
+                    ProjectComponent {
                         id: project.id,
                         title: project.name.to_string(),
                         current_reimbursements: 0,
                         total_reimbursements: 0,
                         description: project.description.clone().unwrap_or_else(|| "".to_string()),
+                        currency: project.currency,
+                        created_at: project.created_at,
                     }
                 }
             }

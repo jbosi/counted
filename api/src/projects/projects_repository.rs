@@ -12,15 +12,15 @@ use axum::{
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{CreatableProject, Project, UpdatableProject};
+use shared::{CreatableProject, ProjectDto, UpdatableProject};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 #[server()]
-pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
+pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: Project = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+    let projects: ProjectDto = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_one(&pool)
         .await?;
@@ -29,10 +29,10 @@ pub async fn get_project(project_id: Uuid) -> Result<Project, ServerFnError> {
 }
 
 #[server()]
-pub async fn get_projects() -> Result<Vec<Project>, ServerFnError> {
+pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: Vec<Project> =
+    let projects: Vec<ProjectDto> =
         sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
             .fetch_all(&pool)
             .await?;
@@ -59,7 +59,7 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
 #[server()]
 pub async fn update_project_by_id(
     updatable_project: UpdatableProject,
-) -> Result<Project, ServerFnError> {
+) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let mut new_project =
@@ -77,8 +77,8 @@ pub async fn update_project_by_id(
         new_project.currency = updatable_project.currency.unwrap();
     }
 
-    let update_project: Project = sqlx::query_as!(
-        Project,
+    let update_project: ProjectDto = sqlx::query_as!(
+        ProjectDto,
         "UPDATE projects SET name = $1, description = $2, currency = $3 WHERE id = $4 RETURNING id, name, created_at, currency, description",
         new_project.name,
         new_project.description,

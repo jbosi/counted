@@ -20,9 +20,6 @@ pub struct ExpensesProps {
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut is_expense_modal_open = use_signal(|| false);
 
-    // let mut users_project_context: Signal<Option<UsersProject>> =
-    //     use_context_provider(|| Signal::new(None));
-
     let users_resource = use_resource(move || async move {
         get_users_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
     });
@@ -68,7 +65,6 @@ pub fn Expenses(props: ExpensesProps) -> Element {
 
                             // DateSeparator { label: "Today" }
                             ExpenseList { expenses: expenses.to_vec() }
-                                    // DateSeparator { label: "Yesterday" }
                         }
                         if users.len() > 0 {
                             button {

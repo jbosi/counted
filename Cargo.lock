@@ -67,6 +67,7 @@ dependencies = [
  "dioxus",
  "dotenvy",
  "futures",
+ "futures-util",
  "serde",
  "serde_json",
  "shared",
@@ -6027,9 +6028,11 @@ dependencies = [
  "serde_json",
  "shared",
  "sqlx",
+ "tokio",
  "tracing",
  "ui",
  "uuid",
+ "web-sys",
 ]
 
 [[package]]

@@ -1251,11 +1251,42 @@
 .absolute {
   position: absolute;
 }
+.relative {
+  position: relative;
+}
 .static {
   position: static;
 }
 .sticky {
   position: sticky;
+}
+.dropdown-right {
+  --anchor-h: right;
+  --anchor-v: span-bottom;
+  .dropdown-content {
+    inset-inline-start: 100%;
+    top: calc(0.25rem * 0);
+    bottom: auto;
+    transform-origin: left;
+  }
+}
+.dropdown-left {
+  --anchor-h: left;
+  --anchor-v: span-bottom;
+  .dropdown-content {
+    inset-inline-end: 100%;
+    top: calc(0.25rem * 0);
+    bottom: auto;
+    transform-origin: right;
+  }
+}
+.dropdown-top {
+  --anchor-v: top;
+  .dropdown-content {
+    top: auto;
+    bottom: 100%;
+    transform-origin: bottom;
+  }
 }
 .modal-backdrop {
   grid-column-start: 1;
@@ -1661,9 +1692,6 @@
 }
 .loading-xl {
   width: calc(var(--size-selector, 0.25rem) * 8);
-}
-.loading-xs {
-  width: calc(var(--size-selector, 0.25rem) * 4);
 }
 .flex-1 {
   flex: 1;

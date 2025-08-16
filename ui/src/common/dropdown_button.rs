@@ -10,7 +10,7 @@ pub struct DropdownButtonProps {
 pub fn DropdownButton(mut props: DropdownButtonProps) -> Element {
     rsx! {
         details {
-            class: "dropdown",
+            class: "dropdown dropdown-left",
             onclick: move |event| {
                 event.stop_propagation();
             },

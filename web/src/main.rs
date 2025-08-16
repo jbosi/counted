@@ -7,16 +7,15 @@ use api::sse::sse_handler;
 use axum::routing::get;
 #[cfg(feature = "server")]
 use axum::Router;
-#[cfg(feature = "web")]
 use web_sys::wasm_bindgen::prelude::Closure;
-#[cfg(feature = "web")]
 use web_sys::wasm_bindgen::JsCast;
-#[cfg(feature = "web")]
 use web_sys::EventSource;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+
+static SSE_STREAM: GlobalSignal<String> = GlobalSignal::new(String::new);
 
 fn main() {
     // Set the logger ahead of time since we don't use `dioxus::launch` on the server
@@ -45,31 +44,23 @@ fn main() {
 
 #[component]
 fn app() -> Element {
-    // Initialise la connexion SSE côté client (WebAssembly) depuis un composant
-    // pour respecter les règles des hooks Dioxus.
-    #[cfg(feature = "web")]
-    {
-        let mut es_handle = use_signal::<Option<EventSource>>(|| None);
+    let mut es_handle = use_signal::<Option<EventSource>>(|| None);
 
-        use_effect(move || {
-            // Utilise une URL relative pour rester sur la même origine que le serveur Dioxus
-            let es = EventSource::new("/sse").expect("impossible d'ouvrir EventSource '/sse'");
+    use_effect(move || {
+        let es = EventSource::new("/sse").expect("impossible d'ouvrir EventSource '/sse'");
 
-            // Callback à chaque message
-            let on_message = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MessageEvent| {
-                if let Some(data) = event.data().as_string() {
-                    tracing::info!("SSE reçu: {:?}", data);
-                }
-            });
-
-            // Attache la callback et garde sa closure vivante
-            es.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
-            on_message.forget();
-
-            // Conserve l'EventSource pour éviter sa libération prématurée
-            es_handle.set(Some(es));
+        let on_message = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MessageEvent| {
+            if let Some(data) = event.data().as_string() {
+                tracing::info!("SSE reçu: {:?}", data);
+                *SSE_STREAM.write() = data;
+            }
         });
-    }
+
+        es.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
+        on_message.forget();
+
+        es_handle.set(Some(es));
+    });
 
     rsx! {
         // Global app resources

@@ -4,9 +4,11 @@ use ui::route::Route;
 #[cfg(feature = "server")]
 use api::sse::sse_handler;
 #[cfg(feature = "server")]
+use api::sse::{AppState, Broadcaster};
+#[cfg(feature = "server")]
 use axum::routing::get;
 #[cfg(feature = "server")]
-use axum::Router;
+use axum::{Router, ServiceExt};
 use web_sys::wasm_bindgen::prelude::Closure;
 use web_sys::wasm_bindgen::JsCast;
 use web_sys::EventSource;

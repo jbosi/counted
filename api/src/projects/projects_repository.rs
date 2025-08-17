@@ -1,6 +1,14 @@
 use dioxus::prelude::*;
+use shared::{CreatableProject, ProjectDto, UpdatableProject};
 use uuid::Uuid;
 
+#[cfg(feature = "server")]
+use crate::db::get_db;
+use crate::sse::EventSSE;
+#[cfg(feature = "server")]
+use crate::sse::BROADCASTER;
+#[cfg(feature = "server")]
+use axum::response::sse::{Event, KeepAlive, Sse};
 #[cfg(feature = "server")]
 use axum::{
     extract::{Path, State},
@@ -9,10 +17,6 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-
-#[cfg(feature = "server")]
-use crate::db::get_db;
-use shared::{CreatableProject, ProjectDto, UpdatableProject};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -52,6 +56,14 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
     )
     .fetch_one(&pool)
     .await?;
+
+    BROADCASTER
+        .broadcast(
+            Event::default()
+                .event::<String>(EventSSE::ProjectCreated.to_string())
+                .data(EventSSE::ProjectCreated.to_string()),
+        )
+        .await;
 
     Ok(project_id)
 }
@@ -96,6 +108,14 @@ pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError>
     let pool: Pool<Postgres> = get_db().await;
 
     sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool).await?;
+
+    BROADCASTER
+        .broadcast(
+            Event::default()
+                .event::<String>(EventSSE::ProjectDeleted.to_string())
+                .data(EventSSE::ProjectDeleted.to_string()),
+        )
+        .await;
 
     Ok(())
 }

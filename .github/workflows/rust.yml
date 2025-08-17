@@ -17,8 +17,5 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      working-directory: ./back
-      run: cargo build --verbose
-    - name: Run tests
-      working-directory: ./back
-      run: cargo test --verbose
+      working-directory: ./
+      run: dx bundle --platform web

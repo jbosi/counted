@@ -1,15 +1,19 @@
-use api::projects::add_project;
+use api::projects::{add_project, update_project_by_id};
 use dioxus::prelude::*;
-use shared::CreatableProject;
+use shared::{CreatableProject, UpdatableProject};
+use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
-pub struct AddProjectModalProps {
+pub struct UpdateProjectModalProps {
     modal_open: Signal<bool>,
+    current_project: UpdatableProject,
 }
 #[component]
-pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
-    let mut project_name: Signal<String> = use_signal(|| "".to_string());
-    let mut project_description: Signal<Option<String>> = use_signal(|| None);
+pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
+    let mut project_name: Signal<Option<String>> =
+        use_signal(|| props.current_project.name.clone());
+    let mut project_description: Signal<Option<String>> =
+        use_signal(|| props.current_project.description.clone());
 
     rsx! {
         dialog {
@@ -17,14 +21,15 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
             class: "modal",
             class: if (props.modal_open)() { "modal-open" } else { "" },
             div { class: "modal-box",
-                h3 { class: "text-lg font-bold", "Ajouter un projet" }
+                h3 { class: "text-lg font-bold", "Modifier un projet" }
                 fieldset { class: "fieldset",
                     legend { class: "fieldset-legend", "Nom du projet" }
                     input {
                         name: "project_name",
                         r#type: "text",
                         class: "input",
-                        oninput: move |event| project_name.set(event.value()),
+                        initial_value: project_name(),
+                        oninput: move |event| project_name.set(Some(event.value())),
                     }
                 }
                 fieldset { class: "fieldset",
@@ -33,6 +38,7 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                         name: "project_description",
                         r#type: "text",
                         class: "input",
+                        initial_value: project_description(),
                         oninput: move |event| project_description.set(Some(event.value())),
                     }
                 }
@@ -47,12 +53,13 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                         r#type: "submit",
                         onclick: move |_| {
                             spawn(async move {
-                                let creatable_project: CreatableProject = CreatableProject {
+                                let updatable_project: UpdatableProject = UpdatableProject {
+                                    id: props.current_project.id,
                                     name: project_name(),
                                     description: project_description(),
                                     currency: None
                                 };
-                                add_project(creatable_project).await.expect("Failed to add new project");
+                                update_project_by_id(updatable_project).await.expect("Failed to update project");
                                 props.modal_open.set(false)
                             });
                         },

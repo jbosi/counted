@@ -1,7 +1,6 @@
 use api::expenses::add_expense;
-use api::projects::add_project;
 use dioxus::prelude::*;
-use shared::{CreatableExpense, CreatableProject, ExpenseType, User, UserAmount};
+use shared::{CreatableExpense, ExpenseType, User, UserAmount};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -23,7 +22,7 @@ struct FormCheckboxAmount {
 pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
     let mut expense_name: Signal<String> = use_signal(|| "".to_string());
     let mut expense_description: Signal<Option<String>> = use_signal(|| None);
-    let mut expense_type: Signal<ExpenseType> = use_signal(|| ExpenseType::Expense);
+    let expense_type: Signal<ExpenseType> = use_signal(|| ExpenseType::Expense);
 
     let checkbox_list: Vec<FormCheckboxAmount> = props
         .users
@@ -134,7 +133,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                     method: "dialog",
                     onclick: move |_| props.is_expense_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { "X" }
+                    button { type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -180,7 +179,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_expense_modal_open.set(false),
-                button { "close" }
+                button { type: "button", "close" }
             }
         }
     }

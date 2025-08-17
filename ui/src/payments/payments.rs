@@ -1,10 +1,12 @@
-use crate::common::{Avatar, BackButtonArrow};
+use crate::common::{Avatar, BackButtonArrow, DropdownButton};
 use crate::route::Route;
-use api::expenses::{get_expense_by_id, get_expenses_by_project_id};
+use crate::utils::close_dropdown;
+use api::expenses::{delete_expense_by_id, get_expense_by_id};
 use api::payments::get_payments_by_expense_id;
 use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
-use shared::{Expense, Payment, PaymentViewModel, User};
+use shared::api::{ApiError, ApiState};
+use shared::{PaymentViewModel, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -21,38 +23,32 @@ pub fn Payments(props: PaymentsProps) -> Element {
     let expense_resource =
         use_resource(move || async move { get_expense_by_id(props.expense_id).await });
 
-    use_resource({
+    let _ = use_resource({
         move || async move {
             match &*users_resource.value().read_unchecked() {
-                Some(Ok(users)) => {
-                    let user_ids: Vec<i32> = users.iter().map(|u| u.id).collect();
-                    match get_payments_by_expense_id(props.expense_id).await {
-                        Ok(response) => {
-                            let result = response
-                                .into_iter()
-                                .map(|p| {
-                                    let user: User = users
-                                        .clone()
-                                        .into_iter()
-                                        .find(|u| u.id == p.user_id)
-                                        .unwrap();
+                Some(Ok(users)) => match get_payments_by_expense_id(props.expense_id).await {
+                    Ok(response) => {
+                        let result = response
+                            .into_iter()
+                            .map(|p| {
+                                let user: User =
+                                    users.clone().into_iter().find(|u| u.id == p.user_id).unwrap();
 
-                                    PaymentViewModel {
-                                        id: p.id,
-                                        created_at: p.created_at,
-                                        is_debt: p.is_debt,
-                                        expense_id: p.expense_id,
-                                        amount: p.amount,
-                                        user,
-                                    }
-                                })
-                                .collect();
-                            payments.set(result);
-                        }
-                        Err(_) => (),
+                                PaymentViewModel {
+                                    id: p.id,
+                                    created_at: p.created_at,
+                                    is_debt: p.is_debt,
+                                    expense_id: p.expense_id,
+                                    amount: p.amount,
+                                    user,
+                                }
+                            })
+                            .collect();
+                        payments.set(result);
                     }
-                }
-                Some(Err(e)) => (),
+                    Err(_) => (),
+                },
+                Some(Err(_e)) => (),
                 _ => {}
             }
         }
@@ -65,48 +61,83 @@ pub fn Payments(props: PaymentsProps) -> Element {
     let total_payment: f64 =
         payers.clone().into_iter().map(|p| p.amount).reduce(|acc, e| acc + e).unwrap_or(0.0);
 
+    let mut api_expense_delete_state = use_signal(|| ApiState::<()>::Loading);
+
     rsx! {
-        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-t-xl gap-3",
-            if let Some(expense) = &*expense_resource.read() {
-                match expense {
-                    Ok(e) => rsx! {
-                        // AppHeader { title: e.name.clone()  },
-                        div { class: "flex flex-row",
-                            div {
-                                class: "navbar-start flex-1",
-                                onclick: move |_| {
-                                    navigator()
-                                        .push(Route::Expenses {
-                                            project_id: props.project_id,
-                                        });
-                                },
-                                BackButtonArrow {}
-                            }
-                            h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
-                        }
-                        span { class: "self-center", "Dépense de {total_payment} €" }
-                        match e.clone().description {
-                            Some(description) => rsx! {
-                                span { "{description}" }
+        div {
+            class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-6",
+            section {
+                class: "flex flex-col gap-3",
+                if let Some(expense) = &*expense_resource.read() {
+                    match expense {
+                        Ok(e) => rsx! {
+                            div { class: "flex flex-row",
+                                div {
+                                    class: "navbar-start flex-1",
+                                    onclick: move |_| {
+                                        navigator()
+                                            .push(Route::Expenses {
+                                                project_id: props.project_id,
+                                            });
+                                    },
+                                    BackButtonArrow {}
+                                }
+                                h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
+                                DropdownButton {
+                            first_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |event| async move {
+                                        close_dropdown().await.unwrap_or("".into());
+
+                                        // update_expense_modal_open.set(true);
+                                    },
+                                    "Editer"
+                                }
                             },
-                            None => rsx! { "" },
-                        }
-                    },
-                    Err(err) => rsx! {
-                    "{err}"
-                    },
+                            second_component: rsx! {
+                                button {
+                                    class: "btn btn-ghost",
+                                    onclick: move |_| {
+                                        spawn(async move {
+                                            close_dropdown().await.unwrap_or("".into());
+
+                                            match delete_expense_by_id(props.expense_id).await {
+                                                Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
+                                                Err(error) => api_expense_delete_state.set(ApiState::Error(ApiError(error.to_string())))
+                                            };
+                                        });
+                                    },
+                                    "Supprimer"
+                                }
+                            }
+                        },
+                            }
+                            span { class: "self-center", "Dépense de {total_payment} €" }
+                            match e.clone().description {
+                                Some(description) => rsx! {
+                                    span { "{description}" }
+                                },
+                                None => rsx! { "" },
+                            }
+                        },
+                        Err(err) => rsx! {
+                        "{err}"
+                        },
+                    }
                 }
             }
-        }
-        section { class: "container flex flex-col max-w-md bg-base-100 p-4 rounded-b-xl",
-            div { class: "flex",
-                span { "Répartition du payment" }
+            section {
+                class: "flex flex-col",
+                div { class: "flex",
+                    span { "Répartition du paiement" }
+                }
+                PaymentList { payments: payers, is_debt: false }
+                div { class: "flex ",
+                    span { "Répartition de la dette" }
+                }
+                PaymentList { payments: debtors, is_debt: true }
             }
-            PaymentList { payments: payers, is_debt: false }
-            div { class: "flex ",
-                span { "Répartition de la dette" }
-            }
-            PaymentList { payments: debtors, is_debt: true }
         }
     }
 }

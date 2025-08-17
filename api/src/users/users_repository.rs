@@ -10,15 +10,12 @@ use axum::{
     Json, Router,
 };
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{Deserialize, Serialize};
-
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use shared::{
-    CreatableExpense, CreatableProject, CreatableUser, Expense, ExpenseType, NewPayment, Payment,
-    Project, User, UserAmount,
-};
+#[cfg(feature = "server")]
+use crate::sse::BROADCASTER;
+use shared::sse::EventSSE;
+use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -49,6 +46,14 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     )
     .execute(&pool)
     .await?;
+
+    BROADCASTER
+        .broadcast(
+            axum::response::sse::Event::default()
+                .event::<String>(EventSSE::UserCreated.to_string())
+                .data(EventSSE::UserCreated.to_string()),
+        )
+        .await;
 
     Ok(user_id)
 }

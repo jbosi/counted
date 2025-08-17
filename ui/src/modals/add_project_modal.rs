@@ -8,7 +8,7 @@ pub struct AddProjectModalProps {
 }
 #[component]
 pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
-    let mut project_name: Signal<String> = use_signal(|| "".to_string());
+    let mut project_name: Signal<String> = use_signal(|| String::new());
     let mut project_description: Signal<Option<String>> = use_signal(|| None);
 
     rsx! {

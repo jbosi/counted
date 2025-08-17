@@ -6,4 +6,5 @@ pub mod modals;
 pub mod payments;
 pub mod projects;
 pub mod route;
-mod utils;
+pub mod users;
+pub mod utils;

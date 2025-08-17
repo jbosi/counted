@@ -2,6 +2,7 @@ use crate::common::Navbar;
 use crate::expenses::Expenses;
 use crate::payments::Payments;
 use crate::projects::Projects;
+use crate::users::ProfileComponent;
 use dioxus::prelude::*;
 use uuid::Uuid;
 
@@ -11,6 +12,8 @@ pub enum Route {
     #[layout(WebNavbar)]
     #[route("/")]
     Projects {},
+    #[route("/profile")]
+    ProfileComponent {},
     #[route("/projects/:project_id")]
     Expenses { project_id: Uuid },
     #[route("/projects/:project_id/expenses/:expense_id")]

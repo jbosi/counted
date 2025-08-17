@@ -54,6 +54,15 @@ pub struct CreatableUser {
     pub project_id: Uuid,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct CreatableRegisteredUser {
+    pub firstname: String,
+    pub lastname: String,
+    pub phone_number: String,
+    pub email: String,
+    pub password: String,
+}
+
 // -------- EXPENSE ---------
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

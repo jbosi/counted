@@ -15,7 +15,7 @@ use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 use shared::sse::EventSSE;
-use shared::{CreatableUser, User};
+use shared::{CreatableRegisteredUser, CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -56,6 +56,13 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
         .await;
 
     Ok(user_id)
+}
+
+#[server()]
+pub async fn add_registered_user(user: CreatableRegisteredUser) -> Result<i32, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    Ok(0)
 }
 
 #[server()]

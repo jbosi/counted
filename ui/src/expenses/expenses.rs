@@ -2,11 +2,13 @@ use crate::common::AppHeader;
 use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
 use crate::modals::AddExpenseModal;
 use crate::route::Route;
+use crate::utils::listen_to_sse_events;
 use api::expenses::get_expenses_by_project_id;
 use api::projects::get_project;
 use api::users::get_users_by_project_id;
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
+use shared::sse::EventSSE::{ExpenseCreated, ExpenseDeleted, ExpenseModified};
 use shared::view_models::users_project_view_model::UsersProject;
 use shared::{Expense, User};
 use uuid::Uuid;
@@ -19,6 +21,7 @@ pub struct ExpensesProps {
 #[component]
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut is_expense_modal_open = use_signal(|| false);
+    let mut expense_event_any = use_signal(|| String::new());
 
     let users_resource = use_resource(move || async move {
         get_users_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
@@ -32,8 +35,16 @@ pub fn Expenses(props: ExpensesProps) -> Element {
     });
 
     let expenses_resource = use_resource(move || async move {
+        // rerun the resource when event is fired
+        let _ = expense_event_any();
+
         get_expenses_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
     });
+
+    listen_to_sse_events(
+        Vec::from([ExpenseCreated, ExpenseDeleted, ExpenseModified]),
+        expense_event_any,
+    );
 
     rsx! {
         div { class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col",

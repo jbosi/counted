@@ -14,10 +14,10 @@ pub fn SummaryCard(props: SummaryCardProps) -> Element {
         div { class: "",
             div { class: "card-body p-4 space-y-3",
 
-                div { class: "flex justify-between items-center",
-                    span { class: "text-base-content", "Mon Total" }
-                    span { class: "font-bold text-lg", "{format_currency(props.my_total)}" }
-                }
+                // div { class: "flex justify-between items-center",
+                //     span { class: "text-base-content", "Mon Total" }
+                //     span { class: "font-bold text-lg", "{format_currency(props.my_total)}" }
+                // }
 
                 div { class: "flex justify-between items-center",
                     span { class: "text-base-content/70", "Total global" }

@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 use ui::route::Route;
 
+use shared::sse::EventSSE;
+
 #[cfg(feature = "server")]
 use api::sse::sse_handler;
 #[cfg(feature = "server")]
@@ -16,8 +18,6 @@ use web_sys::EventSource;
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
-
-static SSE_STREAM: GlobalSignal<String> = GlobalSignal::new(String::new);
 
 fn main() {
     // Set the logger ahead of time since we don't use `dioxus::launch` on the server
@@ -46,24 +46,6 @@ fn main() {
 
 #[component]
 fn app() -> Element {
-    let mut es_handle = use_signal::<Option<EventSource>>(|| None);
-
-    use_effect(move || {
-        let es = EventSource::new("/sse").expect("impossible d'ouvrir EventSource '/sse'");
-
-        let on_message = Closure::<dyn FnMut(_)>::new(move |event: web_sys::MessageEvent| {
-            if let Some(data) = event.data().as_string() {
-                tracing::info!("SSE reçu: {:?}", data);
-                *SSE_STREAM.write() = data;
-            }
-        });
-
-        es.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
-        on_message.forget();
-
-        es_handle.set(Some(es));
-    });
-
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }

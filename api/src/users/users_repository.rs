@@ -12,6 +12,9 @@ use axum::{
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
+#[cfg(feature = "server")]
+use crate::sse::BROADCASTER;
+use shared::sse::EventSSE;
 use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
@@ -43,6 +46,14 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     )
     .execute(&pool)
     .await?;
+
+    BROADCASTER
+        .broadcast(
+            axum::response::sse::Event::default()
+                .event::<String>(EventSSE::UserCreated.to_string())
+                .data(EventSSE::UserCreated.to_string()),
+        )
+        .await;
 
     Ok(user_id)
 }

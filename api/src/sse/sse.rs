@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
-use std::{convert::Infallible, fmt, sync::Arc};
+use once_cell::sync::Lazy;
+use std::{convert::Infallible, sync::Arc};
 
-#[cfg(feature = "server")]
-use axum::extract::State;
 #[cfg(feature = "server")]
 use axum::response::sse::{Event, KeepAlive, Sse};
 #[cfg(feature = "server")]
@@ -13,8 +12,6 @@ use tokio::sync::{mpsc, Mutex};
 use tokio_stream::wrappers::ReceiverStream;
 #[cfg(feature = "server")]
 use tokio_stream::StreamExt;
-
-use once_cell::sync::Lazy;
 
 #[cfg(feature = "server")]
 pub static BROADCASTER: Lazy<Arc<Broadcaster>> = Lazy::new(|| Arc::new(Broadcaster::new()));
@@ -62,39 +59,4 @@ pub async fn sse_handler() -> Sse<impl Stream<Item = Result<Event, Infallible>>>
     let stream = BROADCASTER.new_client().await;
 
     Sse::new(stream).keep_alive(KeepAlive::default())
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum EventSSE {
-    UserCreated,
-    UserDeleted,
-    UserModified,
-    ProjectCreated,
-    ProjectDeleted,
-    ProjectModified,
-    ExpenseCreated,
-    ExpenseDeleted,
-    ExpenseModified,
-    PaymentCreated,
-    PaymentDeleted,
-    PaymentModified,
-}
-
-impl fmt::Display for EventSSE {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            EventSSE::UserCreated => write!(f, "UserCreated"),
-            EventSSE::UserDeleted => write!(f, "UserDeleted"),
-            EventSSE::UserModified => write!(f, "UserModified"),
-            EventSSE::ProjectCreated => write!(f, "ProjectCreated"),
-            EventSSE::ProjectDeleted => write!(f, "ProjectDeleted"),
-            EventSSE::ProjectModified => write!(f, "ProjectModified"),
-            EventSSE::ExpenseCreated => write!(f, "ExpenseCreated"),
-            EventSSE::ExpenseDeleted => write!(f, "ExpenseDeleted"),
-            EventSSE::ExpenseModified => write!(f, "ExpenseModified"),
-            EventSSE::PaymentCreated => write!(f, "PaymentCreated"),
-            EventSSE::PaymentDeleted => write!(f, "PaymentDeleted"),
-            EventSSE::PaymentModified => write!(f, "PaymentModified"),
-        }
-    }
 }

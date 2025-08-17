@@ -1,4 +1,5 @@
 pub mod api;
+pub mod sse;
 pub mod view_models;
 
 #[cfg(feature = "server")]

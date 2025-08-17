@@ -1,20 +1,31 @@
 use crate::modals::AddProjectModal;
 use crate::projects::project::ProjectComponent;
+use crate::utils::listen_to_sse_events;
 use api::projects::get_projects;
 use dioxus::prelude::*;
+use shared::sse::EventSSE::{ProjectCreated, ProjectDeleted, ProjectModified};
 use shared::ProjectDto;
 
 #[component]
 pub fn Projects() -> Element {
     let mut projects: Signal<Vec<ProjectDto>> = use_signal(|| vec![]);
     let mut modal_open = use_signal(|| false);
+    let mut project_event_any = use_signal(|| String::new());
 
     let _ = use_resource(move || async move {
+        // rerun the resource when event is fired
+        let _ = project_event_any();
+
         match get_projects().await {
             Ok(items) => projects.set(items),
             Err(_) => (),
         }
     });
+
+    listen_to_sse_events(
+        Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
+        project_event_any,
+    );
 
     rsx! {
         div {

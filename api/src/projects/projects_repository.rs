@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
+use shared::sse::EventSSE;
 use shared::{CreatableProject, ProjectDto, UpdatableProject};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
-use crate::sse::EventSSE;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]
@@ -99,6 +99,14 @@ pub async fn update_project_by_id(
     )
     .fetch_one(&pool)
     .await?;
+
+    BROADCASTER
+        .broadcast(
+            Event::default()
+                .event::<String>(EventSSE::ProjectModified.to_string())
+                .data(EventSSE::ProjectModified.to_string()),
+        )
+        .await;
 
     Ok(update_project)
 }

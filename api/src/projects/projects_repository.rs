@@ -21,15 +21,15 @@ use axum::{
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 #[server()]
-pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
+pub async fn get_project_by_id(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: ProjectDto = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+    let project: ProjectDto = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_one(&pool)
         .await?;
 
-    Ok(projects)
+    Ok(project)
 }
 
 #[server()]
@@ -75,7 +75,7 @@ pub async fn update_project_by_id(
     let pool: Pool<Postgres> = get_db().await;
 
     let mut new_project =
-        get_project(updatable_project.id).await.expect("Unable to find requested project_id");
+        get_project_by_id(updatable_project.id).await.expect("Unable to find requested project_id");
 
     if updatable_project.name.is_some() {
         new_project.name = updatable_project.name.unwrap();

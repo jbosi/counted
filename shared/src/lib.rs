@@ -41,7 +41,7 @@ pub struct UpdatableProject {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "server", derive(FromRow))]
-pub struct User {
+pub struct UserDto {
     pub id: i32,
     pub name: String,
     pub balance: Option<f64>,
@@ -145,7 +145,7 @@ pub struct Payment {
 pub struct PaymentViewModel {
     pub id: i32,
     pub expense_id: i32,
-    pub user: User,
+    pub user: UserDto,
     pub is_debt: bool,
     pub amount: f64,
     pub created_at: NaiveDateTime,

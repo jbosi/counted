@@ -4,13 +4,13 @@ use crate::modals::AddExpenseModal;
 use crate::route::Route;
 use crate::utils::listen_to_sse_events;
 use api::expenses::get_expenses_by_project_id;
-use api::projects::get_project;
+use api::projects::get_project_by_id;
 use api::users::{add_registered_user, add_user, get_users_by_project_id};
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::sse::EventSSE::{ExpenseCreated, ExpenseDeleted, ExpenseModified};
 use shared::view_models::users_project_view_model::UsersProject;
-use shared::{CreatableProject, CreatableRegisteredUser, CreatableUser, Expense, User};
+use shared::{CreatableProject, CreatableRegisteredUser, CreatableUser, Expense, UserDto};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]

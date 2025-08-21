@@ -11,7 +11,7 @@ use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::view_models::users_project_view_model::UsersProject;
-use shared::{ProjectDto, UpdatableProject, User};
+use shared::{ProjectDto, UpdatableProject, UserDto};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]

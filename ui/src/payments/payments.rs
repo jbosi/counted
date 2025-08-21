@@ -6,7 +6,7 @@ use api::payments::get_payments_by_expense_id;
 use api::users::get_users_by_project_id;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
-use shared::{PaymentViewModel, User};
+use shared::{PaymentViewModel, UserDto};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -31,7 +31,7 @@ pub fn Payments(props: PaymentsProps) -> Element {
                         let result = response
                             .into_iter()
                             .map(|p| {
-                                let user: User =
+                                let user: UserDto =
                                     users.clone().into_iter().find(|u| u.id == p.user_id).unwrap();
 
                                 PaymentViewModel {

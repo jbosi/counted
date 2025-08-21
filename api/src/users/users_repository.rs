@@ -10,24 +10,35 @@ use axum::{
     Json, Router,
 };
 
+use crate::authentication::User;
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 use shared::sse::EventSSE;
-use shared::{CreatableRegisteredUser, CreatableUser, User};
+use shared::{CreatableRegisteredUser, CreatableUser, ProjectDto, UserDto};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 #[server()]
-pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
+pub async fn get_users() -> Result<Vec<UserDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     // TODO Passer directement la struct en 1er argument
-    let users: Vec<User> =
+    let users: Vec<UserDto> =
         sqlx::query_as("SELECT id, name, balance, created_at FROM users").fetch_all(&pool).await?;
 
     Ok(users)
+}
+
+#[server()]
+pub async fn get_user_by_id(user_id: i32) -> Result<User, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let user: User =
+        sqlx::query_as("SELECT * FROM users WHERE id = $1").bind(user_id).fetch_one(&pool).await?;
+
+    Ok(user)
 }
 
 #[server()]
@@ -66,7 +77,7 @@ pub async fn add_registered_user(user: CreatableRegisteredUser) -> Result<i32, S
 }
 
 #[server()]
-pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, ServerFnError> {
+pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<UserDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let user_ids: Vec<i32> =
@@ -90,8 +101,8 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
     }
     separated.push_unseparated(")");
 
-    let query = query_builder.build_query_as::<User>();
-    let users: Vec<User> = query.fetch_all(&pool).await?;
+    let query = query_builder.build_query_as::<UserDto>();
+    let users: Vec<UserDto> = query.fetch_all(&pool).await?;
 
     // TODO
     // const QUERY: &str = "SELECT u.id, u.name, u.balance, u.created_at

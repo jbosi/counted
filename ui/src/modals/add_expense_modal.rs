@@ -1,13 +1,13 @@
 use api::expenses::add_expense;
 use dioxus::prelude::*;
-use shared::{CreatableExpense, ExpenseType, User, UserAmount};
+use shared::{CreatableExpense, ExpenseType, UserAmount, UserDto};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AddExpenseModalProps {
     project_id: Uuid,
     is_expense_modal_open: Signal<bool>,
-    users: Vec<User>,
+    users: Vec<UserDto>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

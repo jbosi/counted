@@ -2,13 +2,13 @@ use crate::common::Avatar;
 use crate::modals::AddUserModal;
 use dioxus::hooks::use_signal;
 use dioxus::prelude::*;
-use shared::User;
+use shared::UserDto;
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ExpensesUserSectionProps {
     id: Uuid,
-    users: Vec<User>,
+    users: Vec<UserDto>,
 }
 
 #[component]

@@ -6,7 +6,9 @@
 		".\\ui\\Cargo.toml",
 		".\\web\\Cargo.toml"
 	],
-	"rust-analyzer.cargo.features": ["full-support"],
+	// Activate the `server` feature so cfg(feature = "server") code is not marked inactive
+	"rust-analyzer.cargo.features": ["server"],
+	"rust-analyzer.cargo.allFeatures": false,
 	"tailwindCSS.experimental.classRegex": ["class: \"(.*)\""],
 	"tailwindCSS.includeLanguages": {
 		"rust": "html"

@@ -68,6 +68,13 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             match (users_resource.read_unchecked().as_ref(), expenses_resource.read_unchecked().as_ref()) {
                 (Some(users), Some(expenses)) => {
                     rsx! {
+                        div {
+                            role: "tablist",
+                            class: "tabs tabs-lift",
+                            a { role: "tab", class: "tab", "Tab 1" }
+                            a { role: "tab", class: "tab tab-active", "Tab 2" }
+                            a { role: "tab", class: "tab", "Tab 3" }
+                        },
                         ExpensesUserSection { id: props.project_id, users: users.to_vec() }
                         SummaryCard { my_total: 625.0, global_total: expenses.iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0) }
 

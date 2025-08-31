@@ -15,7 +15,7 @@ pub struct ExpensesUserSectionProps {
 pub fn ExpensesUserSection(props: ExpensesUserSectionProps) -> Element {
     let mut is_user_modal_open = use_signal(|| false);
     rsx! {
-        div { class: "flex my-6 p-4 justify-center",
+        div { class: "flex p-4 justify-center",
 
             div { class: "avatar-group -space-x-4",
                 for user in props.users {

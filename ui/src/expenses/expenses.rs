@@ -18,10 +18,17 @@ pub struct ExpensesProps {
     project_id: Uuid,
 }
 
+#[derive(PartialEq, Clone)]
+enum ActiveTab {
+    ExpensesList,
+    Summary,
+}
+
 #[component]
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut is_expense_modal_open = use_signal(|| false);
     let mut expense_event_any = use_signal(|| String::new());
+    let mut active_tab: Signal<ActiveTab> = use_signal(|| ActiveTab::ExpensesList);
 
     let users_resource = use_resource(move || async move {
         get_users_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
@@ -68,18 +75,30 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             match (users_resource.read_unchecked().as_ref(), expenses_resource.read_unchecked().as_ref()) {
                 (Some(users), Some(expenses)) => {
                     rsx! {
-                        div {
-                            role: "tablist",
-                            class: "tabs tabs-lift",
-                            a { role: "tab", class: "tab", "Tab 1" }
-                            a { role: "tab", class: "tab tab-active", "Tab 2" }
-                            a { role: "tab", class: "tab", "Tab 3" }
-                        },
                         ExpensesUserSection { id: props.project_id, users: users.to_vec() }
                         SummaryCard { my_total: 625.0, global_total: expenses.iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0) }
+                        div {
+                            role: "tablist",
+                            class: "tabs tabs-box justify-center",
+                            a {
+                                role: "tab",
+                                class: "tab",
+                                class: if active_tab() == ActiveTab::ExpensesList { "tab-active" },
+                                onclick: move |_| { active_tab.set(ActiveTab::ExpensesList) },
+                                "Liste des dépenses"
+                            }
+                            a {
+                                role: "tab",
+                                class: "tab",
+                                class: if active_tab() == ActiveTab::Summary { "tab-active" },
+                                onclick: move |_| { active_tab.set(ActiveTab::Summary) },
+                                "Equilibre"
+                            }
+                        },
 
                         // Expense list
-                        div { class: "mt-6",
+                        div {
+                            class: "mt-6",
 
                             // DateSeparator { label: "Today" }
                             ExpenseList { expenses: expenses.to_vec() }

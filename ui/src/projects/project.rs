@@ -56,7 +56,7 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
         None => {
             rsx! {
                 section {
-                    class: "card bg-base-200 w-96 shadow-sm flex items-center",
+                    class: "card bg-base-200 shadow-sm flex items-center",
                     div {
                         class: "card-body",
                         span {
@@ -69,7 +69,7 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
         Some(users) => {
             rsx! {
                 section {
-                    class: "card bg-base-200 w-96 shadow-sm",
+                    class: "card bg-base-200 shadow-sm",
                     onclick: move |_| {
                         navigator()
                             .push(Route::Expenses {

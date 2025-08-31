@@ -36,7 +36,7 @@ use tracing::info;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+// const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     // Set the logger ahead of time since we don't use `dioxus::launch` on the server
@@ -79,19 +79,23 @@ fn app() -> Element {
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }
-        document::Stylesheet { href: MAIN_CSS }
-        document::Stylesheet { href: TAILWIND_CSS }
+        // document::Stylesheet { href: MAIN_CSS }
+        // document::Stylesheet { href: TAILWIND_CSS }
         // document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
         main {
+            "data-theme": "cupcake",
             class: "min-h-screen flex flex-col items-center",
-            link {
-                rel: "stylesheet",
-                href: "../assets/tailwind.css",
+            script {
+                src: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
             },
             link {
                 rel: "stylesheet",
                 href: "https://cdn.jsdelivr.net/npm/daisyui@5",
+            },
+            link {
+                rel: "stylesheet",
+                href: "https://cdn.jsdelivr.net/npm/daisyui@5/themes.css",
             },
             Router::<Route> {}
         }

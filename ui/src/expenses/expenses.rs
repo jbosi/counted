@@ -4,6 +4,7 @@ use crate::modals::AddExpenseModal;
 use crate::route::Route;
 use crate::utils::listen_to_sse_events;
 use api::expenses::get_expenses_by_project_id;
+use api::payments::get_summary_by_user_ids;
 use api::projects::get_project;
 use api::users::get_users_by_project_id;
 use dioxus::logger::tracing::info;
@@ -11,6 +12,7 @@ use dioxus::prelude::*;
 use shared::sse::EventSSE::{ExpenseCreated, ExpenseDeleted, ExpenseModified};
 use shared::view_models::users_project_view_model::UsersProject;
 use shared::{Expense, User};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -46,6 +48,17 @@ pub fn Expenses(props: ExpensesProps) -> Element {
         let _ = expense_event_any();
 
         get_expenses_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
+    });
+
+    let summary_resource: Resource<HashMap<i32, f64>> = use_resource(move || async move {
+        let _ = expense_event_any();
+
+        match users_resource.read_unchecked().as_ref() {
+            None => HashMap::new(),
+            Some(users) => get_summary_by_user_ids(users.iter().map(|u| u.id).collect())
+                .await
+                .unwrap_or_default(),
+        }
     });
 
     listen_to_sse_events(
@@ -96,27 +109,43 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                             }
                         },
 
-                        // Expense list
-                        div {
-                            class: "mt-6",
+                        if active_tab() == ActiveTab::ExpensesList {
+                            // Expense list
+                            div {
+                                class: "mt-6",
 
-                            // DateSeparator { label: "Today" }
-                            ExpenseList { expenses: expenses.to_vec() }
-                        }
-                        if users.len() > 0 {
-                            button {
-                                type: "button",
-                                class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
-                                onclick: move |_| is_expense_modal_open.set(true),
-                                "+"
+                                // DateSeparator { label: "Today" }
+                                ExpenseList { expenses: expenses.to_vec() }
                             }
-                            // position: absolute;
-                            //   bottom: 3rem;
-                            // }
-                            AddExpenseModal {
-                                is_expense_modal_open,
-                                users: users.to_vec(),
-                                project_id: props.project_id,
+                            if users.len() > 0 {
+                                button {
+                                    type: "button",
+                                    class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
+                                    onclick: move |_| is_expense_modal_open.set(true),
+                                    "+"
+                                }
+                                // position: absolute;
+                                //   bottom: 3rem;
+                                // }
+                                AddExpenseModal {
+                                    is_expense_modal_open,
+                                    users: users.to_vec(),
+                                    project_id: props.project_id,
+                                }
+                            }
+                        } else {
+                            match summary_resource.read_unchecked().as_ref() {
+                                Some(summary_by_users) => rsx! {
+                                     for (summary_user_id, summary_amount) in summary_by_users {
+                                        // let user: User = users.iter().find(|u| u.id == summary_user_id).unwrap();
+                                        progress {
+                                            class: "progress progress-primary w-56",
+                                            value: "{summary_amount}",
+                                            max: "100"
+                                        }
+                                    }
+                                },
+                                _ => rsx! {},
                             }
                         }
                     }

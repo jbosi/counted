@@ -14,7 +14,7 @@ use axum::middleware::Next;
 #[cfg(feature = "server")]
 use axum::routing::{get, post};
 #[cfg(feature = "server")]
-use axum::{middleware, response::IntoResponse, Router, ServiceExt};
+use axum::{middleware, response::IntoResponse, ServiceExt};
 #[cfg(feature = "server")]
 use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
 #[cfg(feature = "web")]
@@ -48,7 +48,6 @@ fn main() {
 
     #[cfg(feature = "server")]
     {
-        use axum::routing::*;
         tokio::runtime::Runtime::new().unwrap().block_on(async move {
             // Session layer (in-memory store for demo; replace with persistent store in prod)
             let store = MemoryStore::default();
@@ -58,7 +57,7 @@ fn main() {
                 .with_expiry(Expiry::OnSessionEnd);
 
             // Routes
-            let app_routes = Router::new()
+            let app_routes = axum::Router::new()
                 .route("/login", post(login))
                 .route("/logout", post(logout))
                 // protect the SSE route with RequireAuth
@@ -80,14 +79,20 @@ fn app() -> Element {
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+        document::Stylesheet { href: MAIN_CSS }
+        document::Stylesheet { href: TAILWIND_CSS }
+        // document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        main { class: "min-h-screen flex flex-col items-center",
+        main {
+            class: "min-h-screen flex flex-col items-center",
             link {
                 rel: "stylesheet",
-                href: "https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css",
-            }
+                href: "../assets/tailwind.css",
+            },
+            link {
+                rel: "stylesheet",
+                href: "https://cdn.jsdelivr.net/npm/daisyui@5",
+            },
             Router::<Route> {}
         }
     }

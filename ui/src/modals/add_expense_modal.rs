@@ -193,26 +193,29 @@ fn CheckboxFormItem(
     on_amount_change: EventHandler<(usize, f64)>,
 ) -> Element {
     rsx! {
-        div { class: "flex items-center space-x-3 p-3 border rounded-lg",
+        div { class: "flex items-center space-x-3 p-3 border rounded-lg justify-between",
 
-            // Checkbox
-            input {
-                r#type: "checkbox",
-                class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded",
-                checked: item.is_checked,
-                onchange: move |evt| {
-                    on_checkbox_change.call((index, evt.checked()));
-                },
+            div {
+                class: "space-x-3",
+                // Checkbox
+                input {
+                    r#type: "checkbox",
+                    class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded",
+                    checked: item.is_checked,
+                    onchange: move |evt| {
+                        on_checkbox_change.call((index, evt.checked()));
+                    },
+                }
+
+                // Label
+                label { class: "text-sm font-medium text-base-content", "{item.label}" }
             }
-
-            // Label
-            label { class: "text-sm font-medium text-base-content", "{item.label}" }
 
             // Input number
             input {
                 r#type: "number",
                 class: format!(
-                    "flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {}",
+                    "px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 {}",
                     if item.is_checked { "" } else { "bg-gray-500 cursor-not-allowed" },
                 ),
                 disabled: !item.is_checked,

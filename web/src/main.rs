@@ -55,17 +55,15 @@ fn app() -> Element {
         main {
             "data-theme": "cupcake",
             class: "min-h-screen flex flex-col items-center",
-            script {
-                src: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"
-            },
+            script { src: "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" }
             link {
                 rel: "stylesheet",
                 href: "https://cdn.jsdelivr.net/npm/daisyui@5",
-            },
+            }
             link {
                 rel: "stylesheet",
                 href: "https://cdn.jsdelivr.net/npm/daisyui@5/themes.css",
-            },
+            }
             Router::<Route> {}
         }
     }

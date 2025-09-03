@@ -64,10 +64,8 @@ pub fn Payments(props: PaymentsProps) -> Element {
     let mut api_expense_delete_state = use_signal(|| ApiState::<()>::Loading);
 
     rsx! {
-        div {
-            class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-6",
-            section {
-                class: "flex flex-col gap-3",
+        div { class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-6",
+            section { class: "flex flex-col gap-3",
                 if let Some(expense) = &*expense_resource.read() {
                     match expense {
                         Ok(e) => rsx! {
@@ -84,34 +82,34 @@ pub fn Payments(props: PaymentsProps) -> Element {
                                 }
                                 h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
                                 DropdownButton {
-                            first_component: rsx! {
-                                button {
-                                    class: "btn btn-ghost",
-                                    onclick: move |event| async move {
-                                        close_dropdown().await.unwrap_or("".into());
-
-                                        // update_expense_modal_open.set(true);
+                                    first_component: rsx! {
+                                        button {
+                                            class: "btn btn-ghost",
+                                            onclick: move |event| async move {
+                                                close_dropdown().await.unwrap_or("".into());
+                                            },
+                                            "Editer"
+                                        }
                                     },
-                                    "Editer"
-                                }
-                            },
-                            second_component: rsx! {
-                                button {
-                                    class: "btn btn-ghost",
-                                    onclick: move |_| {
-                                        spawn(async move {
-                                            close_dropdown().await.unwrap_or("".into());
-
-                                            match delete_expense_by_id(props.expense_id).await {
-                                                Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
-                                                Err(error) => api_expense_delete_state.set(ApiState::Error(ApiError(error.to_string())))
-                                            };
-                                        });
+                                    second_component: rsx! {
+                                        button {
+                                            class: "btn btn-ghost",
+                                            onclick: move |_| {
+                                                spawn(async move {
+                                                    close_dropdown().await.unwrap_or("".into());
+                                                    match delete_expense_by_id(props.expense_id).await {
+                                                        Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
+                                                        Err(error) => {
+                                                            api_expense_delete_state
+                                                                .set(ApiState::Error(ApiError(error.to_string())))
+                                                        }
+                                                    };
+                                                });
+                                            },
+                                            "Supprimer"
+                                        }
                                     },
-                                    "Supprimer"
                                 }
-                            }
-                        },
                             }
                             span { class: "self-center", "Dépense de {total_payment} €" }
                             match e.clone().description {
@@ -127,8 +125,7 @@ pub fn Payments(props: PaymentsProps) -> Element {
                     }
                 }
             }
-            section {
-                class: "flex flex-col",
+            section { class: "flex flex-col",
                 div { class: "flex",
                     span { "Répartition du paiement" }
                 }

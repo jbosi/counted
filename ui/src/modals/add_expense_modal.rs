@@ -139,13 +139,16 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                     }
                 }
                 if has_expense_amount_mismatch() && has_sent_form() {
-                    CalloutComponent { callout_type: CalloutComponentTypes::error, error_message: "payers_total : {payers_total()} € is different from debtors_total : {debtors_total()} €" }
+                    CalloutComponent {
+                        callout_type: CalloutComponentTypes::error,
+                        error_message: "payers_total : {payers_total()} € is different from debtors_total : {debtors_total()} €",
+                    }
                 }
                 form {
                     method: "dialog",
                     onclick: move |_| props.is_expense_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { type: "button", "X" }
+                    button { r#type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -180,9 +183,11 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                         .collect(),
                                     author_id: users[0].id,
                                 };
-
                                 if has_expense_amount_mismatch() {
-                                    info!("payers_total : {:?} is different from total_debtors : {:?}", payers_total(), debtors_total())
+                                    info!(
+                                        "payers_total : {:?} is different from total_debtors : {:?}",
+                                        payers_total(), debtors_total()
+                                    )
                                 } else {
                                     add_expense(creatable_expense).await.expect("Failed to add new expense");
                                     props.is_expense_modal_open.set(false);
@@ -197,7 +202,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_expense_modal_open.set(false),
-                button { type: "button", "close" }
+                button { r#type: "button", "close" }
             }
         }
     }
@@ -213,8 +218,7 @@ fn CheckboxFormItem(
     rsx! {
         div { class: "flex items-center space-x-3 p-3 border rounded-lg justify-between",
 
-            div {
-                class: "space-x-3",
+            div { class: "space-x-3",
                 // Checkbox
                 input {
                     r#type: "checkbox",

@@ -2,6 +2,8 @@ use dioxus::prelude::*;
 use std::collections::HashMap;
 
 #[cfg(feature = "server")]
+use crate::db::get_db;
+#[cfg(feature = "server")]
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -9,9 +11,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-
-#[cfg(feature = "server")]
-use crate::db::get_db;
+use dioxus::logger::tracing::info;
 use shared::Payment;
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
@@ -53,9 +53,15 @@ pub async fn get_summary_by_user_ids(
 
     payments.iter().for_each(|payment| {
         if let Some(existing_payment) = result.get_mut(&payment.user_id) {
-            *existing_payment += payment.amount;
+            match payment.is_debt {
+                true => *existing_payment -= payment.amount,
+                false => *existing_payment += payment.amount,
+            }
         } else {
-            result.insert(payment.user_id, payment.amount);
+            result.insert(
+                payment.user_id,
+                if payment.is_debt { -payment.amount } else { payment.amount },
+            );
         }
     });
 

@@ -40,7 +40,7 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                     method: "dialog",
                     onclick: move |_| props.modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { type: "button", "X" }
+                    button { r#type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -50,7 +50,7 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                                 let creatable_project: CreatableProject = CreatableProject {
                                     name: project_name(),
                                     description: project_description(),
-                                    currency: None
+                                    currency: None,
                                 };
                                 add_project(creatable_project).await.expect("Failed to add new project");
                                 props.modal_open.set(false)
@@ -64,7 +64,7 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.modal_open.set(false),
-                button { type: "button", "close" }
+                button { r#type: "button", "close" }
             }
         }
     }

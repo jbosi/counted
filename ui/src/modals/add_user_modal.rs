@@ -32,7 +32,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                     method: "dialog",
                     onclick: move |_| props.is_user_modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { type: "button", "X" }
+                    button { r#type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -57,7 +57,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.is_user_modal_open.set(false),
-                button { type: "button", "close" }
+                button { r#type: "button", "close" }
             }
         }
     }

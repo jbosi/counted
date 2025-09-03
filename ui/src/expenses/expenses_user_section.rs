@@ -22,7 +22,7 @@ pub fn ExpensesUserSection(props: ExpensesUserSectionProps) -> Element {
                     Avatar { initials: user.name.get(0..2).unwrap_or(""), size: 12 }
                 }
                 button {
-                    type: "button",
+                    r#type: "button",
                     class: "btn btn-circle btn-outline btn-lg self-center",
                     onclick: move |_| is_user_modal_open.set(true),
                     "+"

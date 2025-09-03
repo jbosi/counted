@@ -55,13 +55,9 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
     match users_resource() {
         None => {
             rsx! {
-                section {
-                    class: "card bg-base-200 w-96 shadow-sm flex items-center",
-                    div {
-                        class: "card-body",
-                        span {
-                            class:"loading loading-spinner loading-m"
-                        }
+                section { class: "card bg-base-200 w-96 shadow-sm flex items-center",
+                    div { class: "card-body",
+                        span { class: "loading loading-spinner loading-m" }
                     }
                 }
             }
@@ -78,16 +74,14 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
                     },
                     div { class: "card-body",
                         div {
-                            div {
-                                class: "flex flex-row justify-between",
-                                h2 { class: "card-title", "{props.title}" },
+                            div { class: "flex flex-row justify-between",
+                                h2 { class: "card-title", "{props.title}" }
                                 DropdownButton {
                                     first_component: rsx! {
                                         button {
                                             class: "btn btn-ghost",
                                             onclick: move |event| async move {
                                                 close_dropdown().await.unwrap_or("".into());
-
                                                 update_project_modal_open.set(true);
                                             },
                                             "Editer"
@@ -99,17 +93,19 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
                                             onclick: move |_| {
                                                 spawn(async move {
                                                     close_dropdown().await.unwrap_or("".into());
-
                                                     match delete_project_by_id(props.id).await {
                                                         Ok(()) => api_project_delete_state.set(ApiState::Success(())),
-                                                        Err(error) => api_project_delete_state.set(ApiState::Error(ApiError(error.to_string())))
+                                                        Err(error) => {
+                                                            api_project_delete_state
+                                                                .set(ApiState::Error(ApiError(error.to_string())))
+                                                        }
                                                     };
                                                 });
                                             },
                                             "Supprimer"
                                         }
-                                    }
-                                },
+                                    },
+                                }
                             }
                             p { "{description}" }
                         }
@@ -140,17 +136,20 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
                         }
                         if let ApiState::Error(error) = api_project_delete_state() {
                             Toast {
-                                error: error,
-                                onclick: move |event| {
-                                    api_project_delete_state.set(ApiState::None)
-                                }
+                                error,
+                                onclick: move |event| { api_project_delete_state.set(ApiState::None) },
                             }
                         }
                     }
                 }
                 UpdateProjectModal {
                     modal_open: update_project_modal_open,
-                    current_project: UpdatableProject { id: props.id, currency: Some(props.currency), description: props.description, name: Some(props.title) }
+                    current_project: UpdatableProject {
+                        id: props.id,
+                        currency: Some(props.currency),
+                        description: props.description,
+                        name: Some(props.title),
+                    },
                 }
             }
         }

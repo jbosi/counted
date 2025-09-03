@@ -1,4 +1,4 @@
-use crate::common::AppHeader;
+use crate::common::{AppHeader, Avatar};
 use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
 use crate::modals::AddExpenseModal;
 use crate::route::Route;
@@ -76,23 +76,28 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 }
                 None => {
                     rsx! {
-                        div {
-                            class: "flex justify-center",
-                            span {
-                                class:"loading loading-spinner loading-m"
-                            }
+                        div { class: "flex justify-center",
+                            span { class: "loading loading-spinner loading-m" }
                         }
                     }
                 }
             }
-            match (users_resource.read_unchecked().as_ref(), expenses_resource.read_unchecked().as_ref()) {
+            match (
+                users_resource.read_unchecked().as_ref(),
+                expenses_resource.read_unchecked().as_ref(),
+            ) {
                 (Some(users), Some(expenses)) => {
                     rsx! {
                         ExpensesUserSection { id: props.project_id, users: users.to_vec() }
-                        SummaryCard { my_total: 625.0, global_total: expenses.iter().map(|e| e.amount).reduce(|acc, expense| acc + expense).unwrap_or(0.0) }
-                        div {
-                            role: "tablist",
-                            class: "tabs tabs-box justify-center",
+                        SummaryCard {
+                            my_total: 625.0,
+                            global_total: expenses
+                                .iter()
+                                .map(|e| e.amount)
+                                .reduce(|acc, expense| acc + expense)
+                                .unwrap_or(0.0),
+                        }
+                        div { role: "tablist", class: "tabs tabs-box justify-center",
                             a {
                                 role: "tab",
                                 class: "tab",
@@ -107,19 +112,18 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                                 onclick: move |_| { active_tab.set(ActiveTab::Summary) },
                                 "Equilibre"
                             }
-                        },
+                        }
 
                         if active_tab() == ActiveTab::ExpensesList {
                             // Expense list
-                            div {
-                                class: "mt-6",
+                            div { class: "mt-6",
 
                                 // DateSeparator { label: "Today" }
                                 ExpenseList { expenses: expenses.to_vec() }
                             }
                             if users.len() > 0 {
                                 button {
-                                    type: "button",
+                                    r#type: "button",
                                     class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
                                     onclick: move |_| is_expense_modal_open.set(true),
                                     "+"
@@ -135,16 +139,38 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                             }
                         } else {
                             match summary_resource.read_unchecked().as_ref() {
-                                Some(summary_by_users) => rsx! {
-                                     for (summary_user_id, summary_amount) in summary_by_users {
-                                        // let user: User = users.iter().find(|u| u.id == summary_user_id).unwrap();
-                                        progress {
-                                            class: "progress progress-primary w-56",
-                                            value: "{summary_amount}",
-                                            max: "100"
+                                Some(summary_by_users) => {
+                                    let max_amount = summary_by_users
+                                        .iter()
+                                        .map(|(_, a)| a.abs())
+                                        .max_by(|a, b| a.partial_cmp(b).unwrap())
+                                        .unwrap_or(1.0);
+                                    rsx! {
+                                        section {
+                                            class: "flex flex-col gap-2",
+                                            for (summary_user_id , summary_amount) in summary_by_users {
+                                                div {
+                                                    class: "flex gap-2 justify-between",
+                                                    div {
+                                                        class: "flex gap-2",
+                                                        Avatar { initials: users.iter().find(|u| u.id == *summary_user_id).unwrap().name.get(0..2).unwrap_or(""), size: 12 },
+                                                        div {
+                                                            class: "self-center",
+                                                            span { if summary_amount.is_sign_negative() {"{summary_amount} €"} else {"+{summary_amount} €"} }
+                                                        }
+                                                    }
+                                                    progress {
+                                                        class: if *summary_amount > 0.0 { "progress progress-primary self-center" } else { "progress progress-error self-center" },
+                                                        style: if *summary_amount < 0.0 { "transform: translateX(-100%);" },
+                                                        style: "width: {(summary_amount.abs() * 30.0) / max_amount}%",
+                                                        value: "100",
+                                                        max: "100",
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
-                                },
+                                }
                                 _ => rsx! {},
                             }
                         }
@@ -152,11 +178,8 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 }
                 _ => {
                     rsx! {
-                        div {
-                            class: "flex justify-center mt-20",
-                            span {
-                                class:"loading loading-spinner loading-xl"
-                            }
+                        div { class: "flex justify-center mt-20",
+                            span { class: "loading loading-spinner loading-xl" }
                         }
                     }
                 }

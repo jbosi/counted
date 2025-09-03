@@ -9,7 +9,8 @@ pub struct ToastProps {
 #[component]
 pub fn Toast(props: ToastProps) -> Element {
     rsx! {
-        div { class: "toast toast-end",
+        div {
+            class: "toast toast-end",
             onclick: move |event| {
                 event.stop_propagation();
                 props.onclick.call(event)

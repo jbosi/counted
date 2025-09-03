@@ -113,11 +113,11 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                                 "Equilibre"
                             }
                         }
-
+                        
                         if active_tab() == ActiveTab::ExpensesList {
                             // Expense list
                             div { class: "mt-6",
-
+                        
                                 // DateSeparator { label: "Today" }
                                 ExpenseList { expenses: expenses.to_vec() }
                             }
@@ -146,17 +146,28 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                                         .max_by(|a, b| a.partial_cmp(b).unwrap())
                                         .unwrap_or(1.0);
                                     rsx! {
-                                        section {
-                                            class: "flex flex-col gap-2",
+                                        section { class: "flex flex-col gap-2",
                                             for (summary_user_id , summary_amount) in summary_by_users {
-                                                div {
-                                                    class: "flex gap-2 justify-between",
-                                                    div {
-                                                        class: "flex gap-2",
-                                                        Avatar { initials: users.iter().find(|u| u.id == *summary_user_id).unwrap().name.get(0..2).unwrap_or(""), size: 12 },
-                                                        div {
-                                                            class: "self-center",
-                                                            span { if summary_amount.is_sign_negative() {"{summary_amount} €"} else {"+{summary_amount} €"} }
+                                                div { class: "flex gap-2 justify-between",
+                                                    div { class: "flex gap-2",
+                                                        Avatar {
+                                                            initials: users
+                                                                .iter()
+                                                                .find(|u| u.id == *summary_user_id)
+                                                                .unwrap()
+                                                                .name
+                                                                .get(0..2)
+                                                                .unwrap_or(""),
+                                                            size: 12,
+                                                        }
+                                                        div { class: "self-center",
+                                                            span {
+                                                                if summary_amount.is_sign_negative() {
+                                                                    "{summary_amount} €"
+                                                                } else {
+                                                                    "+{summary_amount} €"
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                     progress {

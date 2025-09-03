@@ -24,9 +24,7 @@ pub fn CalloutComponent(props: CalloutComponentProps) -> Element {
     };
 
     rsx! {
-        div {
-            role: "alert",
-            class: "alert alert-{callout_type} p-3 mt-2 mb-2",
+        div { role: "alert", class: "alert alert-{callout_type} p-3 mt-2 mb-2",
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
                 class: "h-6 w-6 shrink-0 stroke-current",

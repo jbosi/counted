@@ -28,8 +28,7 @@ pub fn Projects() -> Element {
     );
 
     rsx! {
-        div {
-            class: "container p-4 max-w-md rounded-xl flex flex-col items-center",
+        div { class: "container p-4 max-w-md rounded-xl flex flex-col items-center",
             h1 { class: "text-4xl font-light mb-10", "Bonjour Jonathan" }
 
             div { class: "space-y-4 min-w-md",
@@ -46,7 +45,7 @@ pub fn Projects() -> Element {
                 }
             }
             button {
-                type: "button",
+                r#type: "button",
                 class: "btn btn-circle btn-outline btn-lg",
                 onclick: move |_| modal_open.set(true),
                 "+"

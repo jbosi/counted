@@ -46,7 +46,7 @@ pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
                     method: "dialog",
                     onclick: move |_| props.modal_open.set(false),
                     class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { type: "button", "X" }
+                    button { r#type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
                     button {
@@ -57,9 +57,11 @@ pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
                                     id: props.current_project.id,
                                     name: project_name(),
                                     description: project_description(),
-                                    currency: None
+                                    currency: None,
                                 };
-                                update_project_by_id(updatable_project).await.expect("Failed to update project");
+                                update_project_by_id(updatable_project)
+                                    .await
+                                    .expect("Failed to update project");
                                 props.modal_open.set(false)
                             });
                         },
@@ -71,7 +73,7 @@ pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
                 method: "dialog",
                 class: "modal-backdrop",
                 onclick: move |_| props.modal_open.set(false),
-                button { type: "button", "close" }
+                button { r#type: "button", "close" }
             }
         }
     }

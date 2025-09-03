@@ -23,7 +23,7 @@ pub fn AppHeader(props: AppHeaderProps) -> Element {
                 h1 { class: "text-xl font-bold", "{props.title}" }
             }
             div { class: "navbar-end",
-                button { type: "button", class: "btn btn-ghost btn-circle",
+                button { r#type: "button", class: "btn btn-ghost btn-circle",
                     svg {
                         class: "w-6 h-6",
                         fill: "none",

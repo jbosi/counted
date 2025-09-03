@@ -14,21 +14,14 @@ pub fn DropdownButton(mut props: DropdownButtonProps) -> Element {
             onclick: move |event| {
                 event.stop_propagation();
             },
-            summary {
-                class: "btn btn-ghost btn-circle",
-                "..."
-            },
+            summary { class: "btn btn-ghost btn-circle", "..." }
             ul {
                 class: "menu dropdown-content rounded-box z-1 w-52 p-2 shadow-sm",
                 popover: "",
                 id: "popover-project-dot",
                 style: "position-anchor:--anchor-project-dot",
-                li {
-                    {props.first_component}
-                }
-                li {
-                    {props.second_component}
-                }
+                li { {props.first_component} }
+                li { {props.second_component} }
             }
         }
     }

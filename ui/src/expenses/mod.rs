@@ -12,3 +12,6 @@ pub use summary_card::SummaryCard;
 
 mod expenses_user_section;
 pub use expenses_user_section::ExpensesUserSection;
+
+mod expense_bar_chart;
+pub use expense_bar_chart::ExpenseBarChartComponent;

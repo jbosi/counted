@@ -1,5 +1,5 @@
 use crate::common::{AppHeader, Avatar};
-use crate::expenses::{ExpenseList, ExpensesUserSection, SummaryCard};
+use crate::expenses::{ExpenseBarChartComponent, ExpenseList, ExpensesUserSection, SummaryCard};
 use crate::modals::AddExpenseModal;
 use crate::route::Route;
 use crate::utils::listen_to_sse_events;
@@ -148,35 +148,10 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                                     rsx! {
                                         section { class: "flex flex-col gap-2",
                                             for (summary_user_id , summary_amount) in summary_by_users {
-                                                div { class: "flex gap-2 justify-between",
-                                                    div { class: "flex gap-2",
-                                                        Avatar {
-                                                            initials: users
-                                                                .iter()
-                                                                .find(|u| u.id == *summary_user_id)
-                                                                .unwrap()
-                                                                .name
-                                                                .get(0..2)
-                                                                .unwrap_or(""),
-                                                            size: 12,
-                                                        }
-                                                        div { class: "self-center",
-                                                            span {
-                                                                if summary_amount.is_sign_negative() {
-                                                                    "{summary_amount} €"
-                                                                } else {
-                                                                    "+{summary_amount} €"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    progress {
-                                                        class: if *summary_amount > 0.0 { "progress progress-primary self-center" } else { "progress progress-error self-center" },
-                                                        style: if *summary_amount < 0.0 { "transform: translateX(-100%);" },
-                                                        style: "width: {(summary_amount.abs() * 30.0) / max_amount}%",
-                                                        value: "100",
-                                                        max: "100",
-                                                    }
+                                                ExpenseBarChartComponent {
+                                                    user: users.iter().find(|u| u.id == *summary_user_id).unwrap().clone(),
+                                                    summary_amount: *summary_amount,
+                                                    max_amount,
                                                 }
                                             }
                                         }

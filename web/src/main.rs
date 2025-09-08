@@ -15,6 +15,16 @@ use web_sys::wasm_bindgen::prelude::Closure;
 use web_sys::wasm_bindgen::JsCast;
 use web_sys::EventSource;
 
+use shared::sse::EventSSE::{
+    ExpenseCreated, ExpenseDeleted, ExpenseModified, PaymentCreated, PaymentDeleted,
+    PaymentModified, ProjectCreated, ProjectDeleted, ProjectModified, UserCreated, UserDeleted,
+    UserModified,
+};
+use ui::utils::{
+    init_global_signals_for_sse_events, SSE_EVENT_SOURCE, SSE_EXPENSE_UPDATE, SSE_PAYMENT_UPDATE,
+    SSE_PROJECT_UPDATE, SSE_USER_UPDATE,
+};
+
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 // const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
@@ -42,6 +52,26 @@ fn main() {
             axum::serve(listener, app_routes.into_make_service()).await.unwrap();
         });
     }
+
+    *SSE_EVENT_SOURCE.write() =
+        EventSource::new("/sse").expect("impossible d'ouvrir EventSource '/sse'");
+
+    init_global_signals_for_sse_events(
+        Vec::from([UserCreated, UserDeleted, UserModified]),
+        &SSE_USER_UPDATE,
+    );
+    init_global_signals_for_sse_events(
+        Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
+        &SSE_PROJECT_UPDATE,
+    );
+    init_global_signals_for_sse_events(
+        Vec::from([ExpenseCreated, ExpenseDeleted, ExpenseModified]),
+        &SSE_EXPENSE_UPDATE,
+    );
+    init_global_signals_for_sse_events(
+        Vec::from([PaymentCreated, PaymentDeleted, PaymentModified]),
+        &SSE_PAYMENT_UPDATE,
+    );
 }
 
 #[component]

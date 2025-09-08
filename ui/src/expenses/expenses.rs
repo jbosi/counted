@@ -2,14 +2,16 @@ use crate::common::{AppHeader, Avatar};
 use crate::expenses::{ExpenseBarChartComponent, ExpenseList, ExpensesUserSection, SummaryCard};
 use crate::modals::AddExpenseModal;
 use crate::route::Route;
-use crate::utils::listen_to_sse_events;
+use crate::utils::{SSE_EXPENSE_UPDATE, SSE_USER_UPDATE};
 use api::expenses::get_expenses_by_project_id;
 use api::payments::get_summary_by_user_ids;
 use api::projects::get_project;
 use api::users::get_users_by_project_id;
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
-use shared::sse::EventSSE::{ExpenseCreated, ExpenseDeleted, ExpenseModified};
+use shared::sse::EventSSE::{
+    ExpenseCreated, ExpenseDeleted, ExpenseModified, UserCreated, UserDeleted, UserModified,
+};
 use shared::view_models::users_project_view_model::UsersProject;
 use shared::{Expense, User};
 use std::collections::HashMap;
@@ -29,10 +31,12 @@ enum ActiveTab {
 #[component]
 pub fn Expenses(props: ExpensesProps) -> Element {
     let mut is_expense_modal_open = use_signal(|| false);
-    let mut expense_event_any = use_signal(|| String::new());
     let mut active_tab: Signal<ActiveTab> = use_signal(|| ActiveTab::ExpensesList);
 
     let users_resource = use_resource(move || async move {
+        // rerun the resource when event is fired
+        let _ = SSE_USER_UPDATE();
+
         get_users_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
     });
 
@@ -45,13 +49,13 @@ pub fn Expenses(props: ExpensesProps) -> Element {
 
     let expenses_resource = use_resource(move || async move {
         // rerun the resource when event is fired
-        let _ = expense_event_any();
+        let _ = SSE_EXPENSE_UPDATE();
 
         get_expenses_by_project_id(props.project_id).await.unwrap_or_else(|_| vec![])
     });
 
     let summary_resource: Resource<HashMap<i32, f64>> = use_resource(move || async move {
-        let _ = expense_event_any();
+        let _ = SSE_EXPENSE_UPDATE();
 
         match users_resource.read_unchecked().as_ref() {
             None => HashMap::new(),
@@ -60,11 +64,6 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                 .unwrap_or_default(),
         }
     });
-
-    listen_to_sse_events(
-        Vec::from([ExpenseCreated, ExpenseDeleted, ExpenseModified]),
-        expense_event_any,
-    );
 
     rsx! {
         div { class: "container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col",
@@ -113,11 +112,11 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                                 "Equilibre"
                             }
                         }
-                        
+
                         if active_tab() == ActiveTab::ExpensesList {
                             // Expense list
                             div { class: "mt-6",
-                        
+
                                 // DateSeparator { label: "Today" }
                                 ExpenseList { expenses: expenses.to_vec() }
                             }

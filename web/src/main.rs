@@ -1,4 +1,6 @@
+use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
+use std::pin::Pin;
 use ui::route::Route;
 
 use shared::sse::EventSSE;
@@ -11,6 +13,8 @@ use api::sse::{AppState, Broadcaster};
 use axum::routing::get;
 #[cfg(feature = "server")]
 use axum::{Router, ServiceExt};
+#[cfg(feature = "server")]
+use futures::StreamExt;
 use web_sys::wasm_bindgen::prelude::Closure;
 use web_sys::wasm_bindgen::JsCast;
 use web_sys::EventSource;
@@ -20,14 +24,17 @@ use shared::sse::EventSSE::{
     PaymentModified, ProjectCreated, ProjectDeleted, ProjectModified, UserCreated, UserDeleted,
     UserModified,
 };
+
+#[cfg(feature = "server")]
+use ui::utils::init_global_signals_for_sse_events;
 use ui::utils::{
-    init_global_signals_for_sse_events, SSE_EVENT_SOURCE, SSE_EXPENSE_UPDATE, SSE_PAYMENT_UPDATE,
-    SSE_PROJECT_UPDATE, SSE_USER_UPDATE,
+    SSE_EVENT_SOURCE, SSE_EXPENSE_UPDATE, SSE_PAYMENT_UPDATE, SSE_PROJECT_UPDATE, SSE_USER_UPDATE,
 };
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 // const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+pub static SSE_GLOBAL_SIGNAL: GlobalSignal<String> = Signal::global(|| String::new());
 
 fn main() {
     // Set the logger ahead of time since we don't use `dioxus::launch` on the server
@@ -50,28 +57,43 @@ fn main() {
             let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
             axum::serve(listener, app_routes.into_make_service()).await.unwrap();
+
+            let mut message_stream = init_global_signals_for_sse_events();
+
+            while let Some(result) = message_stream.as_mut().next().await {
+                match result {
+                    Ok(message) => {
+                        info!("{:?}", message);
+                        *SSE_GLOBAL_SIGNAL.write() = message;
+                    }
+                    Err(e) => {
+                        // Handle error
+                        eprintln!("Stream error: {}", e);
+                        break;
+                    }
+                }
+            }
         });
     }
 
     *SSE_EVENT_SOURCE.write() =
         EventSource::new("/sse").expect("impossible d'ouvrir EventSource '/sse'");
-
-    init_global_signals_for_sse_events(
-        Vec::from([UserCreated, UserDeleted, UserModified]),
-        &SSE_USER_UPDATE,
-    );
-    init_global_signals_for_sse_events(
-        Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
-        &SSE_PROJECT_UPDATE,
-    );
-    init_global_signals_for_sse_events(
-        Vec::from([ExpenseCreated, ExpenseDeleted, ExpenseModified]),
-        &SSE_EXPENSE_UPDATE,
-    );
-    init_global_signals_for_sse_events(
-        Vec::from([PaymentCreated, PaymentDeleted, PaymentModified]),
-        &SSE_PAYMENT_UPDATE,
-    );
+    // init_global_signals_for_sse_events(
+    //     Vec::from([UserCreated, UserDeleted, UserModified]),
+    //     &SSE_USER_UPDATE,
+    // );
+    // init_global_signals_for_sse_events(
+    //     Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
+    //     &SSE_PROJECT_UPDATE,
+    // );
+    // init_global_signals_for_sse_events(
+    //     Vec::from([ExpenseCreated, ExpenseDeleted, ExpenseModified]),
+    //     &SSE_EXPENSE_UPDATE,
+    // );
+    // init_global_signals_for_sse_events(
+    //     Vec::from([PaymentCreated, PaymentDeleted, PaymentModified]),
+    //     &SSE_PAYMENT_UPDATE,
+    // );
 }
 
 #[component]

@@ -4,6 +4,7 @@ use std::{convert::Infallible, sync::Arc};
 
 #[cfg(feature = "server")]
 use axum::response::sse::{Event, KeepAlive, Sse};
+use dioxus::logger::tracing::info;
 #[cfg(feature = "server")]
 use futures_util::stream::Stream;
 #[cfg(feature = "server")]
@@ -57,6 +58,6 @@ impl Broadcaster {
 #[cfg(feature = "server")]
 pub async fn sse_handler() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let stream = BROADCASTER.new_client().await;
-
+    info!("ok");
     Sse::new(stream).keep_alive(KeepAlive::default())
 }

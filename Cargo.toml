@@ -1,29 +1,17 @@
 [workspace]
 resolver = "2"
 members = [
-    "ui",
-    "web",
-    "desktop",
-    "mobile",
-    "api",
+    "packages/ui",
+    "packages/web",
+    "packages/desktop",
+    "packages/mobile",
+    "packages/api",
 ]
 
 [workspace.dependencies]
-dioxus = { version = "0.6.3" }
+dioxus = { version = "0.7.1" }
 
 # workspace
-ui = { path = "ui" }
-api = { path = "api" }
-shared = { path = "shared" }
-
-[profile]
-
-[profile.wasm-dev]
-inherits = "dev"
-opt-level = 1
-
-[profile.server-dev]
-inherits = "dev"
-
-[profile.android-dev]
-inherits = "dev"
+ui = { path = "packages/ui" }
+api = { path = "packages/api" }
+shared = { path = "packages/shared" }

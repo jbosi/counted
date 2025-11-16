@@ -2,11 +2,11 @@
 # will have compiled files and executables
 /target
 /node_modules
-/mobile/target
-/web/target
-/ui/target
-/desktop/target
-/api/target
+/packages/mobile/target
+/packages/web/target
+/packages/ui/target
+/packages/desktop/target
+/packages/api/target
 
 .idea
 .DS_Store

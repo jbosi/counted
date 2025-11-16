@@ -1,52 +1,22 @@
-# Notes
-
-docker compose up -d
-
-## DB
-
-Connection à la DB : 
-docker ps (pour récup l'id)
-docker exec -it **ID** bash
-psql -U hcount_user -d hcount -h localhost
-
-pour jouer un fichier : psql -U hcount_user -d hcount -h localhost -f schema.sql
-
-user: hcount_user
-password : supersecret
-
-## Frontend
-cd frontend
- <!-- dx build --package frontend --release -->
- <!-- dx serve --package frontend --port 3000 -- -- --proxy "http://localhost:8080/api=>/api" -->
-dx serve --package frontend --port 3000
-
-## Backend
-cd backend
-cargo run --package backend
-
-http://localhost:3000
-
-## Docker
-### Copier le script dans le conteneur et l'executer
-docker cp schema.sql hcount-db-1:/tmp/schema.sql
-docker exec -it hcount-db-1 psql -U hcount_user -d hcount -f /tmp/schema.sql
-
 # Development
 
 Your new workspace contains a member crate for each of the web, desktop and mobile platforms, a `ui` crate for shared components and a `api` crate for shared backend logic:
 
 ```
 your_project/
-├─ web/
-│  ├─ ... # Web specific UI/logic
-├─ desktop/
-│  ├─ ... # Desktop specific UI/logic
-├─ mobile/
-│  ├─ ... # Mobile specific UI/logic
-├─ api/
-│  ├─ ... # All shared server logic
-├─ ui/
-│  ├─ ... # Component shared between multiple platforms
+├─ README.md
+├─ Cargo.toml
+└─ packages/
+   ├─ web/
+   │  └─ ... # Web specific UI/logic
+   ├─ desktop/
+   │  └─ ... # Desktop specific UI/logic
+   ├─ mobile/
+   │  └─ ... # Mobile specific UI/logic
+   ├─ api/
+   │  └─ ... # All shared server logic
+   └─  ui/
+      └─ ... # Component shared between multiple platforms
 ```
 
 ## Platform crates
@@ -90,16 +60,6 @@ api/
 │  ├─ lib.rs # Exports a server function that echos the input string
 ```
 
-### Tailwind
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
-
-```bash
-npx tailwindcss -i ./input.css -o web/assets/tailwind.css --watch
-```
-
-
 ### Serving Your App
 
 Navigate to the platform crate of your choice:
@@ -114,8 +74,3 @@ dx serve
 ```
 
 
-### SQLX
-
-sqlx migrate add -r <name>
-sqlx migrate run
-sqlx migrate revert

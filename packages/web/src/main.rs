@@ -23,25 +23,28 @@ fn main() {
     // Set the logger ahead of time since we don't use `dioxus::launch` on the server
     dioxus::logger::initialize_default();
 
-    #[cfg(feature = "web")]
-    // Hydrate the application on the client
-    LaunchBuilder::web().launch(app);
+    // #[cfg(feature = "web")]
+    // // Hydrate the application on the client
+    // LaunchBuilder::web().launch(app);
+    //
+    // #[cfg(feature = "server")]
+    // {
+    //     use axum::routing::*;
+    //     tokio::runtime::Runtime::new().unwrap().block_on(async move {
+    //         let app_routes = Router::new()
+    //             .serve_dioxus_application(ServeConfig::new(), app)
+    //             .route("/sse", get(sse_handler));
+    //
+    //         // serve the app using the address passed by the CLI
+    //         let addr = dioxus::cli_config::fullstack_address_or_localhost();
+    //         let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    //
+    //         axum::serve(listener, app_routes.into_make_service()).await.unwrap();
+    //     });
+    // }
 
-    #[cfg(feature = "server")]
-    {
-        use axum::routing::*;
-        tokio::runtime::Runtime::new().unwrap().block_on(async move {
-            let app_routes = Router::new()
-                .serve_dioxus_application(ServeConfig::new().unwrap(), app)
-                .route("/sse", get(sse_handler));
+    dioxus::launch(app);
 
-            // serve the app using the address passed by the CLI
-            let addr = dioxus::cli_config::fullstack_address_or_localhost();
-            let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-
-            axum::serve(listener, app_routes.into_make_service()).await.unwrap();
-        });
-    }
 }
 
 #[component]

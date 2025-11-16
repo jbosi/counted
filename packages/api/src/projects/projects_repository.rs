@@ -27,7 +27,9 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
     let projects: ProjectDto = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_one(&pool)
-        .await?;
+        .await
+        .context("Failed get project with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     Ok(projects)
 }
@@ -39,7 +41,9 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let projects: Vec<ProjectDto> =
         sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
             .fetch_all(&pool)
-            .await?;
+            .await
+            .context("Failed to get projects")
+            .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     Ok(projects)
 }
@@ -55,7 +59,9 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
         "EUR"
     )
     .fetch_one(&pool)
-    .await?;
+    .await
+    .context("Failed to add project")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -98,7 +104,9 @@ pub async fn update_project_by_id(
         new_project.id
     )
     .fetch_one(&pool)
-    .await?;
+    .await
+    .context("Failed to update project")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     BROADCASTER
         .broadcast(
@@ -115,7 +123,10 @@ pub async fn update_project_by_id(
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool).await?;
+    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool)
+        .await
+        .context("Failed to fetch project with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(

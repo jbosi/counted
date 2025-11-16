@@ -18,14 +18,19 @@ use shared::sse::EventSSE;
 use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+#[cfg(feature = "server")]
+use anyhow::Context;
 
 #[server()]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    // TODO Passer directement la struct en 1er argument
     let users: Vec<User> =
-        sqlx::query_as("SELECT id, name, balance, created_at FROM users").fetch_all(&pool).await?;
+        sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+            .fetch_all(&pool)
+            .await
+            .context("Failed to fetch users from database")
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
 }
@@ -37,7 +42,9 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     let user_id: i32 =
         sqlx::query_scalar!("INSERT INTO users(name) VALUES ($1) RETURNING id", user.name)
             .fetch_one(&pool)
-            .await?;
+            .await
+            .context("Failed to insert user into database")
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     sqlx::query!(
         "INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)",
@@ -45,7 +52,9 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
         user.project_id
     )
     .execute(&pool)
-    .await?;
+    .await
+    .context("Failed to associate user with project")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -65,7 +74,9 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
     let user_ids: Vec<i32> =
         sqlx::query!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
             .fetch_all(&pool)
-            .await?
+            .await
+            .context("Failed to fetch user IDs for project")
+            .map_err(|e| ServerFnError::new(e.to_string()))?
             .into_iter()
             .map(|row| row.user_id)
             .collect();
@@ -84,18 +95,11 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
     separated.push_unseparated(")");
 
     let query = query_builder.build_query_as::<User>();
-    let users: Vec<User> = query.fetch_all(&pool).await?;
-
-    // TODO
-    // const QUERY: &str = "SELECT u.id, u.name, u.balance, u.created_at
-    //     FROM users u
-    //     JOIN user_projects up ON up.user_id = u.id
-    //     JOIN projects p ON p.id = up.project_id
-    //     WHERE project_id = '553b5fc6-3e91-4c85-af6f-5d7a2e6bf9ff'";
-    //
-    // let users: Vec<User> = sqlx::query(QUERY)
-    //     .fetch_all(&pool)
-    //     .await?;
+    let users: Vec<User> = query
+        .fetch_all(&pool)
+        .await
+        .context("Failed to fetch users by IDs")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
 }

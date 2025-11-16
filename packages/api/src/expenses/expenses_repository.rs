@@ -49,7 +49,9 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
         expense.clone().description
     )
     .fetch_one(&pool)
-    .await?
+    .await
+    .context("Failed to create expense")
+    .map_err(|e| ServerFnError::new(e.to_string()))?
     .id;
 
     let payers = Some(expense.clone().payers);
@@ -62,20 +64,6 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
     let user_ids: Vec<i32> = creatable_payments.iter().map(|p| p.user_id).collect();
     let is_debts: Vec<bool> = creatable_payments.iter().map(|p| p.is_debt).collect();
     let amounts: Vec<f64> = creatable_payments.iter().map(|p| p.amount).collect();
-
-    let sql = r"
-        INSERT INTO payments
-         (
-            expense_id,
-            user_id,
-            is_debt,
-            amount
-        ) SELECT * FROM UNNEST(
-            $1::INT4[],
-            $2::INT4[],
-            $3::BOOL[],
-            $4::FLOAT8[]
-        ) RETURNING id";
 
     sqlx::query!(
         r"
@@ -97,7 +85,9 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
         &amounts
     )
     .fetch_all(&pool)
-    .await?;
+    .await
+    .context("Failed add payments")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -120,7 +110,9 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
         WHERE project_id = $1",
         project_id)
         .fetch_all(&pool)
-        .await?;
+        .await
+        .context("Failed to get expenses")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     Ok(expenses)
 }
@@ -132,7 +124,9 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
         Expense,
         "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1", expense_id)
         .fetch_one(&pool)
-        .await?;
+        .await
+        .context("Failed to get expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     Ok(expense)
 }
@@ -141,8 +135,12 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id).execute(&pool).await?;
-    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id).execute(&pool).await?;
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id).execute(&pool).await
+        .context("Failed to delete payment")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id).execute(&pool).await
+        .context("Failed to delete expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(

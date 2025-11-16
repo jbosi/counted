@@ -28,7 +28,9 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
         expense_id
     )
     .fetch_all(&pool)
-    .await?;
+    .await
+    .context("Failed get payments")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(payments)
 }
@@ -47,7 +49,9 @@ pub async fn get_summary_by_user_ids(
         &user_ids[..] // a bug of the parameter typechecking code requires all array parameters to be slices
     )
     .fetch_all(&pool)
-    .await?;
+    .await
+    .context("Failed get payments")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;;
 
     let mut result: HashMap<i32, f64> = HashMap::new();
 

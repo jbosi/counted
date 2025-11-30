@@ -20,7 +20,7 @@ use axum::{
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
+#[get("/api/projects/{project_id}")]
 pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -34,7 +34,7 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
     Ok(projects)
 }
 
-#[server()]
+#[get("/api/projects")]
 pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -48,7 +48,7 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     Ok(projects)
 }
 
-#[server()]
+#[post("/api/projects")]
 pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -75,6 +75,7 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
 }
 
 #[server()]
+// #[patch("/api/projects")]
 pub async fn update_project_by_id(
     updatable_project: UpdatableProject,
 ) -> Result<ProjectDto, ServerFnError> {
@@ -119,7 +120,7 @@ pub async fn update_project_by_id(
     Ok(update_project)
 }
 
-#[server()]
+#[delete("/api/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 

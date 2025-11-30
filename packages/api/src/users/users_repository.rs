@@ -21,7 +21,7 @@ use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 #[cfg(feature = "server")]
 use anyhow::Context;
 
-#[server()]
+#[get("/api/users")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -35,7 +35,7 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     Ok(users)
 }
 
-#[server()]
+#[post("/api/users")]
 pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -67,7 +67,7 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     Ok(user_id)
 }
 
-#[server()]
+#[get("/api/projects/{project_id}/users")]
 pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 

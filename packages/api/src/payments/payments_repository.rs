@@ -16,7 +16,7 @@ use shared::Payment;
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
+#[get("/api/expenses/{expense_id}/payments")]
 pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -35,7 +35,7 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
     Ok(payments)
 }
 
-#[server()]
+#[get("/api/expenses/summary")]
 pub async fn get_summary_by_user_ids(
     user_ids: Vec<i32>,
 ) -> Result<HashMap<i32, f64>, ServerFnError> {

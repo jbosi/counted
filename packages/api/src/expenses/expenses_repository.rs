@@ -19,7 +19,7 @@ use shared::{CreatableExpense, Expense, ExpenseType, NewPayment, Payment, UserAm
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
+#[post("/api/expenses")]
 pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -100,7 +100,7 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
     Ok(created_expense_id)
 }
 
-#[server()]
+#[get("/api/projects/{project_id}/expenses")]
 pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
     let expenses: Vec<Expense> = sqlx::query_as!(
@@ -117,7 +117,7 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
     Ok(expenses)
 }
 
-#[server()]
+#[get("/api/expenses/{expense_id}")]
 pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
     let expense: Expense = sqlx::query_as!(
@@ -131,7 +131,7 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
     Ok(expense)
 }
 
-#[server()]
+#[delete("/api/expenses/{expense_id}")]
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 

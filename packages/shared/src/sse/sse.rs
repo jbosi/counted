@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
 pub enum EventSSE {
     UserCreated,
     UserDeleted,
@@ -14,6 +14,7 @@ pub enum EventSSE {
     PaymentCreated,
     PaymentDeleted,
     PaymentModified,
+    None
 }
 
 impl fmt::Display for EventSSE {
@@ -31,6 +32,7 @@ impl fmt::Display for EventSSE {
             EventSSE::PaymentCreated => write!(f, "PaymentCreated"),
             EventSSE::PaymentDeleted => write!(f, "PaymentDeleted"),
             EventSSE::PaymentModified => write!(f, "PaymentModified"),
+            EventSSE::None => write!(f, ""),
         }
     }
 }

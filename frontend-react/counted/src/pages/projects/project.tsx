@@ -16,11 +16,19 @@ export interface User {
 	name: string;
 }
 
+function getProgressPercentage(current_reimbursements: number, total_reimbursements: number): number {
+	if (current_reimbursements === 0 || total_reimbursements === 0) {
+		return 0;
+	}
+
+	return Math.round((current_reimbursements / total_reimbursements) * 100);
+}
+
 export function Project(props: ProjectProps) {
 	const [moreUsers, setMoreUsers] = useState<number>(0);
 	const { data, error, isLoading } = useUsersByProjectId(props.id);
 
-	const progressPercentage = Math.round((props.current_reimbursements / props.total_reimbursements) * 100);
+	const progressPercentage = getProgressPercentage(props.current_reimbursements, props.total_reimbursements);
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -59,13 +67,13 @@ export function Project(props: ProjectProps) {
 					{/* Bottom actions */}
 					<div className="card-actions justify-between">
 						{/* Status badge */}
-						<div className="flex gap-2 items-center">
+						<div className="flex gap-1 items-center">
 							<div className="status status-success"></div>
 							<span>En cours</span>
 						</div>
 
 						{/* Avatars */}
-						<div className="flex gap-2 items-center">
+						<div className="flex gap-1 items-center">
 							{data.slice(0, 3).map((user) => (
 								<Avatar key={user.id} initials={user.name.slice(0, 2)} />
 							))}
@@ -81,7 +89,7 @@ export function Project(props: ProjectProps) {
 type AvatarProps = { initials: string };
 const Avatar = memo((props: AvatarProps) => {
 	return (
-		<div className="avatar placeholder">
+		<div className="avatar avatar-placeholder">
 			<div className="bg-neutral text-neutral-content rounded-full w-8">{props.initials}</div>
 		</div>
 	);

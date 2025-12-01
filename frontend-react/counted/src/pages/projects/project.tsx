@@ -1,5 +1,6 @@
 import { memo, useState } from 'react';
 import { useUsersByProjectId } from '../../hooks/useUsers';
+import { DropdownButton } from './components/dropdown';
 
 export interface ProjectProps {
 	id: string;
@@ -49,6 +50,7 @@ export function Project(props: ProjectProps) {
 					{/* Title + dropdown actions */}
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{props.title}</h2>
+						<DropdownButton />
 					</div>
 
 					<p>{props.description}</p>

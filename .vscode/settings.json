@@ -2,26 +2,26 @@
 	"css.validate": false,
 	"[html]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "prettier.prettier-vscode"
 	},
 	"[json]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "prettier.prettier-vscode"
 	},
 	"[typescriptreact]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "prettier.prettier-vscode"
 	},
 	"[typescript]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.defaultFormatter": "prettier.prettier-vscode",
 		"editor.codeActionsOnSave": {
 			"source.fixAll.eslint": "explicit"
 		}
 	},
 	"[javascript]": {
 		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "prettier.prettier-vscode"
 	},
 	"editor.detectIndentation": false,
 	"editor.formatOnSave": true, // impacts all files, including .html, .js, .ts, .scss and .json files

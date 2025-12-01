@@ -1,7 +1,7 @@
 import type { ProjectDto } from '../types/project.model';
 import type { User } from '../types/users.model';
 
-const API_BASE = 'http://127.0.0.1:53627/api/projects';
+const API_BASE = './api/projects';
 
 export const projectsService = {
 	async getUsersByProjectIdAsync(project_id: string): Promise<User[]> {

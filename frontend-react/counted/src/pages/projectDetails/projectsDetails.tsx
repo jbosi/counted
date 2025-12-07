@@ -28,7 +28,7 @@ export const ProjectDetails = () => {
 	const globalTotal = expenses?.data?.reduce((acc, e) => acc + e.amount, 0) ?? 0;
 
 	return (
-		<div className="container overflow-auto app-container bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
+		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
 			{project ? (
 				<AppHeader title={project.data?.name ?? ''} backButtonRoute="/projects" />
 			) : (

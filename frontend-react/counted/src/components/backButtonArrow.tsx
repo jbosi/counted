@@ -1,6 +1,10 @@
+import { useNavigate } from 'react-router';
+
 export function BackButtonArrow() {
+	const navigate = useNavigate();
+
 	return (
-		<button className="btn btn-circle">
+		<button className="btn btn-circle" onClick={() => navigate('..')}>
 			<svg
 				xmlns={'http://www.w3.org/2000/svg'}
 				width={'24'}
@@ -11,7 +15,9 @@ export function BackButtonArrow() {
 				strokeWidth={'2'}
 				strokeLinecap={'round'}
 				strokeLinejoin={'round'}
-			></svg>
+			>
+				<polyline points="15 18 9 12 15 6" />
+			</svg>
 		</button>
 	);
 }

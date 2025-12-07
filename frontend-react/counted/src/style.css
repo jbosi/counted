@@ -5,3 +5,7 @@ body {
 	min-width: 320px;
 	min-height: 100vh;
 }
+
+.app-container {
+	height: calc(100vh - 3rem);
+}

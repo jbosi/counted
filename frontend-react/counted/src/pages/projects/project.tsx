@@ -1,6 +1,8 @@
-import { memo, useState } from 'react';
+import { useState } from 'react';
+import { Avatar } from '../../components/avatar';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import { DropdownButton } from './components/dropdown';
+import { useNavigate } from 'react-router';
 
 export interface ProjectProps {
 	id: string;
@@ -10,11 +12,6 @@ export interface ProjectProps {
 	description?: string;
 	currency: string;
 	created_at: string;
-}
-
-export interface User {
-	id: string;
-	name: string;
 }
 
 function getProgressPercentage(current_reimbursements: number, total_reimbursements: number): number {
@@ -28,6 +25,8 @@ function getProgressPercentage(current_reimbursements: number, total_reimburseme
 export function Project(props: ProjectProps) {
 	const [moreUsers, setMoreUsers] = useState<number>(0);
 	const { data, error, isLoading } = useUsersByProjectId(props.id);
+
+	const navigate = useNavigate();
 
 	const progressPercentage = getProgressPercentage(props.current_reimbursements, props.total_reimbursements);
 
@@ -45,9 +44,8 @@ export function Project(props: ProjectProps) {
 
 	return (
 		<>
-			<section className="card bg-base-200 w-96 shadow-sm cursor-pointer">
+			<section className="card bg-base-200 w-96 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${props.id}`)}>
 				<div className="card-body">
-					{/* Title + dropdown actions */}
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{props.title}</h2>
 						<DropdownButton />
@@ -55,7 +53,6 @@ export function Project(props: ProjectProps) {
 
 					<p>{props.description}</p>
 
-					{/* Reimbursements line */}
 					<div className="flex justify-between">
 						<span>Remboursements</span>
 						<span>
@@ -63,23 +60,19 @@ export function Project(props: ProjectProps) {
 						</span>
 					</div>
 
-					{/* Progress bar */}
 					<progress className="progress" value={progressPercentage} max={100}></progress>
 
-					{/* Bottom actions */}
 					<div className="card-actions justify-between">
-						{/* Status badge */}
 						<div className="flex gap-1 items-center">
 							<div className="status status-success"></div>
 							<span>En cours</span>
 						</div>
 
-						{/* Avatars */}
 						<div className="flex gap-1 items-center">
 							{data.slice(0, 3).map((user) => (
-								<Avatar key={user.id} initials={user.name.slice(0, 2)} />
+								<Avatar key={user.id} name={user.name} />
 							))}
-							{moreUsers > 0 && <Avatar initials={`+${moreUsers}`} />}
+							{moreUsers > 0 && <Avatar name={`+${moreUsers}`} />}
 						</div>
 					</div>
 				</div>
@@ -87,12 +80,3 @@ export function Project(props: ProjectProps) {
 		</>
 	);
 }
-
-type AvatarProps = { initials: string };
-const Avatar = memo((props: AvatarProps) => {
-	return (
-		<div className="avatar avatar-placeholder">
-			<div className="bg-neutral text-neutral-content rounded-full w-8">{props.initials}</div>
-		</div>
-	);
-});

@@ -8,3 +8,11 @@ export function useProjects() {
 		refetchOnWindowFocus: false,
 	});
 }
+
+export function useProject(projectId: string) {
+	return useQuery({
+		queryKey: [`project-${projectId}`],
+		queryFn: () => projectsService.getByProjectId(projectId),
+		refetchOnWindowFocus: false,
+	});
+}

@@ -1,5 +1,4 @@
 import { useProjects } from '../../hooks/useProjects';
-import type { ProjectDto } from '../../types/project.model';
 import { Project } from './project';
 
 export function Projects() {
@@ -19,10 +18,8 @@ export function Projects() {
 
 	return (
 		<div className="container p-4 max-w-md rounded-xl flex flex-col items-center">
-			{/* Header */}
 			<h1 className="text-4xl font-light mb-10">Bonjour Jonathan</h1>
 
-			{/* Project list */}
 			<div className="space-y-4 min-w-md">
 				{projects.map((project) => (
 					<Project
@@ -38,7 +35,6 @@ export function Projects() {
 				))}
 			</div>
 
-			{/* Button that opens the modal */}
 			<button type="button" className="btn btn-circle btn-outline btn-lg">
 				+
 			</button>

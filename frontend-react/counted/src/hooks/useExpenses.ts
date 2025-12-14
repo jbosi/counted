@@ -8,3 +8,10 @@ export function useExpensesByProjectId(projectId: string) {
 		refetchOnWindowFocus: false,
 	});
 }
+
+export function useExpenseSummary(projectId: string) {
+	return useQuery({
+		queryKey: [`expenses-summary-${projectId}`],
+		queryFn: () => projectsService.getExpensesSummaryByProjectId(projectId),
+	});
+}

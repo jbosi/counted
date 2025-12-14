@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { SummaryCard } from '../../components/summaryCard';
-import { useExpensesByProjectId } from '../../hooks/useExpenses';
+import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { useProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
 import { ExpenseList } from '../../components/expenseList';
+import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -19,8 +20,7 @@ export const ProjectDetails = () => {
 	const project = useProject(props.projectId);
 	const users = useUsersByProjectId(props.projectId);
 	const expenses = useExpensesByProjectId(props.projectId);
-
-	// const [summary, setSummary] = useState<SummaryByUser | null>(null);
+	const summary = useExpenseSummary(props.projectId);
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 	const [expenseModalOpen, setExpenseModalOpen] = useState(false);
@@ -71,9 +71,9 @@ export const ProjectDetails = () => {
 						</>
 					) : (
 						<>
-							{/* {summary ? (
+							{summary ? (
 								(() => {
-									// const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
+									const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
 
 									return (
 										<section className="flex flex-col gap-2">
@@ -82,14 +82,14 @@ export const ProjectDetails = () => {
 												const user = users.data?.find((u) => u.id === userId);
 												if (!user) return null;
 
-												// return <ExpenseBarChartComponent key={userId} user={user} summary_amount={amount} max_amount={maxAmount} />;
+												return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
 											})}
 										</section>
 									);
 								})()
 							) : (
 								<></>
-							)} */}
+							)}
 						</>
 					)}
 				</>

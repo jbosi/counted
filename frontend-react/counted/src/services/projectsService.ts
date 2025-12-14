@@ -44,4 +44,14 @@ export const projectsService = {
 
 		return res.json();
 	},
+
+	async getExpensesSummaryByProjectId(projectId: string): Promise<Expense[]> {
+		const res = await fetch(`${API_BASE}/${projectId}/expenses/summary`);
+
+		if (!res.ok) {
+			throw new Error('Error while fetching films');
+		}
+
+		return res.json();
+	},
 };

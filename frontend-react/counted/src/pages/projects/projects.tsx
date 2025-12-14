@@ -17,10 +17,10 @@ export function Projects() {
 	}
 
 	return (
-		<div className="container p-4 max-w-md rounded-xl flex flex-col items-center">
+		<div className="container p-4 max-w-md rounded-xl flex flex-col">
 			<h1 className="text-4xl font-light mb-10">Bonjour Jonathan</h1>
 
-			<div className="space-y-4 min-w-md">
+			<div className="space-y-4">
 				{projects.map((project) => (
 					<Project
 						key={project.id}
@@ -35,7 +35,7 @@ export function Projects() {
 				))}
 			</div>
 
-			<button type="button" className="btn btn-circle btn-outline btn-lg">
+			<button type="button" className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary">
 				+
 			</button>
 		</div>

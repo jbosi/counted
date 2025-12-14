@@ -1,5 +1,6 @@
 import type { Expense } from '../types/expenses.model';
 import type { ProjectDto } from '../types/projects.model';
+import type { ProjectSummary } from '../types/summary.model';
 import type { User } from '../types/users.model';
 
 const API_BASE = '/api/projects';
@@ -45,7 +46,7 @@ export const projectsService = {
 		return res.json();
 	},
 
-	async getExpensesSummaryByProjectId(projectId: string): Promise<Expense[]> {
+	async getExpensesSummaryByProjectId(projectId: string): Promise<ProjectSummary> {
 		const res = await fetch(`${API_BASE}/${projectId}/expenses/summary`);
 
 		if (!res.ok) {

@@ -71,13 +71,13 @@ export const ProjectDetails = () => {
 						</>
 					) : (
 						<>
-							{summary ? (
+							{summary.data ? (
 								(() => {
-									const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
+									const maxAmount = Math.max(...Object.values(summary.data).map((v) => Math.abs(v)), 1);
 
 									return (
 										<section className="flex flex-col gap-2">
-											{Object.entries(summary).map(([userIdStr, amount]) => {
+											{Object.entries(summary.data).map(([userIdStr, amount]) => {
 												const userId = Number(userIdStr);
 												const user = users.data?.find((u) => u.id === userId);
 												if (!user) return null;

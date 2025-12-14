@@ -89,12 +89,14 @@ pub async fn get_summary_by_project_id(
         .context("Failed get expenses")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
+    let expense_ids: Vec<i32> = expenses.into_iter().map(|expense| expense.id).collect();
+
     let payments: Vec<Payment> = sqlx::query_as!(
         Payment,
         "SELECT id, expense_id, user_id, is_debt, amount, created_at \
         FROM payments \
         WHERE expense_id = ANY($1)",
-        &expenses[..] // a bug of the parameter typechecking code requires all array parameters to be slices
+        &expense_ids[..] // a bug of the parameter typechecking code requires all array parameters to be slices
     )
     .fetch_all(&pool)
     .await

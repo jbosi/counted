@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -7,7 +7,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 
 #[cfg(feature = "server")]
@@ -35,7 +35,7 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
 }
 
 #[post("/api/users")]
-pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
+pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let user_id: i32 =

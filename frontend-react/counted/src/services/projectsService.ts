@@ -1,3 +1,4 @@
+import { httpClient } from '../shared';
 import type { Expense } from '../types/expenses.model';
 import type { ProjectDto } from '../types/projects.model';
 import type { ProjectSummary } from '../types/summary.model';
@@ -7,52 +8,26 @@ const API_BASE = '/api/projects';
 
 export const projectsService = {
 	async getUsersByProjectIdAsync(project_id: string): Promise<User[]> {
-		const res = await fetch(`${API_BASE}/${project_id}/users`);
-
-		if (!res.ok) {
-			throw new Error('Error while fetching films');
-		}
-
-		return res.json();
+		return httpClient.get(`${API_BASE}/${project_id}/users`);
 	},
 
 	async getAllAsync(): Promise<ProjectDto[]> {
-		const res = await fetch(`${API_BASE}`);
-
-		if (!res.ok) {
-			throw new Error('Error while fetching films');
-		}
-
-		return res.json();
+		return httpClient.get(`${API_BASE}`);
 	},
 
 	async getByProjectId(projectId: string): Promise<ProjectDto> {
-		const res = await fetch(`${API_BASE}/${projectId}`);
-
-		if (!res.ok) {
-			throw new Error('Error while fetching films');
-		}
-
-		return res.json();
+		return httpClient.get(`${API_BASE}/${projectId}`);
 	},
 
 	async getExpensesByProjectId(projectId: string): Promise<Expense[]> {
-		const res = await fetch(`${API_BASE}/${projectId}/expenses`);
-
-		if (!res.ok) {
-			throw new Error('Error while fetching films');
-		}
-
-		return res.json();
+		return httpClient.get(`${API_BASE}/${projectId}/expenses`);
 	},
 
 	async getExpensesSummaryByProjectId(projectId: string): Promise<ProjectSummary> {
-		const res = await fetch(`${API_BASE}/${projectId}/expenses/summary`);
+		return httpClient.get(`${API_BASE}/${projectId}/expenses/summary`);
+	},
 
-		if (!res.ok) {
-			throw new Error('Error while fetching films');
-		}
-
-		return res.json();
+	async createProjectAsync(creatableProject: { name: string; project_id: string }): Promise<User> {
+		return httpClient.post(`${API_BASE}`, creatableProject);
 	},
 };

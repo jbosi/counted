@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { projectsService } from '../services/projectsService';
+import type { CreatableProject } from '../types/projects.model';
 
 export function useProjects() {
 	return useQuery({
@@ -14,5 +15,11 @@ export function useProject(projectId: string) {
 		queryKey: [`project-${projectId}`],
 		queryFn: () => projectsService.getByProjectId(projectId),
 		refetchOnWindowFocus: false,
+	});
+}
+
+export function useAddProject() {
+	return useMutation({
+		mutationFn: (creatableUser: CreatableProject) => projectsService.createProjectAsync({ name: creatableUser.name, project_id: creatableUser.projectId }),
 	});
 }

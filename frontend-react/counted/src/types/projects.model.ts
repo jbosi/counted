@@ -5,3 +5,9 @@ export interface ProjectDto {
 	currency: string;
 	description: string;
 }
+
+export interface CreatableProject {
+	name: string;
+	description?: string;
+	currency?: string;
+}

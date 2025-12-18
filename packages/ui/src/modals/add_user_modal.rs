@@ -43,10 +43,6 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                                     name: user_name(),
                                     project_id: props.id,
                                 };
-                                add_user(creatable_user)
-                                    .await
-                                    .expect("Failed to add new user to this project");
-                                props.is_user_modal_open.set(false)
                             });
                         },
                         "Enregistrer"

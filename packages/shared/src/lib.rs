@@ -23,6 +23,7 @@ pub struct ProjectDto {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableProject {
     pub name: String,
     pub description: Option<String>,
@@ -49,6 +50,7 @@ pub struct User {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableUser {
     pub name: String,
     pub project_id: Uuid,
@@ -82,6 +84,7 @@ pub struct NewExpense {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableExpense {
     pub name: String,
     pub amount: f64,

@@ -17,6 +17,6 @@ export function useAddUser() {
 	return useMutation({
 		// mutationKey: [`users-project-${creatableUser.projectId}`],
 		// onSuccess: (creatableUser: CreatableUser) =>
-		mutationFn: (creatableUser: CreatableUser) => usersService.cretateUserAsync({ name: creatableUser.name, project_id: creatableUser.projectId }),
+		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
 	});
 }

@@ -15,13 +15,14 @@ export interface AddUserModalForm {
 export function AddUserModal({ dialogRef, modalId, projectId }: AddUserModalProps) {
 	const {
 		register,
-		handleSubmit,
 		formState: { errors },
+		getValues,
 	} = useForm<AddUserModalForm>();
 	const { error, isPending, isError, mutate } = useAddUser();
 
 	const onSubmit: SubmitHandler<AddUserModalForm> = (data) => {
 		mutate({ name: data.name, projectId });
+		dialogRef.current?.close();
 	};
 
 	return (
@@ -32,7 +33,13 @@ export function AddUserModal({ dialogRef, modalId, projectId }: AddUserModalProp
 						✕
 					</button>
 					<h1>Ajouter un Utilisateur</h1>
-					<form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
+					<form
+						className="flex flex-col gap-3"
+						onSubmit={(e) => {
+							e.preventDefault();
+							onSubmit(getValues());
+						}}
+					>
 						<label>Nom</label>
 						<input {...register('name', { required: true, maxLength: 100 })} />
 						{errors.name && <span>Ce champ est requis</span>}

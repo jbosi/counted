@@ -14,23 +14,22 @@ use axum::{
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
+#[cfg(feature = "server")]
+use anyhow::Context;
 use shared::sse::EventSSE;
 use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
-#[cfg(feature = "server")]
-use anyhow::Context;
 
 #[get("/api/users")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let users: Vec<User> =
-        sqlx::query_as("SELECT id, name, balance, created_at FROM users")
-            .fetch_all(&pool)
-            .await
-            .context("Failed to fetch users from database")
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let users: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+        .fetch_all(&pool)
+        .await
+        .context("Failed to fetch users from database")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
 }

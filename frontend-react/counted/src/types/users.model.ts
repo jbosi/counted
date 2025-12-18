@@ -4,3 +4,7 @@ export interface User {
 	balance?: number;
 	created_at?: string;
 }
+
+export interface CreatableUser extends Pick<User, 'name'> {
+	projectId: string;
+}

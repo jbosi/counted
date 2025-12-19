@@ -1,4 +1,5 @@
-use dioxus::prelude::*;
+use dioxus::logger::tracing;
+use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
 use shared::{CreatableProject, ProjectDto, UpdatableProject};
 use uuid::Uuid;
@@ -15,7 +16,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
@@ -29,7 +30,7 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
         .fetch_one(&pool)
         .await
         .context("Failed get project with specified id")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
 }
@@ -43,13 +44,13 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
             .fetch_all(&pool)
             .await
             .context("Failed to get projects")
-            .map_err(|e| ServerFnError::new(e.to_string()))?;;
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
 }
 
 #[post("/api/projects")]
-pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnError> {
+pub async fn add_project(Json(project): Json<CreatableProject>) -> Result<Uuid, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let project_id: Uuid = sqlx::query_scalar!(
@@ -107,7 +108,7 @@ pub async fn update_project_by_id(
     .fetch_one(&pool)
     .await
     .context("Failed to update project")
-    .map_err(|e| ServerFnError::new(e.to_string()))?;;
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -123,10 +124,12 @@ pub async fn update_project_by_id(
 #[delete("/api/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
+    tracing::info!("projectid = {:?}", project_id);
 
-    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool)
+    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)
+        .execute(&pool)
         .await
-        .context("Failed to fetch project with specified id")
+        .context("Failed to delete project with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER

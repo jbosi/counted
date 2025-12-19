@@ -23,3 +23,9 @@ export function useAddProject() {
 		mutationFn: (creatableUser: CreatableProject) => projectsService.createProjectAsync(creatableUser),
 	});
 }
+
+export function useDeleteProject() {
+	return useMutation({
+		mutationFn: (projectId: string) => projectsService.deleteProjectAsync(projectId),
+	});
+}

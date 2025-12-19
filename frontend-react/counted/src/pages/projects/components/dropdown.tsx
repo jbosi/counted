@@ -1,21 +1,28 @@
-function deleteProjectById() {
-	// TODO
+interface DropdownButtonProps {
+	id: string;
+	onDelete?: () => void;
+	onEdit?: () => void;
 }
 
-export const DropdownButton = () => {
-	const stopPropagation = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => e.stopPropagation();
-
+export const DropdownButton = (props: DropdownButtonProps) => {
 	return (
 		<div className="dropdown">
-			<div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+			<button
+				role="button"
+				className="btn btn-ghost btn-circle"
+				popoverTarget={`popover-${props.id}`}
+				style={{ anchorName: `--anchor-${props.id}` }}
+				onClick={(e) => e.stopPropagation()}
+			>
 				...
-			</div>
-			<ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm gap-1">
+			</button>
+			<ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" popover="auto" id={`popover-${props.id}`} style={{ positionAnchor: `--anchor-${props.id}` }}>
 				<li>
 					<button
 						className="btn btn-ghost"
 						onClick={(e) => {
-							stopPropagation(e);
+							e.stopPropagation();
+							props?.onEdit?.();
 						}}
 					>
 						Editer
@@ -25,8 +32,8 @@ export const DropdownButton = () => {
 					<button
 						className="btn btn-ghost"
 						onClick={(e) => {
-							stopPropagation(e);
-							deleteProjectById();
+							e.stopPropagation();
+							props?.onDelete?.();
 						}}
 					>
 						Supprimer

@@ -3,6 +3,7 @@ import { Avatar } from '../../components/avatar';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import { DropdownButton } from './components/dropdown';
 import { useNavigate } from 'react-router';
+import { useDeleteProject } from '../../hooks/useProjects';
 
 export interface ProjectProps {
 	id: string;
@@ -25,6 +26,7 @@ function getProgressPercentage(current_reimbursements: number, total_reimburseme
 export function Project(props: ProjectProps) {
 	const [moreUsers, setMoreUsers] = useState<number>(0);
 	const { data, error, isLoading } = useUsersByProjectId(props.id);
+	const { mutate } = useDeleteProject();
 
 	const navigate = useNavigate();
 
@@ -48,7 +50,7 @@ export function Project(props: ProjectProps) {
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{props.title}</h2>
-						<DropdownButton />
+						<DropdownButton id={props.id} onDelete={() => mutate(props.id)} /> {/* TODO handle errors */}
 					</div>
 
 					<p>{props.description}</p>

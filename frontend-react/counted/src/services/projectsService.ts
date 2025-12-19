@@ -30,4 +30,8 @@ export const projectsService = {
 	async createProjectAsync(creatableProject: CreatableProject): Promise<User> {
 		return httpClient.post(`${API_BASE}`, creatableProject);
 	},
+
+	async deleteProjectAsync(projectId: string): Promise<void> {
+		return httpClient.delete(`${API_BASE}/${projectId}`);
+	},
 };

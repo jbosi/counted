@@ -15,7 +15,7 @@ export const httpClient = {
 		return sendRequest(url, 'PATCH', payload);
 	},
 
-	async delete(url: string, payload: unknown) {
+	async delete(url: string, payload?: unknown) {
 		return sendRequest(url, 'DELETE', payload);
 	},
 };

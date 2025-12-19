@@ -43,19 +43,18 @@ pub fn AddProjectModal(mut props: AddProjectModalProps) -> Element {
                     button { r#type: "button", "X" }
                 }
                 form { method: "dialog", class: "btn",
-                    button {
-                        r#type: "submit",
-                        onclick: move |_| {
-                            spawn(async move {
-                                let creatable_project: CreatableProject = CreatableProject {
-                                    name: project_name(),
-                                    description: project_description(),
-                                    currency: None,
-                                };
-                                add_project(creatable_project).await.expect("Failed to add new project");
-                                props.modal_open.set(false)
-                            });
-                        },
+                    button { r#type: "submit",
+                        // onclick: move |_| {
+                        //     spawn(async move {
+                        //         let creatable_project: CreatableProject = CreatableProject {
+                        //             name: project_name(),
+                        //             description: project_description(),
+                        //             currency: None,
+                        //         };
+                        //         add_project(creatable_project).await.expect("Failed to add new project");
+                        //         props.modal_open.set(false)
+                        //     });
+                        // },
                         "Enregistrer"
                     }
                 }

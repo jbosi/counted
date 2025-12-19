@@ -1,69 +1,69 @@
+import type { RefObject } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useAddProject } from '../../hooks/useProjects';
+
 export interface AddProjectModalProps {
+	modalId: string;
+	dialogRef: RefObject<HTMLDialogElement | null>;
 }
 
-export function AddProjectModal(props: AddProjectModalProps) {
+interface AddProjectModalForm {
+	projectName: string;
+	projectDescription: string;
+}
+
+export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 	const {
 		register,
 		formState: { errors },
 		getValues,
-	} = useForm<AddUserModalForm>();
+	} = useForm<AddProjectModalForm>();
 	const { error, isPending, isError, mutate } = useAddProject();
 
-    rsx! {
-        dialog {
-            id: "add_project_modal",
-            class: "modal",
-            class: if (props.modal_open)() { "modal-open" } else { "" },
-            div { class: "modal-box",
-                h3 { class: "text-lg font-bold", "Ajouter un projet" }
-                fieldset { class: "fieldset",
-                    legend { class: "fieldset-legend", "Nom du projet" }
-                    input {
-                        name: "project_name",
-                        r#type: "text",
-                        class: "input",
-                        oninput: move |event| project_name.set(event.value()),
-                    }
-                }
-                fieldset { class: "fieldset",
-                    legend { class: "fieldset-legend", "Description du projet" }
-                    input {
-                        name: "project_description",
-                        r#type: "text",
-                        class: "input",
-                        oninput: move |event| project_description.set(Some(event.value())),
-                    }
-                }
-                form {
-                    method: "dialog",
-                    onclick: move |_| props.modal_open.set(false),
-                    class: "btn btn-sm btn-circle btn-ghost absolute right-2 top-2",
-                    button { r#type: "button", "X" }
-                }
-                form { method: "dialog", class: "btn",
-                    button {
-                        r#type: "submit",
-                        onclick: move |_| {
-                            spawn(async move {
-                                let creatable_project: CreatableProject = CreatableProject {
-                                    name: project_name(),
-                                    description: project_description(),
-                                    currency: None,
-                                };
-                                add_project(creatable_project).await.expect("Failed to add new project");
-                                props.modal_open.set(false)
-                            });
-                        },
-                        "Enregistrer"
-                    }
-                }
-            }
-            form {
-                method: "dialog",
-                class: "modal-backdrop",
-                onclick: move |_| props.modal_open.set(false),
-                button { r#type: "button", "close" }
-            }
-        }
-    }
+	const onSubmit: SubmitHandler<AddProjectModalForm> = (data) => {
+		mutate({ name: data.projectName, description: data.projectDescription });
+		dialogRef.current?.close();
+	};
+
+	return (
+		<>
+			<dialog ref={dialogRef} id={modalId} className="modal">
+				<div className="modal-box flex gap-3 flex-col">
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
+						✕
+					</button>
+					<h1>Ajouter un projet</h1>
+					<form
+						className="ml-4 mr-4"
+						onSubmit={(e) => {
+							e.preventDefault();
+							onSubmit(getValues());
+						}}
+					>
+						<div className="flex flex-col gap-3">
+							<label className="label">Nom</label>
+							<input className="input w-full" {...register('projectName', { required: true, maxLength: 100 })} />
+							{errors.projectName && <span>Ce champ est requis</span>}
+
+							<label className="label">Description</label>
+							<input className="input w-full" {...register('projectDescription', { required: true, maxLength: 200 })} />
+							{errors.projectDescription && <span>Ce champ est requis</span>}
+
+							{isPending && <span>Enregistrement…</span>}
+							{isError && <span className="text-error">{(error as Error).message}</span>}
+						</div>
+
+						<footer className="flex gap-1.5 mt-12 justify-end">
+							<button className="btn btn-primary" type="submit">
+								Enregistrer
+							</button>
+							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+								Annuler
+							</button>
+						</footer>
+					</form>
+				</div>
+			</dialog>
+		</>
+	);
 }

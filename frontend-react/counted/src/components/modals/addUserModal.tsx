@@ -8,7 +8,7 @@ export interface AddUserModalProps {
 	projectId: string;
 }
 
-export interface AddUserModalForm {
+interface AddUserModalForm {
 	name: string;
 }
 
@@ -34,22 +34,29 @@ export function AddUserModal({ dialogRef, modalId, projectId }: AddUserModalProp
 					</button>
 					<h1>Ajouter un Utilisateur</h1>
 					<form
-						className="flex flex-col gap-3"
+						className="ml-4 mr-4"
 						onSubmit={(e) => {
 							e.preventDefault();
 							onSubmit(getValues());
 						}}
 					>
-						<label>Nom</label>
-						<input {...register('name', { required: true, maxLength: 100 })} />
-						{errors.name && <span>Ce champ est requis</span>}
+						<div className="flex flex-col gap-3">
+							<label className="label">Nom</label>
+							<input className="input w-full" {...register('name', { required: true, maxLength: 100 })} />
+							{errors.name && <span>Ce champ est requis</span>}
 
-						{isPending && <span>Enregistrement…</span>}
-						{isError && <span className="text-error">{(error as Error).message}</span>}
+							{isPending && <span>Enregistrement…</span>}
+							{isError && <span className="text-error">{(error as Error).message}</span>}
+						</div>
 
-						<button className="btn btn-primary" type="submit">
-							Enregistrer
-						</button>
+						<footer className="flex gap-1.5 mt-12 justify-end">
+							<button className="btn btn-primary" type="submit">
+								Enregistrer
+							</button>
+							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+								Annuler
+							</button>
+						</footer>
 					</form>
 				</div>
 			</dialog>

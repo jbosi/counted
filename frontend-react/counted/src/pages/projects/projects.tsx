@@ -1,7 +1,10 @@
+import { useRef, type RefObject } from 'react';
+import { AddProjectModal } from '../../components/modals/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
 import { Project } from './project';
 
 export function Projects() {
+	const dialogRef = useRef<HTMLDialogElement>(null);
 	const { data: projects, isLoading, error } = useProjects();
 
 	if (isLoading) {
@@ -35,9 +38,15 @@ export function Projects() {
 				))}
 			</div>
 
-			<button type="button" className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary">
+			<button
+				type="button"
+				className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary"
+				onClick={() => (dialogRef as RefObject<HTMLDialogElement>).current.showModal()}
+			>
 				+
 			</button>
+
+			<AddProjectModal dialogRef={dialogRef} modalId={'AddProjectModal'} />
 		</div>
 	);
 }

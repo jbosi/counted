@@ -20,6 +20,6 @@ export function useProject(projectId: string) {
 
 export function useAddProject() {
 	return useMutation({
-		mutationFn: (creatableUser: CreatableProject) => projectsService.createProjectAsync({ name: creatableUser.name, project_id: creatableUser.projectId }),
+		mutationFn: (creatableUser: CreatableProject) => projectsService.createProjectAsync(creatableUser),
 	});
 }

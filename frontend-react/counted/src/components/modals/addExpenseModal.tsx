@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { User } from '../../types/users.model';
-import { useFieldArray, useForm, type UseFormRegister } from 'react-hook-form';
+import { useFieldArray, useForm, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { useAddExpense } from '../../hooks/useExpenses';
 import type { CreatableExpense, ExpenseType } from '../../types/expenses.model';
 
@@ -23,6 +23,8 @@ interface AddExpenseModalForm {
 interface FormCheckboxProps {
 	user: User;
 	register: UseFormRegister<AddExpenseModalForm>;
+	getValues: UseFormGetValues<AddExpenseModalForm>;
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm>;
 	type: 'debtors' | 'payers';
 	amount: number;
 	isChecked: boolean;
@@ -50,7 +52,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 	const {
 		register,
-		formState: { errors },
+		formState: { errors, isDirty },
 		getValues,
 		control,
 	} = useForm<AddExpenseModalForm>({
@@ -60,8 +62,8 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		},
 	});
 
-	const { fields: payersFields } = useFieldArray({ control, name: 'payers' });
-	const { fields: debtorsfields } = useFieldArray({ control, name: 'debtors' });
+	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
+	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
 
 	const { mutate, isPending, isError, error } = useAddExpense();
 
@@ -79,7 +81,6 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							e.preventDefault();
 
 							const formValues = getValues();
-							console.log(formValues);
 							const creatableExpense: CreatableExpense = {
 								name: formValues.name,
 								amount: formValues.totalAmount,
@@ -102,7 +103,28 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							<input className="input w-full" {...register('description', { maxLength: 200 })} />
 
 							<label className="label">Valeur</label>
-							<input min="0" className="input w-full" type="number" {...register('totalAmount', { required: true, valueAsNumber: true })} />
+							<input
+								min="0"
+								className="input w-full"
+								type="number"
+								{...register('totalAmount', {
+									required: true,
+									valueAsNumber: true,
+									onBlur() {
+										const debtors = getValues().debtors;
+										const totalAmountValue = getValues().totalAmount;
+
+										const activeDebtorFields = debtors.filter((field) => field.isChecked);
+										const activeDebtorsCount = activeDebtorFields.length;
+										activeDebtorFields.forEach((field) => {
+											updateDebtor(
+												debtorsfields.findIndex((f) => f.user.id === field.user.id),
+												{ amount: totalAmountValue / activeDebtorsCount, isChecked: field.isChecked, user: field.user },
+											);
+										});
+									},
+								})}
+							/>
 
 							<label className="label">Type de dépense</label>
 							<select defaultValue="Dépense" className="select w-full" {...register('type', { required: true })}>
@@ -114,14 +136,34 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui a payé ?</legend>
 								{payersFields.map((field, index) => (
-									<FormCheckbox key={field.id} amount={field.amount} isChecked={field.isChecked} user={field.user} index={index} register={register} type="payers" />
+									<FormCheckbox
+										key={field.id}
+										amount={field.amount}
+										isChecked={field.isChecked}
+										user={field.user}
+										index={index}
+										register={register}
+										getValues={getValues}
+										updateMethod={updatePayer}
+										type="payers"
+									/>
 								))}
 							</fieldset>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
 								{debtorsfields.map((field, index) => (
-									<FormCheckbox key={field.id} amount={field.amount} isChecked={field.isChecked} user={field.user} index={index} register={register} type="debtors" />
+									<FormCheckbox
+										key={field.id}
+										amount={field.amount}
+										isChecked={field.isChecked}
+										user={field.user}
+										index={index}
+										register={register}
+										getValues={getValues}
+										updateMethod={updateDebtor}
+										type="debtors"
+									/>
 								))}
 							</fieldset>
 
@@ -144,11 +186,23 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 	);
 }
 
-export function FormCheckbox({ isChecked, register, type, user, index }: FormCheckboxProps) {
+export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod }: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
 			<div className="flex gap-2">
-				<input type="checkbox" defaultChecked={isChecked ?? undefined} className="checkbox" {...register(`${type}.${index}.isChecked`)} />
+				<input
+					type="checkbox"
+					defaultChecked={isChecked ?? undefined}
+					className="checkbox"
+					{...register(`${type}.${index}.isChecked`, {
+						onChange() {
+							const isChecked = getValues(`${type}.${index}.isChecked`);
+							if (!isChecked) {
+								updateMethod(index, { amount: 0, isChecked, user });
+							}
+						},
+					})}
+				/>
 				{user.name}
 			</div>
 			<input min="0" className="input w-44" type="number" {...register(`${type}.${index}.amount`, { valueAsNumber: true })} />

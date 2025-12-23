@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -7,7 +7,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 
 #[cfg(feature = "server")]
@@ -20,7 +20,7 @@ use shared::{CreatableExpense, Expense, ExpenseType, NewPayment, Payment, UserAm
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 #[post("/api/expenses")]
-pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
+pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let created_expense_id: i32 = sqlx::query!(
@@ -112,7 +112,7 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
         .fetch_all(&pool)
         .await
         .context("Failed to get expenses")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expenses)
 }
@@ -126,7 +126,7 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
         .fetch_one(&pool)
         .await
         .context("Failed to get expense")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expense)
 }
@@ -135,10 +135,14 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id).execute(&pool).await
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id)
+        .execute(&pool)
+        .await
         .context("Failed to delete payment")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id).execute(&pool).await
+    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id)
+        .execute(&pool)
+        .await
         .context("Failed to delete expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

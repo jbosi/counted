@@ -18,7 +18,7 @@ export function ExpenseItem(props: ExpenseItemProps) {
 			</div>
 
 			<div className="text-right">
-				<p className="font-bold text-lg text-base-content">{formatted_amount}</p>
+				<p className="font-bold text-lg text-base-content">{formatted_amount} €</p>
 			</div>
 		</div>
 	);

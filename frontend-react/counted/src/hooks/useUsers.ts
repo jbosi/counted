@@ -12,11 +12,7 @@ export function useUsersByProjectId(projectId: string) {
 }
 
 export function useAddUser() {
-	// const queryClient = useQueryClient()
-
 	return useMutation({
-		// mutationKey: [`users-project-${creatableUser.projectId}`],
-		// onSuccess: (creatableUser: CreatableUser) =>
 		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
 	});
 }

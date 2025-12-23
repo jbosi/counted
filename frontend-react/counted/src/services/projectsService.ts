@@ -27,7 +27,7 @@ export const projectsService = {
 		return httpClient.get(`${API_BASE}/${projectId}/expenses/summary`);
 	},
 
-	async createProjectAsync(creatableProject: CreatableProject): Promise<User> {
+	async createProjectAsync(creatableProject: CreatableProject): Promise<ProjectDto> {
 		return httpClient.post(`${API_BASE}`, creatableProject);
 	},
 

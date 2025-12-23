@@ -10,3 +10,19 @@ export interface Expense {
 }
 
 export type ExpenseType = 'Expense' | 'Transfer' | 'Gain';
+
+export interface CreatableExpense {
+	name: string;
+	amount: number;
+	expenseType: ExpenseType;
+	projectId: string;
+	payers: UserAmount[];
+	debtors: UserAmount[];
+	authorId: number;
+	description?: string;
+}
+
+export interface UserAmount {
+	userId: number;
+	amount: number;
+}

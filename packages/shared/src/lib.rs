@@ -97,6 +97,7 @@ pub struct CreatableExpense {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UserAmount {
     pub user_id: i32,
     pub amount: f64,

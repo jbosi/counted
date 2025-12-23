@@ -189,7 +189,6 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                         payers_total(), debtors_total()
                                     )
                                 } else {
-                                    add_expense(creatable_expense).await.expect("Failed to add new expense");
                                     props.is_expense_modal_open.set(false);
                                 }
                             });

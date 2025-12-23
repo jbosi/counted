@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { SummaryCard } from '../../components/summaryCard';
@@ -8,6 +8,7 @@ import { useUsersByProjectId } from '../../hooks/useUsers';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
 import { ExpenseList } from '../../components/expenseList';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
+import { AddExpenseModal } from '../../components/modals/addExpenseModal';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -21,6 +22,7 @@ export const ProjectDetails = () => {
 	const users = useUsersByProjectId(props.projectId);
 	const expenses = useExpensesByProjectId(props.projectId);
 	const summary = useExpenseSummary(props.projectId);
+	const dialogRef = useRef<HTMLDialogElement>(null);
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 	const [expenseModalOpen, setExpenseModalOpen] = useState(false);
@@ -61,11 +63,15 @@ export const ProjectDetails = () => {
 
 							{(users.data?.length ?? 0) > 0 && (
 								<>
-									<button type="button" className="btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6" onClick={() => setExpenseModalOpen(true)}>
+									<button
+										type="button"
+										className="btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6"
+										onClick={() => (dialogRef as RefObject<HTMLDialogElement>).current.showModal()}
+									>
 										+
 									</button>
 
-									{/* <AddExpenseModal isOpen={expenseModalOpen} onClose={() => setExpenseModalOpen(false)} users={users} projectId={projectId} /> */}
+									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users.data ?? []} dialogRef={dialogRef} />
 								</>
 							)}
 						</>

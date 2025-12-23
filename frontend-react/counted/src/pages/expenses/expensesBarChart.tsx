@@ -18,11 +18,11 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 			<div className="flex gap-2">
 				<Avatar name={props.user.name} size="w-12" />
 				<div className="self-center">
-					<span>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
+					<span className={`${isPositiveAmount ? 'text-primary' : 'text-error'}`}>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
 				</div>
 			</div>
 			<progress
-				className={`progress self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error progress-negative'}`}
+				className={`progress self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error'}`}
 				style={{
 					width: `${(Math.abs(summaryAmount) * 30.0) / maxAmount}%`,
 				}}

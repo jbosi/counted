@@ -1,10 +1,10 @@
-import type { ProjectDto } from '../types/projects.model';
-import type { User } from '../types/users.model';
+import { httpClient } from '../shared';
+import type { CreatableExpense, Expense } from '../types/expenses.model';
 
-const API_BASE = './api/projects';
+const API_BASE = '/api/expenses';
 
 export const expensesService = {
-	async get(): Promise<void> {
-		return;
+	async createExpenseAsync(creatableUser: CreatableExpense): Promise<Expense> {
+		return httpClient.post(`${API_BASE}`, creatableUser);
 	},
 };

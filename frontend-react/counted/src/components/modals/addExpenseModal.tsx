@@ -146,10 +146,12 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 export function FormCheckbox({ isChecked, register, type, user, index }: FormCheckboxProps) {
 	return (
-		<label className="label">
-			<input type="checkbox" defaultChecked={isChecked ?? undefined} className="checkbox" {...register(`${type}.${index}.isChecked`)} />
-			{user.name}
-			<input min="0" className="input w-full" type="number" {...register(`${type}.${index}.amount`, { valueAsNumber: true })} />
+		<label className="label justify-between">
+			<div className="flex gap-2">
+				<input type="checkbox" defaultChecked={isChecked ?? undefined} className="checkbox" {...register(`${type}.${index}.isChecked`)} />
+				{user.name}
+			</div>
+			<input min="0" className="input w-44" type="number" {...register(`${type}.${index}.amount`, { valueAsNumber: true })} />
 		</label>
 	);
 }

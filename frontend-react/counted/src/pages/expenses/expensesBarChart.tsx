@@ -22,7 +22,7 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 				</div>
 			</div>
 			<progress
-				className={`progress self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error'}`}
+				className={`progress progress-summary self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error'}`}
 				style={{
 					width: `${(Math.abs(summaryAmount) * 30.0) / maxAmount}%`,
 				}}

@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { User } from '../../types/users.model';
-import { useFieldArray, useForm, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { useAddExpense } from '../../hooks/useExpenses';
 import type { CreatableExpense, ExpenseType } from '../../types/expenses.model';
 
@@ -111,17 +111,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 									required: true,
 									valueAsNumber: true,
 									onBlur() {
-										const debtors = getValues().debtors;
-										const totalAmountValue = getValues().totalAmount;
-
-										const activeDebtorFields = debtors.filter((field) => field.isChecked);
-										const activeDebtorsCount = activeDebtorFields.length;
-										activeDebtorFields.forEach((field) => {
-											updateDebtor(
-												debtorsfields.findIndex((f) => f.user.id === field.user.id),
-												{ amount: totalAmountValue / activeDebtorsCount, isChecked: field.isChecked, user: field.user },
-											);
-										});
+										updateDebtorsAmount(getValues, updateDebtor, debtorsfields);
 									},
 								})}
 							/>
@@ -186,6 +176,24 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 	);
 }
 
+function updateDebtorsAmount(
+	getValues: UseFormGetValues<AddExpenseModalForm>,
+	updateDebtor: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors'>,
+	debtorsfields: FieldArrayWithId<AddExpenseModalForm>[],
+) {
+	const debtors = getValues().debtors;
+	const totalAmountValue = getValues().totalAmount;
+
+	const activeDebtorFields = debtors.filter((field) => field.isChecked);
+	const activeDebtorsCount = activeDebtorFields.length;
+	activeDebtorFields.forEach((field) => {
+		updateDebtor(
+			debtorsfields.findIndex((f) => f.user.id === field.user.id),
+			{ amount: totalAmountValue / activeDebtorsCount, isChecked: field.isChecked, user: field.user },
+		);
+	});
+}
+
 export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod }: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
@@ -196,16 +204,51 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					className="checkbox"
 					{...register(`${type}.${index}.isChecked`, {
 						onChange() {
-							const isChecked = getValues(`${type}.${index}.isChecked`);
-							if (!isChecked) {
-								updateMethod(index, { amount: 0, isChecked, user });
-							}
+							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
 						},
 					})}
 				/>
 				{user.name}
 			</div>
-			<input min="0" className="input w-44" type="number" {...register(`${type}.${index}.amount`, { valueAsNumber: true })} />
+			<input
+				min="0"
+				className="input w-44"
+				type="number"
+				{...register(`${type}.${index}.amount`, {
+					valueAsNumber: true,
+					onChange() {
+						toggleCheckedIfAmountChange(getValues, type, index, updateMethod, user);
+					},
+				})}
+			/>
 		</label>
 	);
+}
+
+function resetExpenseAmountOnUnchecked(
+	getValues: UseFormGetValues<AddExpenseModalForm>,
+	type: 'debtors' | 'payers',
+	index: number,
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm>,
+	user: User,
+) {
+	const isChecked = getValues(`${type}.${index}.isChecked`);
+	if (!isChecked) {
+		updateMethod(index, { amount: 0, isChecked, user });
+	}
+}
+function toggleCheckedIfAmountChange(
+	getValues: UseFormGetValues<AddExpenseModalForm>,
+	type: 'debtors' | 'payers',
+	index: number,
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm>,
+	user: User,
+) {
+	const amount = getValues(`${type}.${index}.amount`);
+	const isChecked = getValues(`${type}.${index}.isChecked`);
+	if (amount > 0 && !isChecked) {
+		updateMethod(index, { amount, isChecked: true, user });
+	} else if (amount === 0 && isChecked) {
+		updateMethod(index, { amount, isChecked: false, user });
+	}
 }

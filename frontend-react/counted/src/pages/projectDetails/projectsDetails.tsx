@@ -83,13 +83,17 @@ export const ProjectDetails = () => {
 
 									return (
 										<section className="flex flex-col gap-2">
-											{Object.entries(summary.data).map(([userIdStr, amount]) => {
-												const userId = Number(userIdStr);
-												const user = users.data?.find((u) => u.id === userId);
-												if (!user) return null;
+											{Object.entries(summary.data)
+												.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
+												.map(([userIdStr, amount]) => {
+													const userId = Number(userIdStr);
+													const user = users.data?.find((u) => u.id === userId);
+													if (!user) {
+														return null;
+													}
 
-												return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-											})}
+													return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
+												})}
 										</section>
 									);
 								})()

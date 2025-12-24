@@ -5,7 +5,8 @@ import { expensesService } from '../services/expensesService';
 
 export function useExpensesByProjectId(projectId: string) {
 	return useQuery({
-		queryKey: [`expenses-${projectId}`],
+		// queryKey: [`expenses-${projectId}`],
+		queryKey: ['expenses'],
 		queryFn: () => projectsService.getExpensesByProjectId(projectId),
 		refetchOnWindowFocus: false,
 	});

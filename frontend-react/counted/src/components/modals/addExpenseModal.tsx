@@ -92,6 +92,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							};
 
 							mutate(creatableExpense);
+							dialogRef.current?.close();
 						}}
 					>
 						<div className="flex flex-col gap-3">

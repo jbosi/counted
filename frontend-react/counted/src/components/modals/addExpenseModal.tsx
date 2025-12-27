@@ -68,18 +68,28 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		user: u,
 	}));
 
+	const defaultValues: Partial<AddExpenseModalForm> = {
+		payers: initialPayersFormCheckBoxValues,
+		debtors: initialDebtorsFormCheckBoxValues,
+		totalAmount: 0,
+		name: '',
+		description: '',
+	};
+
 	const {
 		register,
 		formState: { errors, isDirty },
 		getValues,
 		control,
+		reset,
 	} = useForm<AddExpenseModalForm>({
-		defaultValues: {
-			payers: initialPayersFormCheckBoxValues,
-			debtors: initialDebtorsFormCheckBoxValues,
-			totalAmount: 0,
-		},
+		defaultValues,
 	});
+
+	const exitModal = () => {
+		reset(defaultValues);
+		dialogRef.current?.close();
+	};
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
@@ -90,16 +100,20 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={exitModal}>
 						✕
 					</button>
 					<h1>Ajouter une dépense</h1>
 					{errorState !== null ? (
-						<div role="alert" className="alert alert-error">
+						<div role="alert" className="alert alert-error whitespace-pre-line">
 							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
 							</svg>
-							<span>{errorState}</span>
+							<span>
+								{JSON.parse(errorState)
+									?.map((e: { path: string[]; message: string }) => `Field: ${e?.path?.[0]} - error : ${e?.message}`)
+									?.join('\r\n')}
+							</span>
 						</div>
 					) : (
 						''
@@ -128,7 +142,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							};
 
 							mutate(creatableExpense);
-							dialogRef.current?.close();
+							exitModal();
 						}}
 					>
 						<div className="flex flex-col gap-3">
@@ -206,7 +220,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							<button className="btn btn-primary" type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+							<button className="btn btn-outline" type="button" onClick={exitModal}>
 								Annuler
 							</button>
 						</footer>

@@ -25,6 +25,7 @@ interface FormCheckboxProps {
 	register: UseFormRegister<AddExpenseModalForm>;
 	getValues: UseFormGetValues<AddExpenseModalForm>;
 	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm>;
+	fields: FieldArrayWithId<AddExpenseModalForm>[];
 	type: 'debtors' | 'payers';
 	amount: number;
 	isChecked: boolean;
@@ -59,6 +60,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		defaultValues: {
 			payers: initialPayersFormCheckBoxValues,
 			debtors: initialDebtorsFormCheckBoxValues,
+			totalAmount: 0,
 		},
 	});
 
@@ -136,6 +138,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 										register={register}
 										getValues={getValues}
 										updateMethod={updatePayer}
+										fields={payersFields}
 										type="payers"
 									/>
 								))}
@@ -153,6 +156,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 										register={register}
 										getValues={getValues}
 										updateMethod={updateDebtor}
+										fields={debtorsfields}
 										type="debtors"
 									/>
 								))}
@@ -187,15 +191,21 @@ function updateDebtorsAmount(
 
 	const activeDebtorFields = debtors.filter((field) => field.isChecked);
 	const activeDebtorsCount = activeDebtorFields.length;
-	activeDebtorFields.forEach((field) => {
+
+	const updatedAndRoundedDebtorAmount = parseFloat((totalAmountValue / activeDebtorsCount).toFixed(2));
+	const amountRemaining = totalAmountValue - updatedAndRoundedDebtorAmount * activeDebtorsCount;
+	const updatedDebtorAmountWithRemain = updatedAndRoundedDebtorAmount + amountRemaining;
+
+	activeDebtorFields.forEach((field, index) => {
+		const isLast = activeDebtorsCount === index + 1;
 		updateDebtor(
 			debtorsfields.findIndex((f) => f.user.id === field.user.id),
-			{ amount: totalAmountValue / activeDebtorsCount, isChecked: field.isChecked, user: field.user },
+			{ amount: isLast ? updatedDebtorAmountWithRemain : updatedAndRoundedDebtorAmount, isChecked: field.isChecked, user: field.user },
 		);
 	});
 }
 
-export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod }: FormCheckboxProps) {
+export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields }: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
 			<div className="flex gap-2">
@@ -206,6 +216,9 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					{...register(`${type}.${index}.isChecked`, {
 						onChange() {
 							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
+							if (type === 'debtors') {
+								updateDebtorsAmount(getValues, updateMethod, fields);
+							}
 						},
 					})}
 				/>
@@ -217,7 +230,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 				type="number"
 				{...register(`${type}.${index}.amount`, {
 					valueAsNumber: true,
-					onChange() {
+					onBlur() {
 						toggleCheckedIfAmountChange(getValues, type, index, updateMethod, user);
 					},
 				})}

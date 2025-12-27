@@ -1,8 +1,9 @@
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import type { User } from '../../types/users.model';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { useAddExpense } from '../../hooks/useExpenses';
-import type { CreatableExpense, ExpenseType } from '../../types/expenses.model';
+import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../types/expenses.model';
+import * as z from 'zod';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -19,6 +20,21 @@ interface AddExpenseModalForm {
 	payers: FormCheckbox[];
 	debtors: FormCheckbox[];
 }
+
+const payersAndDebtorsForm = z.object({
+	amount: z.number().min(0),
+	isChecked: z.boolean(),
+	user: z.object().optional(),
+});
+
+const formSchema = z.object({
+	name: z.string().min(2).max(100),
+	description: z.string().max(200).optional(),
+	totalAmount: z.number().min(0.01).max(100000),
+	type: z.literal(ExpenseTypeConst),
+	payers: z.array(payersAndDebtorsForm).min(1),
+	debtors: z.array(payersAndDebtorsForm).min(1),
+});
 
 interface FormCheckboxProps {
 	user: User;
@@ -39,6 +55,7 @@ interface FormCheckbox {
 }
 
 export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExpenseModalProps) {
+	const [errorState, setErrorState] = useState<string | null>(null);
 	const initialDebtorsFormCheckBoxValues: FormCheckbox[] = users.map((u) => ({
 		amount: 0,
 		isChecked: true,
@@ -77,12 +94,29 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 						✕
 					</button>
 					<h1>Ajouter une dépense</h1>
+					{errorState !== null ? (
+						<div role="alert" className="alert alert-error">
+							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							<span>{errorState}</span>
+						</div>
+					) : (
+						''
+					)}
 					<form
 						className="ml-4 mr-4"
 						onSubmit={(e) => {
 							e.preventDefault();
 
 							const formValues = getValues();
+							const parsedResult = formSchema.safeParse(formValues);
+
+							if (parsedResult.error) {
+								setErrorState(parsedResult.error.message);
+								return;
+							}
+
 							const creatableExpense: CreatableExpense = {
 								name: formValues.name,
 								amount: formValues.totalAmount,
@@ -109,6 +143,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							<input
 								min="0"
 								className="input w-full"
+								step="0.01"
 								type="number"
 								{...register('totalAmount', {
 									required: true,
@@ -225,9 +260,9 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 				{user.name}
 			</div>
 			<input
-				min="0"
 				className="input w-44"
 				type="number"
+				step="0.01"
 				{...register(`${type}.${index}.amount`, {
 					valueAsNumber: true,
 					onBlur() {

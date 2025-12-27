@@ -9,7 +9,8 @@ export interface Expense {
 	expense_type: ExpenseType;
 }
 
-export type ExpenseType = 'Expense' | 'Transfer' | 'Gain';
+export const ExpenseTypeConst = ['Expense', 'Transfer', 'Gain'] as const;
+export type ExpenseType = (typeof ExpenseTypeConst)[number];
 
 export interface CreatableExpense {
 	name: string;

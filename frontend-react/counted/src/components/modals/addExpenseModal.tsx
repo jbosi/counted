@@ -114,7 +114,8 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 									required: true,
 									valueAsNumber: true,
 									onBlur() {
-										updateDebtorsAmount(getValues, updateDebtor, debtorsfields);
+										updateAmounts('debtors', getValues, updateDebtor, debtorsfields);
+										updateAmounts('payers', getValues, updatePayer, payersFields);
 									},
 								})}
 							/>
@@ -181,26 +182,27 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 	);
 }
 
-function updateDebtorsAmount(
+function updateAmounts<T extends 'debtors' | 'payers'>(
+	type: T,
 	getValues: UseFormGetValues<AddExpenseModalForm>,
-	updateDebtor: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors'>,
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors' | 'payers'>,
 	debtorsfields: FieldArrayWithId<AddExpenseModalForm>[],
 ) {
-	const debtors = getValues().debtors;
+	const debtorsOrPayers = getValues()[type];
 	const totalAmountValue = getValues().totalAmount;
 
-	const activeDebtorFields = debtors.filter((field) => field.isChecked);
-	const activeDebtorsCount = activeDebtorFields.length;
+	const activeDebtorOrPayersFields = debtorsOrPayers.filter((field) => field.isChecked);
+	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
 
-	const updatedAndRoundedDebtorAmount = parseFloat((totalAmountValue / activeDebtorsCount).toFixed(2));
-	const amountRemaining = totalAmountValue - updatedAndRoundedDebtorAmount * activeDebtorsCount;
-	const updatedDebtorAmountWithRemain = updatedAndRoundedDebtorAmount + amountRemaining;
+	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
+	const amountRemaining = totalAmountValue - updatedAndRoundedDebtorOrPayersAmount * activeDebtorOrPayersCount;
+	const updatedDebtorOrPayersAmountWithRemain = updatedAndRoundedDebtorOrPayersAmount + amountRemaining;
 
-	activeDebtorFields.forEach((field, index) => {
-		const isLast = activeDebtorsCount === index + 1;
-		updateDebtor(
+	activeDebtorOrPayersFields.forEach((field, index) => {
+		const isLast = activeDebtorOrPayersCount === index + 1;
+		updateMethod(
 			debtorsfields.findIndex((f) => f.user.id === field.user.id),
-			{ amount: isLast ? updatedDebtorAmountWithRemain : updatedAndRoundedDebtorAmount, isChecked: field.isChecked, user: field.user },
+			{ amount: isLast ? updatedDebtorOrPayersAmountWithRemain : updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
 		);
 	});
 }
@@ -216,9 +218,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					{...register(`${type}.${index}.isChecked`, {
 						onChange() {
 							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
-							if (type === 'debtors') {
-								updateDebtorsAmount(getValues, updateMethod, fields);
-							}
+							updateAmounts(type, getValues, updateMethod, fields);
 						},
 					})}
 				/>
@@ -251,6 +251,7 @@ function resetExpenseAmountOnUnchecked(
 		updateMethod(index, { amount: 0, isChecked, user });
 	}
 }
+
 function toggleCheckedIfAmountChange(
 	getValues: UseFormGetValues<AddExpenseModalForm>,
 	type: 'debtors' | 'payers',

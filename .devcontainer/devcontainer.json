@@ -1,0 +1,30 @@
+{
+	"name": "Counted Dev Container",
+	"dockerComposeFile": [
+		"../docker-compose.yml"
+	],
+	"workspaceFolder": "/workspace",
+	"service": "web",
+	"postCreateCommand": {
+		"back": "cargo run --bin web",
+		"front": "cd ./frontend-react/counted && npm i && npm run dev" 
+	},
+	"features": {
+		"ghcr.io/lee-orr/rusty-dev-containers/dioxus:0": {},
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": ["dioxuslabs.dioxus", "rust-lang.rust-analyzer", "ms-vscode.cpptools", "dbaeumer.vscode-eslint", "prettier.prettier-vscode", "gencer.html-slim-scss-css-class-completion", "bradlc.vscode-tailwindcss", "burkeholland.simple-react-snippets", "ms-ossdata.vscode-pgsql"],
+			"forwardPorts": [
+				4321, 5432
+			],
+			"settings": {
+				"remote": {
+					"restoreForwardedPorts": true,
+					"localPortHost": "0.0.0.0"
+				}
+			}
+		}
+	}
+}

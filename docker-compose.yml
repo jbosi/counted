@@ -1,4 +1,12 @@
 services:
+  web:
+    image: node:25.2-bookworm-slim
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./:/workspace:cached
+      - node_modules:/frontend-react/counted/node_modules
+    command: sleep infinity
   db:
     image: postgres:15
     environment:
@@ -11,4 +19,4 @@ services:
       - pgdata:/var/lib/postgresql/data
 volumes:
   pgdata:
-
+  node_modules:

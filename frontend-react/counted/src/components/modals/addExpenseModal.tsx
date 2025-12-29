@@ -1,4 +1,4 @@
-import { useState, type RefObject } from 'react';
+import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
 import type { User } from '../../types/users.model';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { useAddExpense } from '../../hooks/useExpenses';
@@ -54,8 +54,7 @@ interface FormCheckbox {
 	amount: number;
 }
 
-export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExpenseModalProps) {
-	const [errorState, setErrorState] = useState<string | null>(null);
+function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 	const initialDebtorsFormCheckBoxValues: FormCheckbox[] = users.map((u) => ({
 		amount: 0,
 		isChecked: true,
@@ -68,13 +67,18 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		user: u,
 	}));
 
-	const defaultValues: Partial<AddExpenseModalForm> = {
+	return {
 		payers: initialPayersFormCheckBoxValues,
 		debtors: initialDebtorsFormCheckBoxValues,
 		totalAmount: 0,
 		name: '',
 		description: '',
 	};
+}
+
+export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExpenseModalProps) {
+	const [errorState, setErrorState] = useState<string | null>(null);
+	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
 	const {
 		register,
@@ -83,18 +87,46 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		control,
 		reset,
 	} = useForm<AddExpenseModalForm>({
-		defaultValues,
+		defaultValues: defaultValues,
 	});
 
-	const exitModal = () => {
+	const exitModal = useCallback(() => {
 		reset(defaultValues);
 		dialogRef.current?.close();
-	};
+	}, []);
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
 
 	const { mutate, isPending, isError, error } = useAddExpense();
+
+	const handleSubmit = useCallback(
+		(e: FormEvent<HTMLFormElement>) => {
+			e.preventDefault();
+
+			const formValues = getValues();
+			const parsedResult = formSchema.safeParse(formValues);
+
+			if (parsedResult.error) {
+				setErrorState(parsedResult.error.message);
+				return;
+			}
+
+			const creatableExpense: CreatableExpense = {
+				name: formValues.name,
+				amount: formValues.totalAmount,
+				expenseType: formValues.type,
+				projectId,
+				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
+				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
+				authorId: 41, // TODO
+			};
+
+			mutate(creatableExpense);
+			exitModal();
+		},
+		[exitModal, getValues, mutate, projectId],
+	);
 
 	return (
 		<>
@@ -125,6 +157,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							const formValues = getValues();
 							const parsedResult = formSchema.safeParse(formValues);
+							console.log('[render]');
 
 							if (parsedResult.error) {
 								setErrorState(parsedResult.error.message);

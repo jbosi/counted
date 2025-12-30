@@ -6,7 +6,7 @@
 	"workspaceFolder": "/workspace",
 	"service": "web",
 	"postCreateCommand": {
-		"back": "cargo run --bin web",
+		"back": "cargo install dioxus-cli && cargo run --bin web",
 		"front": "cd ./frontend-react/counted && npm i && npm run dev" 
 	},
 	"features": {

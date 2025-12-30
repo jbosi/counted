@@ -93,7 +93,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 	const exitModal = useCallback(() => {
 		reset(defaultValues);
 		dialogRef.current?.close();
-	}, []);
+	}, [reset, defaultValues, dialogRef]);
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
@@ -150,34 +150,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 					) : (
 						''
 					)}
-					<form
-						className="ml-4 mr-4"
-						onSubmit={(e) => {
-							e.preventDefault();
-
-							const formValues = getValues();
-							const parsedResult = formSchema.safeParse(formValues);
-							console.log('[render]');
-
-							if (parsedResult.error) {
-								setErrorState(parsedResult.error.message);
-								return;
-							}
-
-							const creatableExpense: CreatableExpense = {
-								name: formValues.name,
-								amount: formValues.totalAmount,
-								expenseType: formValues.type,
-								projectId,
-								payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
-								debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-								authorId: 41, // TODO
-							};
-
-							mutate(creatableExpense);
-							exitModal();
-						}}
-					>
+					<form className="ml-4 mr-4" onSubmit={handleSubmit}>
 						<div className="flex flex-col gap-3">
 							<label className="label">Nom</label>
 							<input className="input w-full" {...register('name', { required: true, maxLength: 100 })} />

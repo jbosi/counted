@@ -13,11 +13,13 @@ use axum::{
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
+use crate::payments::get_payments_by_user_id;
+#[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]
 use anyhow::Context;
 use shared::sse::EventSSE;
-use shared::{CreatableUser, User};
+use shared::{CreatableUser, Payment, User};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -32,6 +34,39 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
+}
+
+#[delete("/api/users/{user_id}")]
+pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    match get_payments_by_user_id(user_id).await {
+        Ok(p) => {
+            if p.is_empty() {
+                return Ok(());
+            } else {
+                ServerFnError::new(
+                    "User has existing payments in this project and cannot be remove",
+                )
+            }
+        }
+        Err(e) => ServerFnError::new(e.to_string()),
+    };
+
+    // Anonymous user cannot be in more than one user_project
+    sqlx::query!("DELETE FROM user_projects WHERE user_id = $1", user_id)
+        .execute(&pool)
+        .await
+        .context("Failed to delete user in user_projects table with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
+        .execute(&pool)
+        .await
+        .context("Failed to delete user in user table with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
 }
 
 #[post("/api/users")]

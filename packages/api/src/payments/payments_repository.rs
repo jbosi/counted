@@ -38,6 +38,25 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
     Ok(payments)
 }
 
+#[server()]
+pub async fn get_payments_by_user_id(user_id: i32) -> Result<Vec<Payment>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let payments: Vec<Payment> = sqlx::query_as!(
+        Payment,
+        "SELECT id, expense_id, user_id, is_debt, amount, created_at \
+        FROM payments \
+        WHERE user_id = $1",
+        user_id
+    )
+    .fetch_all(&pool)
+    .await
+    .context("Failed get payments")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(payments)
+}
+
 // TO DELETE : Should require projectId as input, not a user list
 // @deprecated
 #[get("/api/expenses/summary")]

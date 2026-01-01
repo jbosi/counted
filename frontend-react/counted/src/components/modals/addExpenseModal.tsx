@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
-import type { User } from '../../types/users.model';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import * as z from 'zod';
 import { useAddExpense } from '../../hooks/useExpenses';
 import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../types/expenses.model';
-import * as z from 'zod';
+import type { User } from '../../types/users.model';
+import { ErrorValidationCallout } from '../errorCallout';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -136,20 +137,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 						✕
 					</button>
 					<h1>Ajouter une dépense</h1>
-					{errorState !== null ? (
-						<div role="alert" className="alert alert-error whitespace-pre-line">
-							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-							<span>
-								{JSON.parse(errorState)
-									?.map((e: { path: string[]; message: string }) => `Field: ${e?.path?.[0]} - error : ${e?.message}`)
-									?.join('\r\n')}
-							</span>
-						</div>
-					) : (
-						''
-					)}
+					<ErrorValidationCallout errorState={errorState} /> {/* TODO, use error boundary ? */}
 					<form className="ml-4 mr-4" onSubmit={handleSubmit}>
 						<div className="flex flex-col gap-3">
 							<label className="label">Nom</label>

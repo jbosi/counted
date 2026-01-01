@@ -8,7 +8,7 @@ interface ExpensesUserSectionProps {
 	users: User[];
 }
 
-export const ExpensesUserSection = (props: ExpensesUserSectionProps) => {
+export const ExpensesUserSection = ({ id, users }: ExpensesUserSectionProps) => {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
@@ -16,7 +16,7 @@ export const ExpensesUserSection = (props: ExpensesUserSectionProps) => {
 		<>
 			<div className="flex p-4 justify-center">
 				<div className="avatar-group -space-x-4">
-					{props.users.map((user) => (
+					{users.map((user) => (
 						<Avatar key={user.id} name={user.name} size={'w-12'} />
 					))}
 
@@ -26,7 +26,7 @@ export const ExpensesUserSection = (props: ExpensesUserSectionProps) => {
 				</div>
 			</div>
 
-			<AddUserModal dialogRef={dialogRef} modalId="addUserModal" projectId={props.id} />
+			<AddUserModal dialogRef={dialogRef} modalId="addUserModal" projectId={id} currentUsers={users} />
 		</>
 	);
 };

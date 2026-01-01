@@ -16,3 +16,9 @@ export function useAddUser() {
 		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
 	});
 }
+
+export function useDeleteUser() {
+	return useMutation({
+		mutationFn: (userId: number) => usersService.deleteUserAsync(userId),
+	});
+}

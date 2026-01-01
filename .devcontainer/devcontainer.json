@@ -6,8 +6,8 @@
 	"workspaceFolder": "/workspace",
 	"service": "web",
 	"postCreateCommand": {
-		"back": "cargo install dioxus-cli && cargo run --bin web",
-		"front": "cd ./frontend-react/counted && npm i && npm run dev" 
+		"back": "apt-get update && apt-get -y install sudo && sudo apt install libssl-dev && sudo apt install pkg-config && cargo install dioxus-cli && dx serve --package web",
+		"front": "cd ./frontend-react/counted && npm i && npm run dev"
 	},
 	"features": {
 		"ghcr.io/lee-orr/rusty-dev-containers/dioxus:0": {},
@@ -15,9 +15,20 @@
 	},
 	"customizations": {
 		"vscode": {
-			"extensions": ["dioxuslabs.dioxus", "rust-lang.rust-analyzer", "ms-vscode.cpptools", "dbaeumer.vscode-eslint", "prettier.prettier-vscode", "gencer.html-slim-scss-css-class-completion", "bradlc.vscode-tailwindcss", "burkeholland.simple-react-snippets", "ms-ossdata.vscode-pgsql"],
+			"extensions": [
+				"dioxuslabs.dioxus",
+				"rust-lang.rust-analyzer",
+				"ms-vscode.cpptools",
+				"dbaeumer.vscode-eslint",
+				"prettier.prettier-vscode",
+				"gencer.html-slim-scss-css-class-completion",
+				"bradlc.vscode-tailwindcss",
+				"burkeholland.simple-react-snippets",
+				"ms-ossdata.vscode-pgsql"
+			],
 			"forwardPorts": [
-				4321, 5432
+				4321,
+				5432
 			],
 			"settings": {
 				"remote": {

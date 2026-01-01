@@ -1,6 +1,7 @@
 services:
   web:
-    image: node:25.2-bookworm-slim
+    # image: node:25.2-bookworm-slim
+    build: ./.devcontainer/
     ports:
       - "4321:4321"
     volumes:

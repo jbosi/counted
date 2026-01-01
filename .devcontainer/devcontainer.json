@@ -6,11 +6,10 @@
 	"workspaceFolder": "/workspace",
 	"service": "web",
 	"postCreateCommand": {
-		"back": "apt-get update && apt-get -y install sudo && sudo apt install libssl-dev && sudo apt install pkg-config && cargo install dioxus-cli && dx serve --package web",
+		"back": "dx serve --package web",
 		"front": "cd ./frontend-react/counted && npm i && npm run dev"
 	},
 	"features": {
-		"ghcr.io/lee-orr/rusty-dev-containers/dioxus:0": {},
 		"ghcr.io/devcontainers/features/git:1": {}
 	},
 	"customizations": {
@@ -22,7 +21,7 @@
 				"dbaeumer.vscode-eslint",
 				"prettier.prettier-vscode",
 				"gencer.html-slim-scss-css-class-completion",
-				"bradlc.vscode-tailwindcss",
+				"bradlc.vscode-tailwindcss"	,
 				"burkeholland.simple-react-snippets",
 				"ms-ossdata.vscode-pgsql"
 			],

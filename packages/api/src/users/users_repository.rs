@@ -40,18 +40,15 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
 pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    match get_payments_by_user_id(user_id).await {
-        Ok(p) => {
-            if p.is_empty() {
-                return Ok(());
-            } else {
-                ServerFnError::new(
-                    "User has existing payments in this project and cannot be remove",
-                )
-            }
-        }
-        Err(e) => ServerFnError::new(e.to_string()),
-    };
+    let payments =
+        get_payments_by_user_id(user_id).await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    if !payments.is_empty() {
+        // User still has payments → abort with a clear error
+        return Err(ServerFnError::new(
+            "User has existing payments in this project and cannot be removed",
+        ));
+    }
 
     // Anonymous user cannot be in more than one user_project
     sqlx::query!("DELETE FROM user_projects WHERE user_id = $1", user_id)
@@ -70,7 +67,7 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
 }
 
 #[post("/api/users")]
-pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<i32, ServerFnError> {
+pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let user_id: i32 =
@@ -98,7 +95,9 @@ pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<i32, ServerFnEr
         )
         .await;
 
-    Ok(user_id)
+    let created_user = User { id: user_id, name: user.name, balance: None, created_at: None };
+
+    Ok(created_user)
 }
 
 #[get("/api/projects/{project_id}/users")]

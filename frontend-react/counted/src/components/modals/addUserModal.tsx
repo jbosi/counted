@@ -28,8 +28,8 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 		formState: { errors },
 		getValues,
 	} = useForm<AddUserModalForm>();
-	const { error: addUserError, isPending: addUserIsPending, isError: addUserIsError, mutate: addUserMutate } = useAddUser();
-	const { error: deleteUserError, isPending: deleteUserIsPending, isError: deleteUserIsError, mutate: deleteUserMutate } = useDeleteUser();
+	const { error: addUserError, isPending: addUserIsPending, isError: addUserIsError, mutate: addUserMutate } = useAddUser(projectId);
+	const { error: deleteUserError, isPending: deleteUserIsPending, isError: deleteUserIsError, mutate: deleteUserMutate } = useDeleteUser(projectId);
 
 	const onAddUser: SubmitHandler<AddUserModalForm> = (data) => {
 		const parsedResult = formSchema.safeParse(data);

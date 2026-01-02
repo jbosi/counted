@@ -1,4 +1,4 @@
-import { useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState, type RefObject } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAddUser, useDeleteUser } from '../../hooks/useUsers';
 import * as z from 'zod';
@@ -22,14 +22,25 @@ interface AddUserModalForm {
 
 export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: AddUserModalProps) {
 	const [addUserErrorState, addUserSetErrorState] = useState<string | null>(null);
-	const [deleteUserErrorState, deleteUserSetErrorState] = useState<string | null>(null);
 	const {
+		reset,
 		register,
 		formState: { errors },
 		getValues,
-	} = useForm<AddUserModalForm>();
+	} = useForm<AddUserModalForm>({ defaultValues: { name: '' } });
 	const { error: addUserError, isPending: addUserIsPending, isError: addUserIsError, mutate: addUserMutate } = useAddUser(projectId);
-	const { error: deleteUserError, isPending: deleteUserIsPending, isError: deleteUserIsError, mutate: deleteUserMutate } = useDeleteUser(projectId);
+	const {
+		error: deleteUserError,
+		isPending: deleteUserIsPending,
+		isError: deleteUserIsError,
+		mutate: deleteUserMutate,
+		variables: userIdBeingDeleted,
+	} = useDeleteUser(projectId);
+
+	const exitModal = () => {
+		reset();
+		dialogRef.current?.close();
+	};
 
 	const onAddUser: SubmitHandler<AddUserModalForm> = (data) => {
 		const parsedResult = formSchema.safeParse(data);
@@ -40,18 +51,14 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 		}
 
 		addUserMutate({ name: data.name, projectId });
-		dialogRef.current?.close();
-	};
-
-	const onDeleteUser = (userId: number) => {
-		deleteUserMutate(userId);
+		exitModal();
 	};
 
 	return (
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => exitModal()}>
 						✕
 					</button>
 					<h1>Ajouter un Utilisateur</h1>
@@ -71,31 +78,35 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 							{addUserIsPending && <span>Enregistrement…</span>}
 							{addUserIsError && <span className="text-error">{(addUserError as Error).message}</span>}
 						</div>
-						{deleteUserErrorState && <span className="text-error">{(deleteUserError as Error).message}</span>}
+						{deleteUserIsError && <span className="text-error">{(deleteUserError as Error).message}</span>}
 						{currentUsers?.map((u) => {
 							return (
 								<div className="flex gap-3">
 									<span className="self-center">{u.name}</span>
-									<button type="button" className="btn btn-square btn-sm p-1.5 btn-soft" onClick={() => onDeleteUser(u.id)}>
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											className="icon icon-tabler icons-tabler-outline icon-tabler-trash"
-										>
-											<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-											<path d="M4 7l16 0" />
-											<path d="M10 11l0 6" />
-											<path d="M14 11l0 6" />
-											<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-											<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-										</svg>
+									<button type="button" className="btn btn-square btn-sm p-1.5 btn-soft" onClick={() => deleteUserMutate(u.id)}>
+										{deleteUserIsPending && u.id === userIdBeingDeleted ? (
+											<span className="loading loading-spinner"></span>
+										) : (
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="24"
+												height="24"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="2"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												className="icon icon-tabler icons-tabler-outline icon-tabler-trash"
+											>
+												<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+												<path d="M4 7l16 0" />
+												<path d="M10 11l0 6" />
+												<path d="M14 11l0 6" />
+												<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+												<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+											</svg>
+										)}
 									</button>
 								</div>
 							);
@@ -104,7 +115,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 							<button className="btn btn-primary" type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+							<button className="btn btn-outline" type="button" onClick={() => exitModal()}>
 								Annuler
 							</button>
 						</footer>

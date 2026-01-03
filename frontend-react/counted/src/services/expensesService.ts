@@ -9,6 +9,10 @@ export const expensesService = {
 		return httpClient.post(`${API_BASE}`, creatableUser);
 	},
 
+	async getExpenseById(expenseId: number): Promise<Expense> {
+		return httpClient.get(`${API_BASE}/${expenseId}`);
+	},
+
 	async getPaymentsByExpenseId(expenseId: number): Promise<Payment[]> {
 		return httpClient.get(`${API_BASE}/${expenseId}/payments`);
 	},

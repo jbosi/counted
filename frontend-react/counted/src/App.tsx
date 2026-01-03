@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import './App.css';
-import { PaymentList } from './pages/payments/paymentList';
+import { ExpenseLayout } from './layouts/expenseLayout';
+import { ProjectLayout } from './layouts/projectLayout';
+import { PaymentPage } from './pages/payments/paymentList';
 import { ProjectDetails } from './pages/projectDetails/projectsDetails';
 import { Projects } from './pages/projects/projects';
-import { ProjectLayout } from './layouts/projectLayout';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const queryClient = new QueryClient();
 
@@ -28,10 +29,13 @@ const router = createBrowserRouter([
 			},
 			{
 				path: 'expenses/:expenseId',
-				loader: ({ params }) => {
-					return { projectId: params.projectId, expenseId: params.expenseId };
-				},
-				Component: PaymentList,
+				Component: ExpenseLayout,
+				children: [
+					{
+						index: true,
+						Component: PaymentPage,
+					},
+				],
 			},
 		],
 	},

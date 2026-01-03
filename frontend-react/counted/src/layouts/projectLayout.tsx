@@ -6,7 +6,7 @@ import { useUsersByProjectId } from '../hooks/useUsers';
 import { Loading } from '../components/loading';
 
 export function ProjectLayout() {
-	const [projectUsers, setProjectUsers] = useState<User[] | null>();
+	const [projectUsers, setProjectUsers] = useState<User[]>();
 	const { projectId } = useParams();
 
 	const { data, isLoading } = useUsersByProjectId(projectId); // TODO : can i remove undefined ?

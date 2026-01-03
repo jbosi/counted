@@ -1,19 +1,35 @@
-import { useLoaderData } from 'react-router';
-import { Avatar } from '../../components/avatar';
-import { usePaymentsByExpenseId } from '../../hooks/usePayments';
 import { useContext } from 'react';
+import { AppHeader } from '../../components/appHeader';
+import { Avatar } from '../../components/avatar';
+import { ExpenseContext } from '../../contexts/ExpenseContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
+import { usePaymentsByExpenseId } from '../../hooks/usePayments';
 import type { PaymentViewModel } from '../../types/payments.model';
+import type { Expense } from '../../types/expenses.model';
+import type { User } from '../../types/users.model';
+import { Loading } from '../../components/loading';
 
-interface PaymentListProps {
-	expenseId: number;
-}
-
-export function PaymentList() {
-	const { expenseId }: PaymentListProps = useLoaderData();
+export function PaymentPage() {
+	const { expense } = useContext(ExpenseContext);
 	const { projectUsers } = useContext(ProjectUsersContext);
 
-	const { data: payments, error, isError, isLoading } = usePaymentsByExpenseId(expenseId);
+	return (
+		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
+			<AppHeader title={expense?.name} backButtonRoute="/projects" />
+			<div className="container p-4 max-w-md rounded-xl flex flex-col">
+				{expense === undefined || projectUsers === undefined ? <Loading /> : <PaymentList expense={expense} projectUsers={projectUsers} />}
+			</div>
+		</div>
+	);
+}
+
+interface PaymentListPage {
+	expense: Expense;
+	projectUsers: User[];
+}
+
+function PaymentList({ expense, projectUsers }: PaymentListPage) {
+	const { data: payments, error, isError, isLoading } = usePaymentsByExpenseId(expense.id);
 	const paymentsViewModel: PaymentViewModel[] = (payments ?? []).map((p) => ({
 		amount: p.amount,
 		createdAt: p.createdAt,
@@ -23,12 +39,24 @@ export function PaymentList() {
 		user: projectUsers?.find((pu) => pu.id === p.userId),
 	}));
 
+	const payers = paymentsViewModel.filter((p) => !p.isDebt);
+	const debtors = paymentsViewModel.filter((p) => p.isDebt);
+
 	return (
-		<div className="container p-4 max-w-md rounded-xl flex flex-col">
-			{paymentsViewModel?.map((payment) => (
-				<PaymentItem payment={payment} key={payment.id} />
-			))}
-		</div>
+		<section className="flex flex-col gap-3">
+			<div>
+				<h2 className="text-left">Répartition du paiement</h2>
+				{payers?.map((payment) => (
+					<PaymentItem payment={payment} key={payment.id} />
+				))}
+			</div>
+			<div>
+				<h2 className="text-left">Répartition de la dette</h2>
+				{debtors?.map((payment) => (
+					<PaymentItem payment={payment} key={payment.id} />
+				))}
+			</div>
+		</section>
 	);
 }
 

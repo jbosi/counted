@@ -12,9 +12,17 @@ export function useExpensesByProjectId(projectId: string) {
 	});
 }
 
+export function useExpense(expenseId: number) {
+	return useQuery({
+		queryKey: ['expense', expenseId],
+		queryFn: () => expensesService.getExpenseById(expenseId),
+		refetchOnWindowFocus: false,
+	});
+}
+
 export function useExpenseSummary(projectId: string) {
 	return useQuery({
-		queryKey: [`expenses-summary-${projectId}`],
+		queryKey: ['expenses', 'summary', projectId],
 		queryFn: () => projectsService.getExpensesSummaryByProjectId(projectId),
 	});
 }

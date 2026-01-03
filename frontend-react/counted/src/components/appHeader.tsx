@@ -1,18 +1,19 @@
 import { BackButtonArrow } from './backButtonArrow';
+import { Loading } from './loading';
 
 export interface AppHeaderProps {
-	title: string;
+	title: string | undefined;
 	backButtonRoute: string;
 }
 
-export function AppHeader(props: AppHeaderProps) {
+export function AppHeader({ title }: AppHeaderProps) {
 	return (
 		<div className="navbar px-0">
 			<div className="navbar-start">
 				<BackButtonArrow />
 			</div>
 			<div className="navbar-center">
-				<h1 className="text-xl font-bold">{props.title}</h1>
+				<h1 className="text-xl font-bold">{title ?? <Loading />}</h1>
 			</div>
 			<div className="navbar-end">
 				<button className="btn btn-ghost btn-circle">

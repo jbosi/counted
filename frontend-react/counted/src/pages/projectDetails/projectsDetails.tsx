@@ -2,13 +2,16 @@ import { useContext, useRef, useState, type RefObject } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
+import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/addExpenseModal';
 import { SummaryCard } from '../../components/summaryCard';
+import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { useProject } from '../../hooks/useProjects';
+import type { ProjectSummary } from '../../types/summary.model';
+import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -25,7 +28,6 @@ export const ProjectDetails = () => {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
-	const [expenseModalOpen, setExpenseModalOpen] = useState(false);
 
 	const globalTotal = expenses?.data?.reduce((acc, e) => acc + e.amount, 0) ?? 0;
 
@@ -35,7 +37,7 @@ export const ProjectDetails = () => {
 				<AppHeader title={project.data?.name ?? ''} backButtonRoute="/projects" />
 			) : (
 				<div className="flex justify-center">
-					<span className="loading loading-spinner loading-m" />
+					<Loading />
 				</div>
 			)}
 
@@ -76,38 +78,45 @@ export const ProjectDetails = () => {
 							)}
 						</>
 					) : (
-						<>
-							{summary.data ? (
-								(() => {
-									const maxAmount = Math.max(...Object.values(summary.data).map((v) => Math.abs(v)), 1);
-
-									return (
-										<section className="flex flex-col gap-2">
-											{Object.entries(summary.data)
-												.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
-												.map(([userIdStr, amount]) => {
-													const userId = Number(userIdStr);
-													const user = users?.find((u) => u.id === userId);
-													if (!user) {
-														return null;
-													}
-
-													return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-												})}
-										</section>
-									);
-								})()
-							) : (
-								<></>
-							)}
-						</>
+						<ProjectSummary summary={summary.data} users={users} />
 					)}
 				</>
 			) : (
 				<div className="flex justify-center mt-20">
-					<span className="loading loading-spinner loading-xl" />
+					<Loading />
 				</div>
 			)}
 		</div>
 	);
 };
+
+interface ProjectSummaryProps {
+	summary: ProjectSummary | undefined;
+	users: User[];
+}
+
+function ProjectSummary({ summary, users }: ProjectSummaryProps) {
+	if (summary === undefined) {
+		return <></>;
+	}
+
+	return (() => {
+		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
+
+		return (
+			<section className="flex flex-col gap-2">
+				{Object.entries(summary)
+					.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
+					.map(([userIdStr, amount]) => {
+						const userId = Number(userIdStr);
+						const user = users?.find((u) => u.id === userId);
+						if (!user) {
+							return null;
+						}
+
+						return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
+					})}
+			</section>
+		);
+	})();
+}

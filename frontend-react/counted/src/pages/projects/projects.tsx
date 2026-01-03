@@ -1,7 +1,7 @@
 import { useRef, type RefObject } from 'react';
 import { AddProjectModal } from '../../components/modals/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
-import { ProjectItem } from './project';
+import { ProjectItem } from './projectItem';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -29,11 +29,11 @@ export function Projects() {
 						key={project.id}
 						id={project.id}
 						title={project.name}
-						current_reimbursements={0}
-						total_reimbursements={0}
+						currentReimbursements={0}
+						totalReimbursements={0}
 						description={project.description ?? ''}
 						currency={project.currency}
-						created_at={project.created_at}
+						createdAt={project.createdAt}
 					/>
 				))}
 			</div>

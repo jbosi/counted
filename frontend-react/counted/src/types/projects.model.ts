@@ -1,7 +1,7 @@
 export interface ProjectDto {
 	id: string;
 	name: string;
-	created_at: string;
+	createdAt: string;
 	currency: string;
 	description: string;
 }

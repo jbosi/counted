@@ -8,30 +8,30 @@ import { DropdownButton } from './components/dropdown';
 export interface ProjectProps {
 	id: string;
 	title: string;
-	current_reimbursements: number;
-	total_reimbursements: number;
+	currentReimbursements: number;
+	totalReimbursements: number;
 	description?: string;
 	currency: string;
-	created_at: string;
+	createdAt: string;
 }
 
 const DISPLAY_USER_LIMIT = 3;
 
-function getProgressPercentage(current_reimbursements: number, total_reimbursements: number): number {
-	if (current_reimbursements === 0 || total_reimbursements === 0) {
+function getProgressPercentage(currentReimbursements: number, totalReimbursements: number): number {
+	if (currentReimbursements === 0 || totalReimbursements === 0) {
 		return 0;
 	}
 
-	return Math.round((current_reimbursements / total_reimbursements) * 100);
+	return Math.round((currentReimbursements / totalReimbursements) * 100);
 }
 
-export function ProjectItem({ id, title, current_reimbursements, total_reimbursements, description }: ProjectProps) {
+export function ProjectItem({ id, title, currentReimbursements: currentReimbursements, totalReimbursements: totalReimbursements, description }: ProjectProps) {
 	const { data, error, isLoading } = useUsersByProjectId(id);
 	const { mutate } = useDeleteProject();
 
 	const navigate = useNavigate();
 
-	const progressPercentage = useCallback(() => getProgressPercentage(current_reimbursements, total_reimbursements), [current_reimbursements, total_reimbursements]);
+	const progressPercentage = useCallback(() => getProgressPercentage(currentReimbursements, totalReimbursements), [currentReimbursements, totalReimbursements]);
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -59,7 +59,7 @@ export function ProjectItem({ id, title, current_reimbursements, total_reimburse
 					<div className="flex justify-between">
 						<span>Remboursements</span>
 						<span>
-							{current_reimbursements}/{total_reimbursements}
+							{currentReimbursements}/{totalReimbursements}
 						</span>
 					</div>
 

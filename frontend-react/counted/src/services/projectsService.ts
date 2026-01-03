@@ -7,7 +7,7 @@ import type { User } from '../types/users.model';
 const API_BASE = '/api/projects';
 
 export const projectsService = {
-	async getUsersByProjectIdAsync(project_id: string): Promise<User[]> {
+	async getUsersByProjectIdAsync(project_id: string | undefined): Promise<User[]> {
 		return httpClient.get(`${API_BASE}/${project_id}/users`);
 	},
 

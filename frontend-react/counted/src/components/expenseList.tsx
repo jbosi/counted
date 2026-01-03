@@ -9,7 +9,7 @@ export function ExpenseList(props: ExpenseListProps) {
 	return (
 		<div>
 			{props.expenses.map((e) => {
-				return <ExpenseItem expense={e} />;
+				return <ExpenseItem key={e.id} expense={e} />;
 			})}
 		</div>
 	);

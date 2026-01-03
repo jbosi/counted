@@ -1,14 +1,14 @@
-import { useRef, useState, type RefObject } from 'react';
+import { useContext, useRef, useState, type RefObject } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
+import { ExpenseList } from '../../components/expenseList';
+import { AddExpenseModal } from '../../components/modals/addExpenseModal';
 import { SummaryCard } from '../../components/summaryCard';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { useProject } from '../../hooks/useProjects';
-import { useUsersByProjectId } from '../../hooks/useUsers';
-import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { ExpenseList } from '../../components/expenseList';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
-import { AddExpenseModal } from '../../components/modals/addExpenseModal';
+import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -19,7 +19,7 @@ type ActiveTab = 'ExpensesList' | 'Summary';
 export const ProjectDetails = () => {
 	const props: ProjectDetailsProps = useLoaderData();
 	const project = useProject(props.projectId);
-	const users = useUsersByProjectId(props.projectId);
+	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const expenses = useExpensesByProjectId(props.projectId);
 	const summary = useExpenseSummary(props.projectId);
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -41,7 +41,7 @@ export const ProjectDetails = () => {
 
 			{users && expenses ? (
 				<>
-					<ExpensesUserSection id={props.projectId} users={users.data ?? []} />
+					<ExpensesUserSection id={props.projectId} users={users ?? []} />
 
 					<SummaryCard myTotal={625.0} globalTotal={globalTotal} />
 
@@ -61,7 +61,7 @@ export const ProjectDetails = () => {
 								<ExpenseList expenses={expenses.data ?? []} />
 							</div>
 
-							{(users.data?.length ?? 0) > 0 && (
+							{(users?.length ?? 0) > 0 && (
 								<>
 									<button
 										type="button"
@@ -71,7 +71,7 @@ export const ProjectDetails = () => {
 										+
 									</button>
 
-									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users.data ?? []} dialogRef={dialogRef} />
+									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users ?? []} dialogRef={dialogRef} />
 								</>
 							)}
 						</>
@@ -87,7 +87,7 @@ export const ProjectDetails = () => {
 												.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
 												.map(([userIdStr, amount]) => {
 													const userId = Number(userIdStr);
-													const user = users.data?.find((u) => u.id === userId);
+													const user = users?.find((u) => u.id === userId);
 													if (!user) {
 														return null;
 													}

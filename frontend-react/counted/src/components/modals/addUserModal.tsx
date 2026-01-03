@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { useAddUser, useDeleteUser } from '../../hooks/useUsers';
 import * as z from 'zod';
-import { ErrorValidationCallout } from '../errorCallout';
+import { useAddUser, useDeleteUser } from '../../hooks/useUsers';
 import type { User } from '../../types/users.model';
+import { ErrorValidationCallout } from '../errorCallout';
 
 export interface AddUserModalProps {
 	modalId: string;
@@ -81,7 +81,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 						{deleteUserIsError && <span className="text-error">{(deleteUserError as Error).message}</span>}
 						{currentUsers?.map((u) => {
 							return (
-								<div className="flex gap-3">
+								<div key={u.id} className="flex gap-3">
 									<span className="self-center">{u.name}</span>
 									<button type="button" className="btn btn-square btn-sm p-1.5 btn-soft" onClick={() => deleteUserMutate(u.id)}>
 										{deleteUserIsPending && u.id === userIdBeingDeleted ? (

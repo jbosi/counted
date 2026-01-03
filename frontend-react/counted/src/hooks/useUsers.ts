@@ -3,11 +3,12 @@ import { projectsService } from '../services/projectsService';
 import type { CreatableUser, User } from '../types/users.model';
 import { usersService } from '../services/usersService';
 
-export function useUsersByProjectId(projectId: string) {
+export function useUsersByProjectId(projectId: string | undefined) {
 	return useQuery({
 		queryKey: ['users', 'project', projectId],
 		queryFn: () => projectsService.getUsersByProjectIdAsync(projectId),
 		refetchOnWindowFocus: false,
+		enabled: !!projectId,
 	});
 }
 

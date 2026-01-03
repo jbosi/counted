@@ -124,6 +124,7 @@ impl fmt::Display for ExpenseType {
 // -------- PAYMENT ---------
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "server", derive(FromRow))]
 
 pub struct Payment {

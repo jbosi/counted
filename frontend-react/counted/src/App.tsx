@@ -1,28 +1,45 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import './App.css';
-import { Projects } from './pages/projects/projects';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
+import './App.css';
+import { PaymentList } from './pages/payments/paymentList';
 import { ProjectDetails } from './pages/projectDetails/projectsDetails';
+import { Projects } from './pages/projects/projects';
+import { ProjectLayout } from './layouts/projectLayout';
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
 	{
-		path: '/',
-		element: <Projects />,
+		index: true,
+		Component: Projects,
 	},
 	{
 		path: '/projects/:projectId',
-		loader: ({ params }) => {
-			return { projectId: params.projectId };
-		},
-		element: <ProjectDetails />,
+		Component: ProjectLayout,
+		children: [
+			{
+				index: true,
+				loader: ({ params }) => {
+					return { projectId: params.projectId };
+				},
+				Component: ProjectDetails,
+			},
+			{
+				path: 'expenses/:expenseId',
+				loader: ({ params }) => {
+					return { projectId: params.projectId, expenseId: params.expenseId };
+				},
+				Component: PaymentList,
+			},
+		],
 	},
 ]);
-const queryClient = new QueryClient();
 
 function App() {
 	return (
 		<QueryClientProvider client={queryClient}>
+			{/* <ReactQueryDevtools initialIsOpen={false} /> */}
 			<RouterProvider router={router} />
 		</QueryClientProvider>
 	);

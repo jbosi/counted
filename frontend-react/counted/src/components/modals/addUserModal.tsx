@@ -79,6 +79,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 							{addUserIsError && <span className="text-error">{(addUserError as Error).message}</span>}
 						</div>
 						{deleteUserIsError && <span className="text-error">{(deleteUserError as Error).message}</span>}
+						<h2 className="text-left">Utilisateurs existants</h2>
 						{currentUsers?.map((u) => {
 							return (
 								<div key={u.id} className="flex gap-3">

@@ -1,6 +1,6 @@
 import { httpClient } from '../shared';
 import type { Expense } from '../types/expenses.model';
-import type { CreatableProject, ProjectDto } from '../types/projects.model';
+import type { CreatableProject, EditableProject, ProjectDto } from '../types/projects.model';
 import type { ProjectSummary } from '../types/summary.model';
 import type { User } from '../types/users.model';
 
@@ -29,6 +29,10 @@ export const projectsService = {
 
 	async createProjectAsync(creatableProject: CreatableProject): Promise<ProjectDto> {
 		return httpClient.post(`${API_BASE}`, creatableProject);
+	},
+
+	async editProjectAsync(editableProject: EditableProject): Promise<ProjectDto> {
+		return httpClient.put(`${API_BASE}`, editableProject);
 	},
 
 	async deleteProjectAsync(projectId: string): Promise<void> {

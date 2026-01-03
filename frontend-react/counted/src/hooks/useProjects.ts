@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsService } from '../services/projectsService';
-import type { CreatableProject } from '../types/projects.model';
+import type { CreatableProject, EditableProject } from '../types/projects.model';
 
 export function useProjects() {
 	return useQuery({
@@ -22,7 +22,18 @@ export function useAddProject() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (creatableUser: CreatableProject) => projectsService.createProjectAsync(creatableUser),
+		mutationFn: (creatableProject: CreatableProject) => projectsService.createProjectAsync(creatableProject),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+		},
+	});
+}
+
+export function useEditProject() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (editableUser: EditableProject) => projectsService.editProjectAsync(editableUser),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
 		},

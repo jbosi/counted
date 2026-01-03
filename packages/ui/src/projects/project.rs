@@ -11,7 +11,7 @@ use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::view_models::users_project_view_model::UsersProject;
-use shared::{ProjectDto, UpdatableProject, User};
+use shared::{ProjectDto, EditableProject, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
@@ -144,7 +144,7 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
                 }
                 UpdateProjectModal {
                     modal_open: update_project_modal_open,
-                    current_project: UpdatableProject {
+                    current_project: EditableProject {
                         id: props.id,
                         currency: Some(props.currency),
                         description: props.description,

@@ -32,7 +32,8 @@ pub struct CreatableProject {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct UpdatableProject {
+#[serde(rename_all = "camelCase")]
+pub struct EditableProject {
     pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,

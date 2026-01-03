@@ -1,29 +1,24 @@
 import type { RefObject } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
-import { useAddProject } from '../../hooks/useProjects';
+import { type FormState, type SubmitHandler, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import type { AddProjectModalForm } from './addProjectModal';
+import type { EditProjectModalForm } from './editProjectModal';
+import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
+import type { UseMutationResult } from '@tanstack/react-query';
 
-export interface AddProjectModalProps {
+export interface ProjectModalContentProps {
+	isEdition: boolean;
 	modalId: string;
 	dialogRef: RefObject<HTMLDialogElement | null>;
+	register: UseFormRegister<AddProjectModalForm>;
+	onSubmit: SubmitHandler<AddProjectModalForm | EditProjectModalForm>;
+	getValues: UseFormGetValues<AddProjectModalForm | EditProjectModalForm>;
+	formState: FormState<AddProjectModalForm | EditProjectModalForm>;
+	mutationHook: UseMutationResult<ProjectDto, Error, CreatableProject, unknown> | UseMutationResult<ProjectDto, Error, EditableProject, unknown>;
 }
 
-interface AddProjectModalForm {
-	projectName: string;
-	projectDescription: string;
-}
-
-export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
-	const {
-		register,
-		formState: { errors },
-		getValues,
-	} = useForm<AddProjectModalForm>();
-	const { error, isPending, isError, mutate } = useAddProject();
-
-	const onSubmit: SubmitHandler<AddProjectModalForm> = (data) => {
-		mutate({ name: data.projectName, description: data.projectDescription });
-		dialogRef.current?.close();
-	};
+export function ProjectModalContent({ isEdition, dialogRef, modalId, onSubmit, getValues, register, formState, mutationHook }: ProjectModalContentProps) {
+	const errors = formState.errors;
+	const { error, isPending, isError } = mutationHook;
 
 	return (
 		<>
@@ -32,7 +27,7 @@ export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
 						✕
 					</button>
-					<h1>Ajouter un projet</h1>
+					<h1>{isEdition ? 'Editer le projet' : 'Ajouter un projet'}</h1>
 					<form
 						className="ml-4 mr-4"
 						onSubmit={(e) => {

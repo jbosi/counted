@@ -1,5 +1,5 @@
 import { useRef, type RefObject } from 'react';
-import { AddProjectModal } from '../../components/modals/addProjectModal';
+import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
 

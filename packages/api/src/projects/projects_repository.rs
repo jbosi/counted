@@ -1,7 +1,7 @@
 use dioxus::logger::tracing;
 use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
-use shared::{CreatableProject, ProjectDto, UpdatableProject};
+use shared::{CreatableProject, EditableProject, ProjectDto};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -75,26 +75,25 @@ pub async fn add_project(Json(project): Json<CreatableProject>) -> Result<Uuid, 
     Ok(project_id)
 }
 
-#[server()]
-// #[patch("/api/projects")]
+#[put("/api/projects")]
 pub async fn update_project_by_id(
-    updatable_project: UpdatableProject,
+    Json(editable_project): Json<EditableProject>,
 ) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let mut new_project =
-        get_project(updatable_project.id).await.expect("Unable to find requested project_id");
+        get_project(editable_project.id).await.expect("Unable to find requested project_id");
 
-    if updatable_project.name.is_some() {
-        new_project.name = updatable_project.name.unwrap();
+    if editable_project.name.is_some() {
+        new_project.name = editable_project.name.unwrap();
     }
 
-    if updatable_project.description.is_some() {
-        new_project.description = updatable_project.description;
+    if editable_project.description.is_some() {
+        new_project.description = editable_project.description;
     }
 
-    if updatable_project.currency.is_some() {
-        new_project.currency = updatable_project.currency.unwrap();
+    if editable_project.currency.is_some() {
+        new_project.currency = editable_project.currency.unwrap();
     }
 
     let update_project: ProjectDto = sqlx::query_as!(

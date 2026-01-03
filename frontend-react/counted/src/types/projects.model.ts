@@ -11,3 +11,7 @@ export interface CreatableProject {
 	description?: string;
 	currency?: string;
 }
+
+export interface EditableProject extends CreatableProject {
+	id: string;
+}

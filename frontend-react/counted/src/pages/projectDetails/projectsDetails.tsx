@@ -12,6 +12,7 @@ import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -25,7 +26,8 @@ export const ProjectDetails = () => {
 	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const expenses = useExpensesByProjectId(props.projectId);
 	const summary = useExpenseSummary(props.projectId);
-	const dialogRef = useRef<HTMLDialogElement>(null);
+	const expenseDialogRef = useRef<HTMLDialogElement>(null);
+	const projectDialogRef = useRef<HTMLDialogElement>(null);
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 
@@ -33,8 +35,11 @@ export const ProjectDetails = () => {
 
 	return (
 		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
-			{project ? (
-				<AppHeader title={project.data?.name ?? ''} backButtonRoute="/projects" />
+			{project.data ? (
+				<>
+					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute="/projects" />
+					<EditProjectModal dialogRef={projectDialogRef} modalId={'AddProjectModal'} project={project.data} />
+				</>
 			) : (
 				<div className="flex justify-center">
 					<Loading />
@@ -68,12 +73,12 @@ export const ProjectDetails = () => {
 									<button
 										type="button"
 										className="btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6"
-										onClick={() => (dialogRef as RefObject<HTMLDialogElement>).current.showModal()}
+										onClick={() => (expenseDialogRef as RefObject<HTMLDialogElement>).current.showModal()}
 									>
 										+
 									</button>
 
-									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users ?? []} dialogRef={dialogRef} />
+									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users ?? []} dialogRef={expenseDialogRef} />
 								</>
 							)}
 						</>

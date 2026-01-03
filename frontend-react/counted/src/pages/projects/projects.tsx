@@ -1,7 +1,7 @@
 import { useRef, type RefObject } from 'react';
 import { AddProjectModal } from '../../components/modals/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
-import { Project } from './project';
+import { ProjectItem } from './project';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -25,7 +25,7 @@ export function Projects() {
 
 			<div className="space-y-4">
 				{projects.map((project) => (
-					<Project
+					<ProjectItem
 						key={project.id}
 						id={project.id}
 						title={project.name}

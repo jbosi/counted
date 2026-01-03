@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { Avatar } from '../../components/avatar';
+import { useDeleteProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import { DropdownButton } from './components/dropdown';
-import { useNavigate } from 'react-router';
-import { useDeleteProject } from '../../hooks/useProjects';
 
 export interface ProjectProps {
 	id: string;
@@ -15,6 +15,8 @@ export interface ProjectProps {
 	created_at: string;
 }
 
+const DISPLAY_USER_LIMIT = 3;
+
 function getProgressPercentage(current_reimbursements: number, total_reimbursements: number): number {
 	if (current_reimbursements === 0 || total_reimbursements === 0) {
 		return 0;
@@ -23,14 +25,13 @@ function getProgressPercentage(current_reimbursements: number, total_reimburseme
 	return Math.round((current_reimbursements / total_reimbursements) * 100);
 }
 
-export function Project(props: ProjectProps) {
-	const [moreUsers, setMoreUsers] = useState<number>(0);
-	const { data, error, isLoading } = useUsersByProjectId(props.id);
+export function ProjectItem({ id, title, current_reimbursements, total_reimbursements, description }: ProjectProps) {
+	const { data, error, isLoading } = useUsersByProjectId(id);
 	const { mutate } = useDeleteProject();
 
 	const navigate = useNavigate();
 
-	const progressPercentage = getProgressPercentage(props.current_reimbursements, props.total_reimbursements);
+	const progressPercentage = useCallback(() => getProgressPercentage(current_reimbursements, total_reimbursements), [current_reimbursements, total_reimbursements]);
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -46,23 +47,23 @@ export function Project(props: ProjectProps) {
 
 	return (
 		<>
-			<section className="card bg-base-200 w-96 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${props.id}`)}>
+			<section className="card bg-base-200 w-96 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${id}`)}>
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
-						<h2 className="card-title">{props.title}</h2>
-						<DropdownButton id={props.id} onDelete={() => mutate(props.id)} /> {/* TODO handle errors */}
+						<h2 className="card-title">{title}</h2>
+						<DropdownButton id={id} onDelete={() => mutate(id)} /> {/* TODO handle errors */}
 					</div>
 
-					<p>{props.description}</p>
+					<p>{description}</p>
 
 					<div className="flex justify-between">
 						<span>Remboursements</span>
 						<span>
-							{props.current_reimbursements}/{props.total_reimbursements}
+							{current_reimbursements}/{total_reimbursements}
 						</span>
 					</div>
 
-					<progress className="progress" value={progressPercentage} max={100}></progress>
+					<progress className="progress" value={progressPercentage()} max={100}></progress>
 
 					<div className="card-actions justify-between">
 						<div className="flex gap-1 items-center">
@@ -71,10 +72,10 @@ export function Project(props: ProjectProps) {
 						</div>
 
 						<div className="flex gap-1 items-center">
-							{data.slice(0, 3).map((user) => (
+							{data.slice(0, DISPLAY_USER_LIMIT).map((user) => (
 								<Avatar key={user.id} name={user.name} />
 							))}
-							{moreUsers > 0 && <Avatar name={`+${moreUsers}`} />}
+							{data.length > DISPLAY_USER_LIMIT && <Avatar name={`+${data.length - DISPLAY_USER_LIMIT}`} />}
 						</div>
 					</div>
 				</div>

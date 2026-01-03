@@ -51,7 +51,10 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{title}</h2>
-						<DropdownButton id={id} onDelete={() => mutate(id)} /> {/* TODO handle errors */}
+						<DropdownButton id={id} onDelete={() => mutate(id)}>
+							...
+						</DropdownButton>{' '}
+						{/* TODO handle errors */}
 					</div>
 
 					<p>{description}</p>

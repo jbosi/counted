@@ -1,28 +1,31 @@
-interface DropdownButtonProps {
+import type { ReactNode } from 'react';
+
+export interface DropdownButtonProps {
 	id: string;
 	onDelete?: () => void;
 	onEdit?: () => void;
+	children: ReactNode;
 }
 
-export const DropdownButton = (props: DropdownButtonProps) => {
+export const DropdownButton = ({ id, onDelete, onEdit, children }: DropdownButtonProps) => {
 	return (
 		<div className="dropdown">
 			<button
 				role="button"
 				className="btn btn-ghost btn-circle"
-				popoverTarget={`popover-${props.id}`}
-				style={{ anchorName: `--anchor-${props.id}` }}
+				popoverTarget={`popover-${id}`}
+				style={{ anchorName: `--anchor-${id}` }}
 				onClick={(e) => e.stopPropagation()}
 			>
-				...
+				{children}
 			</button>
-			<ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" popover="auto" id={`popover-${props.id}`} style={{ positionAnchor: `--anchor-${props.id}` }}>
+			<ul className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm" popover="auto" id={`popover-${id}`} style={{ positionAnchor: `--anchor-${id}` }}>
 				<li>
 					<button
 						className="btn btn-ghost"
 						onClick={(e) => {
 							e.stopPropagation();
-							props?.onEdit?.();
+							onEdit?.();
 						}}
 					>
 						Editer
@@ -33,7 +36,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
 						className="btn btn-ghost"
 						onClick={(e) => {
 							e.stopPropagation();
-							props?.onDelete?.();
+							onDelete?.();
 						}}
 					>
 						Supprimer

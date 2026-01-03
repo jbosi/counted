@@ -6,6 +6,7 @@ import { PaymentList } from './pages/payments/paymentList';
 import { ProjectDetails } from './pages/projectDetails/projectsDetails';
 import { Projects } from './pages/projects/projects';
 import { ProjectLayout } from './layouts/projectLayout';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const queryClient = new QueryClient();
 
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
 function App() {
 	return (
 		<QueryClientProvider client={queryClient}>
-			{/* <ReactQueryDevtools initialIsOpen={false} /> */}
+			<ReactQueryDevtools initialIsOpen={false} />
 			<RouterProvider router={router} />
 		</QueryClientProvider>
 	);

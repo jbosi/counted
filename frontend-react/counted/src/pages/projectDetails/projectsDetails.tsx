@@ -3,7 +3,8 @@ import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
 import { Loading } from '../../components/loading';
-import { AddExpenseModal } from '../../components/modals/addExpenseModal';
+import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
+import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 import { SummaryCard } from '../../components/summaryCard';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
@@ -12,7 +13,6 @@ import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 
 interface ProjectDetailsProps {
 	projectId: string;

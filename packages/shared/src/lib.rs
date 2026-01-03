@@ -100,6 +100,20 @@ pub struct CreatableExpense {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct EditableExpense {
+    pub id: i32,
+    pub name: String,
+    pub amount: f64,
+    pub expense_type: ExpenseType,
+    pub project_id: Uuid,
+    pub payers: Vec<UserAmount>,
+    pub debtors: Vec<UserAmount>,
+    pub author_id: i32,
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UserAmount {
     pub user_id: i32,
     pub amount: f64,
@@ -151,14 +165,6 @@ pub struct PaymentViewModel {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NewPayment {
-    pub expense_id: i32,
-    pub user_id: i32,
-    pub is_debt: bool,
-    pub amount: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct EditablePayment {
     pub expense_id: i32,
     pub user_id: i32,
     pub is_debt: bool,

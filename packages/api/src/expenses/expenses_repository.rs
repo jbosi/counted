@@ -15,7 +15,9 @@ use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 use shared::sse::EventSSE;
-use shared::{CreatableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount};
+use shared::{
+    CreatableExpense, EditableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount,
+};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
@@ -96,6 +98,33 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<i32, S
                 .data(EventSSE::ExpenseCreated.to_string()),
         )
         .await;
+
+    Ok(created_expense_id)
+}
+
+#[put("/api/expenses")]
+pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<i32, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    delete_expense_by_id(expense.id)
+        .await
+        .context("Failed to delete expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let creatable_expense = CreatableExpense {
+        name: expense.name,
+        amount: expense.amount,
+        expense_type: expense.expense_type,
+        project_id: expense.project_id,
+        payers: expense.payers,
+        debtors: expense.debtors,
+        author_id: expense.author_id,
+        description: expense.description,
+    };
+    let created_expense_id = add_expense(Json(creatable_expense))
+        .await
+        .context("Failed add expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(created_expense_id)
 }

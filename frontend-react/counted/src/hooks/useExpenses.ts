@@ -37,3 +37,14 @@ export function useAddExpense() {
 		},
 	});
 }
+
+export function useEditExpense() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (creatableUser: CreatableExpense) => expensesService.createExpenseAsync(creatableUser),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['expenses'] });
+		},
+	});
+}

@@ -1,12 +1,16 @@
 import { httpClient } from '../shared';
-import type { CreatableExpense, Expense } from '../types/expenses.model';
+import type { CreatableExpense, EditableExpense, Expense } from '../types/expenses.model';
 import type { Payment } from '../types/payments.model';
 
 const API_BASE = '/api/expenses';
 
 export const expensesService = {
-	async createExpenseAsync(creatableUser: CreatableExpense): Promise<Expense> {
-		return httpClient.post(`${API_BASE}`, creatableUser);
+	async createExpenseAsync(creatableExpense: CreatableExpense): Promise<Expense> {
+		return httpClient.post(`${API_BASE}`, creatableExpense);
+	},
+
+	async editExpenseAsync(editableExpense: EditableExpense): Promise<Expense> {
+		return httpClient.put(`${API_BASE}`, editableExpense);
 	},
 
 	async getExpenseById(expenseId: number): Promise<Expense> {

@@ -1,133 +1,48 @@
-import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
-import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
-import * as z from 'zod';
-import { useAddExpense } from '../../hooks/useExpenses';
-import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../types/expenses.model';
-import type { User } from '../../types/users.model';
-import { ErrorValidationCallout } from '../errorCallout';
+import type { FormEvent, RefObject } from 'react';
+import { type FieldArrayWithId, type FormState, type SubmitHandler, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { User } from '../../../types/users.model';
+import { ErrorValidationCallout } from '../../errorCallout';
+import type { AddExpenseModalForm } from './addExpenseModal';
 
-export interface AddExpenseModalProps {
+export interface ExpenseModalContentProps {
+	isEdition: boolean;
 	modalId: string;
-	projectId: string;
-	users: User[];
 	dialogRef: RefObject<HTMLDialogElement | null>;
-}
-
-interface AddExpenseModalForm {
-	name: string;
-	description: string;
-	totalAmount: number;
-	type: ExpenseType;
-	payers: FormCheckbox[];
-	debtors: FormCheckbox[];
-}
-
-const payersAndDebtorsForm = z.object({
-	amount: z.number().min(0),
-	isChecked: z.boolean(),
-	user: z.object().optional(),
-});
-
-const formSchema = z.object({
-	name: z.string().min(2).max(100),
-	description: z.string().max(200).optional(),
-	totalAmount: z.number().min(0.01).max(100000),
-	type: z.literal(ExpenseTypeConst),
-	payers: z.array(payersAndDebtorsForm).min(1),
-	debtors: z.array(payersAndDebtorsForm).min(1),
-});
-
-interface FormCheckboxProps {
-	user: User;
 	register: UseFormRegister<AddExpenseModalForm>;
-	getValues: UseFormGetValues<AddExpenseModalForm>;
-	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm>;
-	fields: FieldArrayWithId<AddExpenseModalForm>[];
-	type: 'debtors' | 'payers';
-	amount: number;
-	isChecked: boolean;
-	index: number;
+	onSubmit: SubmitHandler<AddExpenseModalForm | EditExpenseModalForm>;
+	getValues: UseFormGetValues<AddExpenseModalForm | EditExpenseModalForm>;
+	formState: FormState<AddExpenseModalForm | EditExpenseModalForm>;
+	mutationHook: UseMutationResult<ProjectDto, Error, CreatableProject, unknown> | UseMutationResult<ProjectDto, Error, EditableProject, unknown>;
+	payersFields: FieldArrayWithId<AddExpenseModalForm, 'payers', 'id'>[] | FieldArrayWithId<EditExpenseModalForm, 'payers', 'id'>[];
+	debtorsFields: FieldArrayWithId<AddExpenseModalForm, 'debtors', 'id'>[] | FieldArrayWithId<EditExpenseModalForm, 'debtors', 'id'>[];
+	updatePayer: UseFieldArrayUpdate<AddExpenseModalForm, 'payers'> | UseFieldArrayUpdate<EditExpenseModalForm | 'payers'>;
+	updateDebtor: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors'> | UseFieldArrayUpdate<EditExpenseModalForm | 'debtors'>;
+	errorState: string | null;
+	handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
+	exitModal: () => void;
 }
 
-interface FormCheckbox {
-	user: User;
-	isChecked: boolean;
-	amount: number;
-}
-
-function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
-	const initialDebtorsFormCheckBoxValues: FormCheckbox[] = users.map((u) => ({
-		amount: 0,
-		isChecked: true,
-		user: u,
-	}));
-
-	const initialPayersFormCheckBoxValues: FormCheckbox[] = users.map((u) => ({
-		amount: 0,
-		isChecked: false,
-		user: u,
-	}));
-
-	return {
-		payers: initialPayersFormCheckBoxValues,
-		debtors: initialDebtorsFormCheckBoxValues,
-		totalAmount: 0,
-		name: '',
-		description: '',
-	};
-}
-
-export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExpenseModalProps) {
-	const [errorState, setErrorState] = useState<string | null>(null);
-	const defaultValues = useMemo(() => getInitialValues(users), [users]);
-
-	const {
-		register,
-		formState: { errors, isDirty },
-		getValues,
-		control,
-		reset,
-	} = useForm<AddExpenseModalForm>({
-		defaultValues: defaultValues,
-	});
-
-	const exitModal = useCallback(() => {
-		reset(defaultValues);
-		dialogRef.current?.close();
-	}, [reset, defaultValues, dialogRef]);
-
-	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
-	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
-
-	const { mutate, isPending, isError, error } = useAddExpense();
-
-	const handleSubmit = useCallback(
-		(e: FormEvent<HTMLFormElement>) => {
-			e.preventDefault();
-
-			const formValues = getValues();
-			const parsedResult = formSchema.safeParse(formValues);
-
-			if (parsedResult.error) {
-				setErrorState(parsedResult.error.message);
-				return;
-			}
-
-			const creatableExpense: CreatableExpense = {
-				name: formValues.name,
-				amount: formValues.totalAmount,
-				expenseType: formValues.type,
-				projectId,
-				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: 41, // TODO
-			};
-
-			mutate(creatableExpense);
-			exitModal();
-		},
-		[exitModal, getValues, mutate, projectId],
-	);
+export function ExpenseModalContent({
+	isEdition,
+	dialogRef,
+	modalId,
+	onSubmit,
+	getValues,
+	register,
+	formState,
+	mutationHook,
+	payersFields,
+	debtorsFields,
+	updatePayer,
+	updateDebtor,
+	errorState,
+	handleSubmit,
+	exitModal,
+}: ExpenseModalContentProps) {
+	const errors = formState.errors;
+	const { error, isPending, isError } = mutationHook;
 
 	return (
 		<>
@@ -157,7 +72,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 									required: true,
 									valueAsNumber: true,
 									onBlur() {
-										updateAmounts('debtors', getValues, updateDebtor, debtorsfields);
+										updateAmounts('debtors', getValues, updateDebtor, debtorsFields);
 										updateAmounts('payers', getValues, updatePayer, payersFields);
 									},
 								})}
@@ -190,7 +105,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
-								{debtorsfields.map((field, index) => (
+								{debtorsFields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
 										amount={field.amount}
@@ -200,7 +115,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 										register={register}
 										getValues={getValues}
 										updateMethod={updateDebtor}
-										fields={debtorsfields}
+										fields={debtorsFields}
 										type="debtors"
 									/>
 								))}
@@ -248,6 +163,18 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 			{ amount: isLast ? updatedDebtorOrPayersAmountWithRemain : updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
 		);
 	});
+}
+
+interface FormCheckboxProps {
+	user: User;
+	register: UseFormRegister<AddExpenseModalForm> | UseFormRegister<EditExpenseModalForm>;
+	getValues: UseFormGetValues<AddExpenseModalForm> | UseFormGetValues<EditExpenseModalForm>;
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm> | UseFieldArrayUpdate<EditExpenseModalForm>;
+	fields: FieldArrayWithId<AddExpenseModalForm>[] | FieldArrayWithId<EditExpenseModalForm>[];
+	type: 'debtors' | 'payers';
+	amount: number;
+	isChecked: boolean;
+	index: number;
 }
 
 export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields }: FormCheckboxProps) {

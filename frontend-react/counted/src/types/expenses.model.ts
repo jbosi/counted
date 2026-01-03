@@ -23,6 +23,10 @@ export interface CreatableExpense {
 	description?: string;
 }
 
+export interface EditableExpense extends CreatableExpense {
+	id: number;
+}
+
 export interface UserAmount {
 	userId: number;
 	amount: number;

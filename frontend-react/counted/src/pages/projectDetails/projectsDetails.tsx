@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, type RefObject } from 'react';
+import { useContext, useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -13,6 +13,9 @@ import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { COUNTED_LOCAL_STORAGE_KEY, type CountedLocalStorage } from '../../types/localStorage.model';
+import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
+import { useAddLocalStorage } from '../../hooks/useLocalStorage';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -32,6 +35,10 @@ export const ProjectDetails = () => {
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 
 	const globalTotal = expenses?.data?.reduce((acc, e) => acc + e.amount, 0) ?? 0;
+
+	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+
+	useAddLocalStorage(countedLocalStorage, props.projectId, setCountedLocalStorage);
 
 	return (
 		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">

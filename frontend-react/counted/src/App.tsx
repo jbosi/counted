@@ -8,6 +8,10 @@ import { ProjectLayout } from './layouts/projectLayout';
 import { PaymentPage } from './pages/payments/paymentList';
 import { ProjectDetails } from './pages/projectDetails/projectsDetails';
 import { Projects } from './pages/projects/projects';
+import { CountedLocalStorageContext } from './contexts/localStorageContext';
+import { useEffect, useEffectEvent, useState } from 'react';
+import { COUNTED_LOCAL_STORAGE_KEY, type CountedLocalStorage } from './types/localStorage.model';
+import { useInitializeLocalStorage } from './hooks/useLocalStorage';
 
 const queryClient = new QueryClient();
 
@@ -42,10 +46,15 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+	const [countedLocalStorage, setCountedLocalStorage] = useState<CountedLocalStorage>();
+	useInitializeLocalStorage(setCountedLocalStorage);
+
 	return (
 		<QueryClientProvider client={queryClient}>
-			<ReactQueryDevtools initialIsOpen={false} />
-			<RouterProvider router={router} />
+			<CountedLocalStorageContext value={{ countedLocalStorage, setCountedLocalStorage }}>
+				<ReactQueryDevtools initialIsOpen={false} />
+				<RouterProvider router={router} />
+			</CountedLocalStorageContext>
 		</QueryClientProvider>
 	);
 }

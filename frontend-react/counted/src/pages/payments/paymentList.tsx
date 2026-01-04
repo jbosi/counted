@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { AppHeader } from '../../components/appHeader';
 import { Avatar } from '../../components/avatar';
-import { ExpenseContext } from '../../contexts/ExpenseContext';
+import { ExpenseContext } from '../../contexts/expenseContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { usePaymentsByExpenseId } from '../../hooks/usePayments';
 import type { PaymentViewModel } from '../../types/payments.model';

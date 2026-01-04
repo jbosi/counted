@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useParams } from 'react-router';
 import { Loading } from '../components/loading';
-import { ExpenseContext } from '../contexts/ExpenseContext';
+import { ExpenseContext } from '../contexts/expenseContext';
 import { useExpense } from '../hooks/useExpenses';
 import type { Expense } from '../types/expenses.model';
 

@@ -1,3 +1,4 @@
+use chrono::{Local, NaiveDateTime};
 use dioxus::logger::tracing;
 use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
@@ -69,7 +70,9 @@ pub async fn get_projects_by_ids(
 }
 
 #[post("/api/projects")]
-pub async fn add_project(Json(project): Json<CreatableProject>) -> Result<Uuid, ServerFnError> {
+pub async fn add_project(
+    Json(project): Json<CreatableProject>,
+) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let project_id: Uuid = sqlx::query_scalar!(
@@ -91,7 +94,15 @@ pub async fn add_project(Json(project): Json<CreatableProject>) -> Result<Uuid, 
         )
         .await;
 
-    Ok(project_id)
+    let new_project = ProjectDto {
+        id: project_id,
+        name: project.name,
+        description: project.description,
+        created_at: Local::now().naive_local(),
+        currency: "EUR".to_string(),
+    };
+
+    Ok(new_project)
 }
 
 #[put("/api/projects")]

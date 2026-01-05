@@ -9,7 +9,7 @@ import { SummaryCard } from '../../components/summaryCard';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
-import { useAddLocalStorage } from '../../hooks/useLocalStorage';
+import { useAddToLocalStorage } from '../../hooks/useLocalStorage';
 import { useProject } from '../../hooks/useProjects';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
@@ -37,7 +37,7 @@ export const ProjectDetails = () => {
 
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 
-	useAddLocalStorage(countedLocalStorage, props.projectId, setCountedLocalStorage);
+	useAddToLocalStorage(countedLocalStorage, props.projectId, setCountedLocalStorage);
 
 	return (
 		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">

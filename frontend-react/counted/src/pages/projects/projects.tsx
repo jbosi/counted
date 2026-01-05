@@ -1,11 +1,13 @@
-import { useRef, type RefObject } from 'react';
+import { useContext, useRef, type RefObject } from 'react';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
+import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
-	const { data: projects, isLoading, error } = useProjects();
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
 
 	if (isLoading) {
 		return <div>Loading...</div>;

@@ -2,11 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsService } from '../services/projectsService';
 import type { CreatableProject, EditableProject } from '../types/projects.model';
 
-export function useProjects() {
+export function useProjects(projectsIds: string[]) {
 	return useQuery({
 		queryKey: ['projects'],
-		queryFn: () => projectsService.getAllAsync(),
+		queryFn: () => projectsService.getByProjectIds(projectsIds),
 		refetchOnWindowFocus: false,
+		enabled: projectsIds?.length > 0,
 	});
 }
 

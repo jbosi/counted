@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useContext, useRef, useState, type RefObject } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -6,16 +6,15 @@ import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 import { SummaryCard } from '../../components/summaryCard';
+import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
+import { useAddLocalStorage } from '../../hooks/useLocalStorage';
 import { useProject } from '../../hooks/useProjects';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { COUNTED_LOCAL_STORAGE_KEY, type CountedLocalStorage } from '../../types/localStorage.model';
-import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
-import { useAddLocalStorage } from '../../hooks/useLocalStorage';
 
 interface ProjectDetailsProps {
 	projectId: string;

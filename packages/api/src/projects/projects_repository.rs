@@ -1,7 +1,7 @@
 use dioxus::logger::tracing;
 use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
-use shared::{CreatableProject, EditableProject, ProjectDto};
+use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -45,6 +45,25 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
             .await
             .context("Failed to get projects")
             .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(projects)
+}
+
+#[post("/api/projects/batch")]
+pub async fn get_projects_by_ids(
+    Json(payload): Json<BatchProject>,
+) -> Result<Vec<ProjectDto>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let projects: Vec<ProjectDto> = sqlx::query_as!(
+        ProjectDto,
+        "SELECT id, name, created_at, currency, description FROM projects WHERE id = ANY($1)",
+        &payload.ids[..]
+    )
+    .fetch_all(&pool)
+    .await
+    .context("Failed to get projects")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
 }

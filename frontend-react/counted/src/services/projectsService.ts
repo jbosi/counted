@@ -12,7 +12,12 @@ export const projectsService = {
 	},
 
 	async getAllAsync(): Promise<ProjectDto[]> {
+		// TMP
 		return httpClient.get(`${API_BASE}`);
+	},
+
+	async getByProjectIds(projectsIds: string[]): Promise<ProjectDto[]> {
+		return httpClient.post(`${API_BASE}/batch`, { ids: projectsIds });
 	},
 
 	async getByProjectId(projectId: string): Promise<ProjectDto> {

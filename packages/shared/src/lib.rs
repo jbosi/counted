@@ -40,6 +40,12 @@ pub struct EditableProject {
     pub currency: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchProject {
+    pub ids: Vec<Uuid>,
+}
+
 // -------- USER ---------
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

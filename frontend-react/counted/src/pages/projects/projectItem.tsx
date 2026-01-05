@@ -59,14 +59,14 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 
 					<p>{description}</p>
 
-					<div className="flex justify-between">
+					{/* <div className="flex justify-between">
 						<span>Remboursements</span>
 						<span>
 							{currentReimbursements}/{totalReimbursements}
 						</span>
 					</div>
 
-					<progress className="progress" value={progressPercentage()} max={100}></progress>
+					<progress className="progress" value={progressPercentage()} max={100}></progress> */}
 
 					<div className="card-actions justify-between">
 						<div className="flex gap-1 items-center">

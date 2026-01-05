@@ -238,14 +238,11 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
 
 	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
-	const amountRemaining = totalAmountValue - updatedAndRoundedDebtorOrPayersAmount * activeDebtorOrPayersCount;
-	const updatedDebtorOrPayersAmountWithRemain = updatedAndRoundedDebtorOrPayersAmount + amountRemaining;
 
-	activeDebtorOrPayersFields.forEach((field, index) => {
-		const isLast = activeDebtorOrPayersCount === index + 1;
+	activeDebtorOrPayersFields.forEach((field) => {
 		updateMethod(
 			debtorsfields.findIndex((f) => f.user.id === field.user.id),
-			{ amount: isLast ? updatedDebtorOrPayersAmountWithRemain : updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
+			{ amount: updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
 		);
 	});
 }

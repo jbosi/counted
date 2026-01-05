@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsService } from '../services/projectsService';
-import type { CreatableExpense } from '../types/expenses.model';
+import type { CreatableExpense, EditableExpense, Expense } from '../types/expenses.model';
 import { expensesService } from '../services/expensesService';
 
 export function useExpensesByProjectId(projectId: string) {
@@ -31,9 +31,9 @@ export function useAddExpense() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (creatableUser: CreatableExpense) => expensesService.createExpenseAsync(creatableUser),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['expenses'] });
+		mutationFn: (creatableExpense: CreatableExpense) => expensesService.createExpenseAsync(creatableExpense),
+		onSuccess: (data) => {
+			queryClient.setQueryData(['expenses'], (old: Expense[]) => [...old, data]);
 		},
 	});
 }
@@ -42,9 +42,20 @@ export function useEditExpense() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (creatableUser: CreatableExpense) => expensesService.createExpenseAsync(creatableUser),
+		mutationFn: (editableExpense: EditableExpense) => expensesService.editExpenseAsync(editableExpense),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['expenses'] });
+		},
+	});
+}
+
+export function useDeleteExpense() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (expenseId: number) => expensesService.deleteExpense(expenseId),
+		onSuccess: (_, expenseId) => {
+			queryClient.setQueryData(['expenses'], (old: Expense[]) => old.filter((o) => o.id !== expenseId));
 		},
 	});
 }

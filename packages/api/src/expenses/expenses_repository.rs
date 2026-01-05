@@ -1,3 +1,4 @@
+use chrono::{Local, NaiveDateTime};
 use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
@@ -22,7 +23,7 @@ use shared::{
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
 #[post("/api/expenses")]
-pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<i32, ServerFnError> {
+pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let created_expense_id: i32 = sqlx::query!(
@@ -99,11 +100,22 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<i32, S
         )
         .await;
 
-    Ok(created_expense_id)
+    let created_expense = Expense {
+        id: created_expense_id,
+        name: expense.name,
+        amount: expense.amount,
+        expense_type: expense.expense_type,
+        project_id: expense.project_id,
+        author_id: expense.author_id,
+        description: expense.description,
+        created_at: Local::now().naive_local(),
+    };
+
+    Ok(created_expense)
 }
 
 #[put("/api/expenses")]
-pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<i32, ServerFnError> {
+pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     delete_expense_by_id(expense.id)
@@ -121,12 +133,12 @@ pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<i32, S
         author_id: expense.author_id,
         description: expense.description,
     };
-    let created_expense_id = add_expense(Json(creatable_expense))
+    let new_expense = add_expense(Json(creatable_expense))
         .await
         .context("Failed add expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(created_expense_id)
+    Ok(new_expense)
 }
 
 #[get("/api/projects/{project_id}/expenses")]

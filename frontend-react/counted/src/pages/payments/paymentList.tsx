@@ -8,14 +8,27 @@ import type { PaymentViewModel } from '../../types/payments.model';
 import type { Expense } from '../../types/expenses.model';
 import type { User } from '../../types/users.model';
 import { Loading } from '../../components/loading';
+import { useDeleteExpense } from '../../hooks/useExpenses';
+import { useNavigate } from 'react-router';
 
 export function PaymentPage() {
 	const { expense } = useContext(ExpenseContext);
 	const { projectUsers } = useContext(ProjectUsersContext);
+	const { mutate } = useDeleteExpense();
+	const navigate = useNavigate();
+
+	const onDeleteExpense = () => {
+		if (expense === undefined) {
+			return;
+		}
+
+		mutate(expense?.id);
+		navigate('..');
+	};
 
 	return (
 		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
-			<AppHeader title={expense?.name} backButtonRoute="/projects" />
+			<AppHeader title={expense?.name} backButtonRoute="/projects" onDelete={onDeleteExpense} />
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">
 				{expense === undefined || projectUsers === undefined ? <Loading /> : <PaymentList expense={expense} projectUsers={projectUsers} />}
 			</div>

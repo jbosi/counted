@@ -20,4 +20,8 @@ export const expensesService = {
 	async getPaymentsByExpenseId(expenseId: number): Promise<Payment[]> {
 		return httpClient.get(`${API_BASE}/${expenseId}/payments`);
 	},
+
+	async deleteExpense(expenseId: number): Promise<void> {
+		return httpClient.delete(`${API_BASE}/${expenseId}`);
+	},
 };

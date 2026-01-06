@@ -1,12 +1,12 @@
 use api::projects::{add_project, update_project_by_id};
 use dioxus::prelude::*;
-use shared::{CreatableProject, UpdatableProject};
+use shared::{CreatableProject, EditableProject};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]
 pub struct UpdateProjectModalProps {
     modal_open: Signal<bool>,
-    current_project: UpdatableProject,
+    current_project: EditableProject,
 }
 #[component]
 pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
@@ -53,15 +53,15 @@ pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
                         r#type: "submit",
                         onclick: move |_| {
                             spawn(async move {
-                                let updatable_project: UpdatableProject = UpdatableProject {
+                                let updatable_project: EditableProject = EditableProject {
                                     id: props.current_project.id,
                                     name: project_name(),
                                     description: project_description(),
                                     currency: None,
                                 };
-                                update_project_by_id(updatable_project)
-                                    .await
-                                    .expect("Failed to update project");
+                                // update_project_by_id(updatable_project)
+                                //     .await
+                                //     .expect("Failed to update project");
                                 props.modal_open.set(false)
                             });
                         },

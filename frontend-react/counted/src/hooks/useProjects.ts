@@ -1,0 +1,58 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useContext } from 'react';
+import { CountedLocalStorageContext } from '../contexts/localStorageContext';
+import { projectsService } from '../services/projectsService';
+import type { CreatableProject, EditableProject, ProjectDto } from '../types/projects.model';
+import { addToLocalStorage } from './useLocalStorage';
+
+export function useProjects(projectsIds: string[]) {
+	return useQuery({
+		queryKey: ['projects'],
+		queryFn: () => projectsService.getByProjectIds(projectsIds.filter((p) => p != null)),
+		refetchOnWindowFocus: false,
+		enabled: projectsIds?.length > 0,
+	});
+}
+
+export function useProject(projectId: string) {
+	return useQuery({
+		queryKey: [`project-${projectId}`],
+		queryFn: () => projectsService.getByProjectId(projectId),
+		refetchOnWindowFocus: false,
+	});
+}
+
+export function useAddProject() {
+	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (creatableProject: CreatableProject) => projectsService.createProjectAsync(creatableProject),
+		onSuccess: (data) => {
+			queryClient.setQueryData(['projects'], (old: ProjectDto[]) => [...old, data]);
+			addToLocalStorage(countedLocalStorage, data.id, setCountedLocalStorage);
+		},
+	});
+}
+
+export function useEditProject() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (editableUser: EditableProject) => projectsService.editProjectAsync(editableUser),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+		},
+	});
+}
+
+export function useDeleteProject() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (projectId: string) => projectsService.deleteProjectAsync(projectId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+		},
+	});
+}

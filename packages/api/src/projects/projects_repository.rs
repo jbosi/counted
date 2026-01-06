@@ -1,6 +1,8 @@
-use dioxus::prelude::*;
+use chrono::{Local, NaiveDateTime};
+use dioxus::logger::tracing;
+use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
-use shared::{CreatableProject, ProjectDto, UpdatableProject};
+use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -15,12 +17,12 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
+#[get("/api/projects/{project_id}")]
 pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -29,12 +31,12 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
         .fetch_one(&pool)
         .await
         .context("Failed get project with specified id")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
 }
 
-#[server()]
+#[get("/api/projects")]
 pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -43,13 +45,34 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
             .fetch_all(&pool)
             .await
             .context("Failed to get projects")
-            .map_err(|e| ServerFnError::new(e.to_string()))?;;
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
 }
 
-#[server()]
-pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnError> {
+#[post("/api/projects/batch")]
+pub async fn get_projects_by_ids(
+    Json(payload): Json<BatchProject>,
+) -> Result<Vec<ProjectDto>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let projects: Vec<ProjectDto> = sqlx::query_as!(
+        ProjectDto,
+        "SELECT id, name, created_at, currency, description FROM projects WHERE id = ANY($1)",
+        &payload.ids[..]
+    )
+    .fetch_all(&pool)
+    .await
+    .context("Failed to get projects")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(projects)
+}
+
+#[post("/api/projects")]
+pub async fn add_project(
+    Json(project): Json<CreatableProject>,
+) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let project_id: Uuid = sqlx::query_scalar!(
@@ -71,28 +94,36 @@ pub async fn add_project(project: CreatableProject) -> Result<Uuid, ServerFnErro
         )
         .await;
 
-    Ok(project_id)
+    let new_project = ProjectDto {
+        id: project_id,
+        name: project.name,
+        description: project.description,
+        created_at: Local::now().naive_local(),
+        currency: "EUR".to_string(),
+    };
+
+    Ok(new_project)
 }
 
-#[server()]
+#[put("/api/projects")]
 pub async fn update_project_by_id(
-    updatable_project: UpdatableProject,
+    Json(editable_project): Json<EditableProject>,
 ) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let mut new_project =
-        get_project(updatable_project.id).await.expect("Unable to find requested project_id");
+        get_project(editable_project.id).await.expect("Unable to find requested project_id");
 
-    if updatable_project.name.is_some() {
-        new_project.name = updatable_project.name.unwrap();
+    if editable_project.name.is_some() {
+        new_project.name = editable_project.name.unwrap();
     }
 
-    if updatable_project.description.is_some() {
-        new_project.description = updatable_project.description;
+    if editable_project.description.is_some() {
+        new_project.description = editable_project.description;
     }
 
-    if updatable_project.currency.is_some() {
-        new_project.currency = updatable_project.currency.unwrap();
+    if editable_project.currency.is_some() {
+        new_project.currency = editable_project.currency.unwrap();
     }
 
     let update_project: ProjectDto = sqlx::query_as!(
@@ -106,7 +137,7 @@ pub async fn update_project_by_id(
     .fetch_one(&pool)
     .await
     .context("Failed to update project")
-    .map_err(|e| ServerFnError::new(e.to_string()))?;;
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -119,13 +150,15 @@ pub async fn update_project_by_id(
     Ok(update_project)
 }
 
-#[server()]
+#[delete("/api/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
+    tracing::info!("projectid = {:?}", project_id);
 
-    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id).execute(&pool)
+    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)
+        .execute(&pool)
         .await
-        .context("Failed to fetch project with specified id")
+        .context("Failed to delete project with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER

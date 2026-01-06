@@ -1,4 +1,5 @@
-use dioxus::prelude::*;
+use chrono::{Local, NaiveDateTime};
+use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -7,7 +8,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 
 #[cfg(feature = "server")]
@@ -15,12 +16,14 @@ use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 use shared::sse::EventSSE;
-use shared::{CreatableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount};
+use shared::{
+    CreatableExpense, EditableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount,
+};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
-pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
+#[post("/api/expenses")]
+pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let created_expense_id: i32 = sqlx::query!(
@@ -97,10 +100,48 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
         )
         .await;
 
-    Ok(created_expense_id)
+    let created_expense = Expense {
+        id: created_expense_id,
+        name: expense.name,
+        amount: expense.amount,
+        expense_type: expense.expense_type,
+        project_id: expense.project_id,
+        author_id: expense.author_id,
+        description: expense.description,
+        created_at: Local::now().naive_local(),
+    };
+
+    Ok(created_expense)
 }
 
-#[server()]
+#[put("/api/expenses")]
+pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    delete_expense_by_id(expense.id)
+        .await
+        .context("Failed to delete expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let creatable_expense = CreatableExpense {
+        name: expense.name,
+        amount: expense.amount,
+        expense_type: expense.expense_type,
+        project_id: expense.project_id,
+        payers: expense.payers,
+        debtors: expense.debtors,
+        author_id: expense.author_id,
+        description: expense.description,
+    };
+    let new_expense = add_expense(Json(creatable_expense))
+        .await
+        .context("Failed add expense")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(new_expense)
+}
+
+#[get("/api/projects/{project_id}/expenses")]
 pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
     let expenses: Vec<Expense> = sqlx::query_as!(
@@ -112,12 +153,12 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
         .fetch_all(&pool)
         .await
         .context("Failed to get expenses")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expenses)
 }
 
-#[server()]
+#[get("/api/expenses/{expense_id}")]
 pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
     let expense: Expense = sqlx::query_as!(
@@ -126,19 +167,23 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
         .fetch_one(&pool)
         .await
         .context("Failed to get expense")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;;
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expense)
 }
 
-#[server()]
+#[delete("/api/expenses/{expense_id}")]
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id).execute(&pool).await
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id)
+        .execute(&pool)
+        .await
         .context("Failed to delete payment")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id).execute(&pool).await
+    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id)
+        .execute(&pool)
+        .await
         .context("Failed to delete expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 

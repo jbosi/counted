@@ -22,10 +22,10 @@ pub fn Projects() -> Element {
         }
     });
 
-    listen_to_sse_events(
-        Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
-        project_event_any,
-    );
+    // listen_to_sse_events(
+    //     Vec::from([ProjectCreated, ProjectDeleted, ProjectModified]),
+    //     project_event_any,payments_repository
+    // );
 
     rsx! {
         div { class: "container p-4 max-w-md rounded-xl flex flex-col items-center",

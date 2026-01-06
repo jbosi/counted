@@ -1,0 +1,3 @@
+.progress-summary.progress-error {
+	transform: translateX(-100%);
+}

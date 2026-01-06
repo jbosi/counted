@@ -5,5 +5,9 @@
   },
   "devDependencies": {
     "daisyui": "^5.0.43"
-  }
+  },
+  "scripts": {
+		"back": "dx serve --package web",
+		"front": "cd ./frontend-react/counted && npm run dev"
+	}
 }

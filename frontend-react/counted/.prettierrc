@@ -1,0 +1,14 @@
+{
+	"endOfLine": "auto",
+	"overrides": [
+		{
+			"files": ["*.json"],
+			"options": {
+				"printWidth": 140
+			}
+		}
+	],
+	"printWidth": 170,
+	"singleQuote": true,
+	"useTabs": true
+}

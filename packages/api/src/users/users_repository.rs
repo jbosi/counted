@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -7,36 +7,67 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
-use crate::sse::BROADCASTER;
-use shared::sse::EventSSE;
-use shared::{CreatableUser, User};
+use crate::payments::get_payments_by_user_id;
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]
 use anyhow::Context;
+use shared::sse::EventSSE;
+use shared::{CreatableUser, Payment, User};
+#[cfg(feature = "server")]
+use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
-#[server()]
+#[get("/api/users")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let users: Vec<User> =
-        sqlx::query_as("SELECT id, name, balance, created_at FROM users")
-            .fetch_all(&pool)
-            .await
-            .context("Failed to fetch users from database")
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let users: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+        .fetch_all(&pool)
+        .await
+        .context("Failed to fetch users from database")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
 }
 
-#[server()]
-pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
+#[delete("/api/users/{user_id}")]
+pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    let payments =
+        get_payments_by_user_id(user_id).await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    if !payments.is_empty() {
+        // User still has payments → abort with a clear error
+        return Err(ServerFnError::new(
+            "User has existing payments in this project and cannot be removed",
+        ));
+    }
+
+    // Anonymous user cannot be in more than one user_project
+    sqlx::query!("DELETE FROM user_projects WHERE user_id = $1", user_id)
+        .execute(&pool)
+        .await
+        .context("Failed to delete user in user_projects table with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
+        .execute(&pool)
+        .await
+        .context("Failed to delete user in user table with specified id")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
+}
+
+#[post("/api/users")]
+pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let user_id: i32 =
@@ -64,10 +95,12 @@ pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
         )
         .await;
 
-    Ok(user_id)
+    let created_user = User { id: user_id, name: user.name, balance: None, created_at: None };
+
+    Ok(created_user)
 }
 
-#[server()]
+#[get("/api/projects/{project_id}/users")]
 pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 

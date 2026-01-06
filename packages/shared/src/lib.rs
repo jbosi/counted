@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "server", derive(FromRow))]
 pub struct ProjectDto {
     pub id: Uuid,
@@ -23,6 +24,7 @@ pub struct ProjectDto {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableProject {
     pub name: String,
     pub description: Option<String>,
@@ -30,11 +32,18 @@ pub struct CreatableProject {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct UpdatableProject {
+#[serde(rename_all = "camelCase")]
+pub struct EditableProject {
     pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
     pub currency: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchProject {
+    pub ids: Vec<Uuid>,
 }
 
 // -------- USER ---------
@@ -49,6 +58,7 @@ pub struct User {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableUser {
     pub name: String,
     pub project_id: Uuid,
@@ -82,6 +92,7 @@ pub struct NewExpense {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatableExpense {
     pub name: String,
     pub amount: f64,
@@ -94,6 +105,21 @@ pub struct CreatableExpense {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct EditableExpense {
+    pub id: i32,
+    pub name: String,
+    pub amount: f64,
+    pub expense_type: ExpenseType,
+    pub project_id: Uuid,
+    pub payers: Vec<UserAmount>,
+    pub debtors: Vec<UserAmount>,
+    pub author_id: i32,
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct UserAmount {
     pub user_id: i32,
     pub amount: f64,
@@ -120,6 +146,7 @@ impl fmt::Display for ExpenseType {
 // -------- PAYMENT ---------
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "server", derive(FromRow))]
 
 pub struct Payment {
@@ -144,14 +171,6 @@ pub struct PaymentViewModel {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NewPayment {
-    pub expense_id: i32,
-    pub user_id: i32,
-    pub is_debt: bool,
-    pub amount: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct EditablePayment {
     pub expense_id: i32,
     pub user_id: i32,
     pub is_debt: bool,

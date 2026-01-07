@@ -81,3 +81,9 @@ Run every time the db queries / schema change
 ```bash
 cargo sqlx prepare --workspace -- --all-features
 ```
+
+To check status and ports
+
+```bash
+docker-compose ps
+```

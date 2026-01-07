@@ -87,3 +87,9 @@ To check status and ports
 ```bash
 docker-compose ps
 ```
+
+Get docker db (ex: projects)
+
+```bash
+docker-compose exec db psql -U hcount_user -d hcount -c "SELECT id, name, currency, description FROM projects;"
+```

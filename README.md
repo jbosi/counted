@@ -63,6 +63,7 @@ api/
 ### Serving Your App
 
 Navigate to the platform crate of your choice:
+
 ```bash
 cd web
 ```
@@ -73,4 +74,10 @@ and serve:
 dx serve
 ```
 
+## Deploy
 
+Run every time the db queries / schema change
+
+```bash
+cargo sqlx prepare --workspace -- --all-features
+```

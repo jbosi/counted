@@ -1,0 +1,75 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "author_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "project_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 4,
+        "name": "amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "description",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "expense_type: ExpenseType",
+        "type_info": {
+          "Custom": {
+            "name": "expense_type",
+            "kind": {
+              "Enum": [
+                "expense",
+                "transfer",
+                "gain"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "fa09665853b69dfb9f04f5aff8ca6f57b27c3435b6256fed51273bf8390be6d1"
+}

@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO expenses\n            (\n                name,\n                amount,\n                expense_type,\n                project_id,\n                author_id,\n                description\n            ) VALUES (\n                $1,\n                $2,\n                $3,\n                $4,\n                $5,\n                $6\n            ) RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Float8",
+        {
+          "Custom": {
+            "name": "expense_type",
+            "kind": {
+              "Enum": [
+                "expense",
+                "transfer",
+                "gain"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        "Int4",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0e604873587f3b4420b0a49f3fda5f38dc8b88d691405124375ade74072c393e"
+}

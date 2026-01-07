@@ -17,27 +17,27 @@ export function Projects() {
 		return <div>Error loading projects: {error.message}</div>;
 	}
 
-	if (!projects) {
-		return <div>Error loading projects</div>;
-	}
-
 	return (
 		<div className="container p-4 max-w-md rounded-xl flex flex-col">
-			<h1 className="text-4xl font-light mb-10">Bonjour Jonathan</h1>
+			<h1 className="text-4xl font-light mb-10">Bonjour</h1>
 
 			<div className="space-y-4">
-				{projects.map((project) => (
-					<ProjectItem
-						key={project.id}
-						id={project.id}
-						title={project.name}
-						currentReimbursements={0}
-						totalReimbursements={0}
-						description={project.description ?? ''}
-						currency={project.currency}
-						createdAt={project.createdAt}
-					/>
-				))}
+				{!projects ? (
+					<div className="m-2">Vous n'avez aucun projet</div>
+				) : (
+					projects.map((project) => (
+						<ProjectItem
+							key={project.id}
+							id={project.id}
+							title={project.name}
+							currentReimbursements={0}
+							totalReimbursements={0}
+							description={project.description ?? ''}
+							currency={project.currency}
+							createdAt={project.createdAt}
+						/>
+					))
+				)}
 			</div>
 
 			<button

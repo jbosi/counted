@@ -63,6 +63,7 @@ api/
 ### Serving Your App
 
 Navigate to the platform crate of your choice:
+
 ```bash
 cd web
 ```
@@ -73,4 +74,22 @@ and serve:
 dx serve
 ```
 
+## Deploy
 
+Run every time the db queries / schema change
+
+```bash
+cargo sqlx prepare --workspace -- --all-features
+```
+
+To check status and ports
+
+```bash
+docker-compose ps
+```
+
+Get docker db (ex: projects)
+
+```bash
+docker-compose exec db psql -U hcount_user -d hcount -c "SELECT id, name, currency, description FROM projects;"
+```

@@ -3,14 +3,14 @@ services:
     container_name: frontend
     image: jbosi/frontend:latest
     ports:
-      - "80"
+      - "80:80"
     depends_on:
       - backend
   backend:
     container_name: backend
     image: jbosi/backend:latest
     ports:
-      - "8080"
+      - "8080:8080"
     environment:
       DATABASE_URL: postgres://hcount_user:supersecret@db:5432/hcount
     depends_on:

@@ -1,0 +1,36 @@
+services:
+  frontend:
+    container_name: frontend
+    image: jbosi/frontend:latest
+    ports:
+      - "80"
+    depends_on:
+      - backend
+  backend:
+    container_name: backend
+    image: jbosi/backend:latest
+    ports:
+      - "8080"
+    environment:
+      DATABASE_URL: postgres://hcount_user:supersecret@db:5432/hcount
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hcount
+      POSTGRES_USER: hcount_user
+      POSTGRES_PASSWORD: supersecret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hcount_user -d hcount"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata:
+  node_modules:

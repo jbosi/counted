@@ -13,9 +13,18 @@ export const Avatar = memo((props: AvatarProps) => {
 
 	return (
 		<div className="avatar avatar-placeholder">
-			<div className={`bg-primary-content ${size} rounded-full`}>
-				<span className="text-xs text-base-100">{initials}</span>
+			<div className={`bg-primary-content ${size} rounded-full`} style={{ backgroundColor: avatarPlaceholderColor(initials) }}>
+				<span className="text-xs">{initials}</span>
 			</div>
 		</div>
 	);
 });
+
+function avatarPlaceholderColor(name: string): string {
+	const hash = [...name.toLowerCase().trim()].reduce((h, c) => ((h << 5) + h + c.charCodeAt(0)) >>> 0, 5381);
+	const hue = hash % 360;
+	const sat = 50;
+	const lig = 45;
+
+	return `hsl(${hue}, ${sat}%, ${lig}%)`;
+}

@@ -47,7 +47,7 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 
 	return (
 		<>
-			<section className="card bg-base-200 w-96 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${id}`)}>
+			<section className="card bg-base-100 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${id}`)}>
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{title}</h2>

@@ -4,15 +4,13 @@ import { Loading } from './loading';
 
 export interface AppHeaderProps extends Pick<DropdownButtonProps, 'onDelete' | 'onEdit'> {
 	title: string | undefined;
-	backButtonRoute: string;
+	backButtonRoute?: string;
 }
 
-export function AppHeader({ title, onEdit, onDelete }: AppHeaderProps) {
+export function AppHeader({ title, onEdit, onDelete, backButtonRoute }: AppHeaderProps) {
 	return (
 		<div className="navbar px-0">
-			<div className="navbar-start">
-				<BackButtonArrow />
-			</div>
+			<div className="navbar-start">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
 			<div className="navbar-center">
 				<h1 className="text-xl font-bold">{title ?? <Loading />}</h1>
 			</div>

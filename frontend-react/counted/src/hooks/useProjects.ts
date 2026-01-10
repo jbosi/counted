@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
 import { projectsService } from '../services/projectsService';
 import type { CreatableProject, EditableProject, ProjectDto } from '../types/projects.model';
-import { addToLocalStorage } from './useLocalStorage';
+import { addToLocalStorage, removeFromLocalStorage } from './useLocalStorage';
 
 export function useProjects(projectsIds: string[]) {
 	return useQuery({
@@ -48,11 +48,13 @@ export function useEditProject() {
 
 export function useDeleteProject() {
 	const queryClient = useQueryClient();
+	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 
 	return useMutation({
 		mutationFn: (projectId: string) => projectsService.deleteProjectAsync(projectId),
-		onSuccess: () => {
+		onSuccess: (_, projectIdDeleted) => {
 			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+			removeFromLocalStorage(countedLocalStorage, projectIdDeleted, setCountedLocalStorage);
 		},
 	});
 }

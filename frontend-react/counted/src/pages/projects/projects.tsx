@@ -3,6 +3,7 @@ import { AddProjectModal } from '../../components/modals/project/addProjectModal
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
+import { AppHeader } from '../../components/appHeader';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -18,9 +19,18 @@ export function Projects() {
 	}
 
 	return (
-		<div className="container p-4 max-w-md rounded-xl flex flex-col">
-			<h1 className="text-4xl font-light mb-10">Bonjour</h1>
-
+		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-3">
+			<AppHeader title="Bonjour" />
+			<div className="stats shadow stats-container">
+				<div className="stat">
+					<div className="stat-title">Nombre de Counted</div>
+					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>
+				</div>
+				<div className="stat">
+					<div className="stat-title">Dépenses Totales</div>
+					<div className="stat-value">? €</div>
+				</div>
+			</div>
 			<div className="space-y-4">
 				{!projects ? (
 					<div className="m-2">Vous n'avez aucun projet</div>

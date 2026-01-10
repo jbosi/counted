@@ -1,10 +1,13 @@
 import { useNavigate } from 'react-router';
 
-export function BackButtonArrow() {
+interface BackButtonArrowProps {
+	backButtonRoute: string;
+}
+export function BackButtonArrow({ backButtonRoute }: BackButtonArrowProps) {
 	const navigate = useNavigate();
 
 	return (
-		<button className="btn btn-circle" onClick={() => navigate('..')}>
+		<button className="btn btn-circle" onClick={() => navigate(backButtonRoute)}>
 			<svg
 				xmlns={'http://www.w3.org/2000/svg'}
 				width={'24'}

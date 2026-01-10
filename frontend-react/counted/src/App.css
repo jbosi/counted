@@ -7,3 +7,7 @@
 	padding: 2rem;
 	text-align: center;
 }
+
+.stats-container {
+	grid-template-columns: 1fr 1fr;
+}

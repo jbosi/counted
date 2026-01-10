@@ -43,7 +43,7 @@ export const ProjectDetails = () => {
 		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
 			{project.data ? (
 				<>
-					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute="/projects" />
+					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute=".." />
 					<EditProjectModal dialogRef={projectDialogRef} modalId={'AddProjectModal'} project={project.data} />
 				</>
 			) : (

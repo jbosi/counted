@@ -1,7 +1,7 @@
-import { useRef, useState, type RefObject } from 'react';
+import { useRef, type RefObject } from 'react';
 import { Avatar } from '../../components/avatar';
-import type { User } from '../../types/users.model';
 import { AddUserModal } from '../../components/modals/addUserModal';
+import type { User } from '../../types/users.model';
 
 interface ExpensesUserSectionProps {
 	id: string;
@@ -10,7 +10,6 @@ interface ExpensesUserSectionProps {
 
 export const ExpensesUserSection = ({ id, users }: ExpensesUserSectionProps) => {
 	const dialogRef = useRef<HTMLDialogElement>(null);
-	const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
 	return (
 		<>

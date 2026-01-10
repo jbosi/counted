@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsService } from '../services/projectsService';
 import type { CreatableUser, User } from '../types/users.model';
 import { usersService } from '../services/usersService';
+import { useContext } from 'react';
+import { ProjectUsersContext } from '../contexts/projectUsersContext';
 
 export function useUsersByProjectId(projectId: string | undefined) {
 	return useQuery({
@@ -14,11 +16,13 @@ export function useUsersByProjectId(projectId: string | undefined) {
 
 export function useAddUser(projectId: string) {
 	const queryClient = useQueryClient();
+	const { projectUsers, setProjectUsers } = useContext(ProjectUsersContext);
 
 	return useMutation({
 		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
-		onSuccess: (data) => {
-			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => [...(old ?? []), data]);
+		onSuccess: (newUser) => {
+			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => [...(old ?? []), newUser]);
+			setProjectUsers([...(projectUsers ?? []), newUser]);
 		},
 	});
 }

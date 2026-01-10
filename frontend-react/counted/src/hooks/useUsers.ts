@@ -18,7 +18,7 @@ export function useAddUser(projectId: string) {
 	return useMutation({
 		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
 		onSuccess: (data) => {
-			queryClient.setQueryData(['users', 'project', projectId], (old: User[]) => [...old, data]);
+			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => [...(old ?? []), data]);
 		},
 	});
 }
@@ -28,7 +28,7 @@ export function useDeleteUser(projectId: string) {
 	return useMutation({
 		mutationFn: (userId: number) => usersService.deleteUserAsync(userId),
 		onSuccess: (_, userId) => {
-			queryClient.setQueryData(['users', 'project', projectId], (old: User[]) => old.filter((o) => o.id !== userId));
+			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => (old ?? []).filter((o) => o.id !== userId));
 		},
 	});
 }

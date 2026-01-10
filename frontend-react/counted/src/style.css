@@ -8,4 +8,5 @@ body {
 
 .app-container {
 	height: calc(100vh - 3rem);
+	max-width: calc(100vw - 3rem);
 }

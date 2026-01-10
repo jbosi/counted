@@ -175,12 +175,12 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query_as!(Payment, "DELETE FROM payments WHERE expense_id = $1", expense_id)
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id)
         .execute(&pool)
         .await
         .context("Failed to delete payment")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    sqlx::query_as!(Expense, "DELETE FROM expenses WHERE id = $1", expense_id)
+    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id)
         .execute(&pool)
         .await
         .context("Failed to delete expense")

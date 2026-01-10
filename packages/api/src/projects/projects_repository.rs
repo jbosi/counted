@@ -155,7 +155,7 @@ pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError>
     let pool: Pool<Postgres> = get_db().await;
     tracing::info!("projectid = {:?}", project_id);
 
-    sqlx::query_as!(ProjectDto, "DELETE FROM projects WHERE id = $1", project_id)
+    sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)
         .execute(&pool)
         .await
         .context("Failed to delete project with specified id")

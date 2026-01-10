@@ -58,7 +58,7 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
         .context("Failed to delete user in user_projects table with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    sqlx::query_as!(User, "DELETE FROM users WHERE id = $1", user_id)
+    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
         .execute(&pool)
         .await
         .context("Failed to delete user in user table with specified id")

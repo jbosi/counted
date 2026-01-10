@@ -26,7 +26,7 @@ use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let created_expense_id: i32 = sqlx::query!(
+    let created_expense_id: i32 = sqlx::query_scalar!(
         r"
             INSERT INTO expenses
             (
@@ -54,8 +54,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
     .fetch_one(&pool)
     .await
     .context("Failed to create expense")
-    .map_err(|e| ServerFnError::new(e.to_string()))?
-    .id;
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let payers = Some(expense.clone().payers);
     let debtors = Some(expense.clone().debtors);
@@ -68,7 +67,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
     let is_debts: Vec<bool> = creatable_payments.iter().map(|p| p.is_debt).collect();
     let amounts: Vec<f64> = creatable_payments.iter().map(|p| p.amount).collect();
 
-    sqlx::query!(
+    sqlx::query_scalar::<_, i32>(
         r"
         INSERT INTO payments
          (
@@ -82,11 +81,11 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
             $3::BOOL[],
             $4::FLOAT8[]
         ) RETURNING id",
-        &expense_ids,
-        &user_ids,
-        &is_debts,
-        &amounts
     )
+    .bind(&expense_ids)
+    .bind(&user_ids)
+    .bind(&is_debts)
+    .bind(&amounts)
     .fetch_all(&pool)
     .await
     .context("Failed add payments")
@@ -176,12 +175,12 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 pub async fn delete_expense_by_id(expense_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id)
+    sqlx::query_as!(Payment, "DELETE FROM payments WHERE expense_id = $1", expense_id)
         .execute(&pool)
         .await
         .context("Failed to delete payment")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
-    sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id)
+    sqlx::query_as!(Expense, "DELETE FROM expenses WHERE id = $1", expense_id)
         .execute(&pool)
         .await
         .context("Failed to delete expense")

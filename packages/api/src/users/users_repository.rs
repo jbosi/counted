@@ -51,13 +51,14 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
     }
 
     // Anonymous user cannot be in more than one user_project
-    sqlx::query!("DELETE FROM user_projects WHERE user_id = $1", user_id)
+    sqlx::query("DELETE FROM user_projects WHERE user_id = $1")
+        .bind(user_id)
         .execute(&pool)
         .await
         .context("Failed to delete user in user_projects table with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
+    sqlx::query_as!(User, "DELETE FROM users WHERE id = $1", user_id)
         .execute(&pool)
         .await
         .context("Failed to delete user in user table with specified id")
@@ -77,15 +78,13 @@ pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnE
             .context("Failed to insert user into database")
             .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    sqlx::query!(
-        "INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)",
-        user_id,
-        user.project_id
-    )
-    .execute(&pool)
-    .await
-    .context("Failed to associate user with project")
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    sqlx::query("INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)")
+        .bind(user_id)
+        .bind(user.project_id)
+        .execute(&pool)
+        .await
+        .context("Failed to associate user with project")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     BROADCASTER
         .broadcast(
@@ -105,14 +104,12 @@ pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, Serv
     let pool: Pool<Postgres> = get_db().await;
 
     let user_ids: Vec<i32> =
-        sqlx::query!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
+        sqlx::query_scalar("SELECT user_id FROM user_projects WHERE project_id = $1")
+            .bind(project_id)
             .fetch_all(&pool)
             .await
             .context("Failed to fetch user IDs for project")
-            .map_err(|e| ServerFnError::new(e.to_string()))?
-            .into_iter()
-            .map(|row| row.user_id)
-            .collect();
+            .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     if user_ids.is_empty() {
         return Ok(Vec::new());

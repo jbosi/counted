@@ -1,13 +1,15 @@
 import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import * as z from 'zod';
-import { type ExpenseType, ExpenseTypeConst, type CreatableExpense } from '../../../types/expenses.model';
+import { useEditExpense } from '../../../hooks/useExpenses';
+import { ExpenseTypeConst, type EditableExpense, type ExpenseType } from '../../../types/expenses.model';
 import type { User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 
 export interface EditExpenseModalProps {
 	modalId: string;
 	projectId: string;
+	expenseId: number;
 	users: User[];
 	dialogRef: RefObject<HTMLDialogElement | null>;
 }
@@ -76,7 +78,7 @@ function getInitialValues(users: User[]): Partial<EditExpenseModalForm> {
 	};
 }
 
-export function EditExpenseModal({ dialogRef, modalId, users, projectId }: EditExpenseModalProps) {
+export function EditExpenseModal({ dialogRef, modalId, users, projectId, expenseId }: EditExpenseModalProps) {
 	const [errorState, setErrorState] = useState<string | null>(null);
 	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
@@ -112,20 +114,21 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId }: EditE
 				return;
 			}
 
-			const creatableExpense: CreatableExpense = {
+			const editableExpense: EditableExpense = {
+				id: expenseId,
 				name: formValues.name,
 				amount: formValues.totalAmount,
 				expenseType: formValues.type,
 				projectId,
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: 41, // TODO
+				authorId: users[0].id, // TODO
 			};
 
-			mutate(creatableExpense);
+			mutate(editableExpense);
 			exitModal();
 		},
-		[exitModal, getValues, mutate, projectId],
+		[exitModal, getValues, mutate, projectId, users, expenseId],
 	);
 
 	return (

@@ -120,13 +120,13 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 				projectId,
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: 41, // TODO
+				authorId: users[0].id, // TODO
 			};
 
 			mutate(creatableExpense);
 			exitModal();
 		},
-		[exitModal, getValues, mutate, projectId],
+		[exitModal, getValues, mutate, projectId, users],
 	);
 
 	return (

@@ -12,21 +12,19 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 	const summaryAmount: number = props.summaryAmount;
 	const maxAmount: number = props.maxAmount;
 	const isPositiveAmount: boolean = summaryAmount > 0;
-	const width: number = (Math.abs(summaryAmount) * 30.0) / maxAmount;
+	const width: number = (Math.abs(summaryAmount) * 100.0) / maxAmount;
 
 	return (
-		<div className="flex gap-2 justify-between">
-			<div className="flex gap-2">
-				<Avatar name={props.user.name} size="w-12" />
-				<div className="self-center w-20 text-end">
-					<span className={getTextClass(summaryAmount, isPositiveAmount)}>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
-				</div>
+		<div className="grid expenseBarChart-row">
+			<Avatar name={props.user.name} size="w-12" />
+			<div className="self-center w-20 text-center">
+				<span className={getTextClass(summaryAmount, isPositiveAmount)}>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
 			</div>
+			{isPositiveAmount ? <span></span> : <></>}
 			<progress
-				className={`progress progress-summary self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error'}`}
+				className={`progress progress-summary self-center ${isPositiveAmount ? 'progress-primary' : 'progress-error justify-self-end'}`}
 				style={{
 					width: `${width}%`,
-					transform: `translateX(-${isPositiveAmount ? 100 - width * 3 : 100}px)`,
 				}}
 				value={'100'}
 				max={'100'}

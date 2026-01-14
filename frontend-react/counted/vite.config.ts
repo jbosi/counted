@@ -10,4 +10,9 @@ export default defineConfig({
 			'/api': 'http://127.0.0.1:8080',
 		},
 	},
+	build: {
+		// Ensure no inline scripts/styles in production
+		assetsInlineLimit: 0,
+		cssCodeSplit: true,
+	},
 });

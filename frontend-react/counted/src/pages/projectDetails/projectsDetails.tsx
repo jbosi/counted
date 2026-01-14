@@ -111,6 +111,8 @@ function ProjectSummary({ summary, users }: ProjectSummaryProps) {
 		return <></>;
 	}
 
+	const usersWithoutExpense: User[] = users.filter((u) => !Object.entries(summary)?.some((s) => u.id === Number(s?.[0])));
+
 	return (() => {
 		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
 
@@ -127,6 +129,11 @@ function ProjectSummary({ summary, users }: ProjectSummaryProps) {
 
 						return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
 					})}
+				{usersWithoutExpense.length > 0 ? (
+					usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)
+				) : (
+					<></>
+				)}
 			</section>
 		);
 	})();

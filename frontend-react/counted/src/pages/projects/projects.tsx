@@ -23,7 +23,7 @@ export function Projects() {
 			<AppHeader title="Counted" hideDropdown={true} />
 			<div className="stats shadow stats-container">
 				<div className="stat">
-					<div className="stat-title">Nombre de Counted</div>
+					<div className="stat-title">Nombre de Projets</div>
 					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>
 				</div>
 				<div className="stat">

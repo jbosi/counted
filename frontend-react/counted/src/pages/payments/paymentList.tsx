@@ -27,7 +27,7 @@ export function PaymentPage() {
 	};
 
 	return (
-		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
+		<div className="container overflow-auto app-container p-4 max-w-md">
 			<AppHeader title={expense?.name} backButtonRoute=".." onDelete={onDeleteExpense} />
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">
 				{expense === undefined || projectUsers === undefined ? <Loading /> : <PaymentList expense={expense} projectUsers={projectUsers} />}

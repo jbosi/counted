@@ -2,12 +2,8 @@
 @plugin "daisyui";
 
 #root {
-	max-width: 1280px;
 	margin: 0 auto;
 	padding: 2rem;
 	text-align: center;
-}
-
-.stats-container {
-	grid-template-columns: 1fr 1fr;
+	max-width: calc(100vw);
 }

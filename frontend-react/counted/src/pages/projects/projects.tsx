@@ -19,7 +19,7 @@ export function Projects() {
 	}
 
 	return (
-		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col gap-3">
+		<div className="container overflow-auto app-container p-4 max-w-md ">
 			<AppHeader title="Counted" hideDropdown={true} />
 			<div className="stats shadow stats-container">
 				<div className="stat">

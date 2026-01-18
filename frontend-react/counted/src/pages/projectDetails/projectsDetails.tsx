@@ -40,7 +40,7 @@ export const ProjectDetails = () => {
 	useAddToLocalStorage(countedLocalStorage, props.projectId, setCountedLocalStorage);
 
 	return (
-		<div className="container overflow-auto app-container w-96 bg-base-200 p-4 max-w-md rounded-xl flex flex-col">
+		<div className="container overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
 					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute=".." />

@@ -44,6 +44,8 @@ WORKDIR /usr/local/app
 
 # ----- Copy migration script et make it runable -----
 COPY runMigrationsAndBinary.sh /runMigrationsAndBinary.sh
+# Fix line endings (convert CRLF to LF for Windows compatibility)
+RUN sed -i 's/\r$//' /runMigrationsAndBinary.sh
 RUN chmod +x /runMigrationsAndBinary.sh
 
 # Run migration script + run executable

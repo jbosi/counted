@@ -12,12 +12,12 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 	const summaryAmount: number = props.summaryAmount;
 	const maxAmount: number = props.maxAmount;
 	const isPositiveAmount: boolean = summaryAmount > 0;
-	const width: number = (Math.abs(summaryAmount) * 100.0) / maxAmount;
+	const width: number = Math.max((Math.abs(summaryAmount) * 100.0) / maxAmount, 2);
 
 	return (
 		<div className="grid expenseBarChart-row">
 			<Avatar name={props.user.name} size="w-12" />
-			<div className="self-center w-20 text-center">
+			<div className="self-center w-20 text-left ml-3">
 				<span className={getTextClass(summaryAmount, isPositiveAmount)}>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
 			</div>
 			{isPositiveAmount ? <span></span> : <></>}

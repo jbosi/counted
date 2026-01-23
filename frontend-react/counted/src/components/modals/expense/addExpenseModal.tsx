@@ -165,9 +165,9 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<label className="label">Type de dépense</label>
 							<select defaultValue="Dépense" className="select w-full" {...register('type', { required: true })}>
-								<option value={'Expense'}>Dépense</option>
-								<option value={'Gain'}>Gain</option>
-								<option value={'Transfert'}>Transfert d'argent</option>
+								<option value={'Expense' as ExpenseType}>Dépense</option>
+								<option value={'Gain' as ExpenseType}>Gain</option>
+								<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
 							</select>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">

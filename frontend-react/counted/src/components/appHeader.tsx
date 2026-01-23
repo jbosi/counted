@@ -13,7 +13,7 @@ export function AppHeader({ title, onEdit, onDelete, backButtonRoute, hideDropdo
 		<div className="navbar px-0">
 			<div className="navbar-start">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
 			<div className="navbar-center">
-				<h1 className="text-xl font-bold">{title ?? <Loading />}</h1>
+				<h1 className="text-xl font-bold truncate">{title ?? <Loading />}</h1>
 			</div>
 			<div className="navbar-end">
 				{hideDropdown ? (

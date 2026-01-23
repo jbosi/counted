@@ -15,7 +15,7 @@ export function ExpenseItem({ expense }: ExpenseItemProps) {
 			<Avatar name={'💵'} size={'w-10'} placeholderColor="var(--color-base-100)" />
 
 			<div className="flex-1 min-w-0">
-				<p className="font-semibold text-base-content truncate">{expense.name}</p>
+				<p className="font-semibold text-base-content text-left truncate">{expense.name}</p>
 			</div>
 
 			<div className="text-right">

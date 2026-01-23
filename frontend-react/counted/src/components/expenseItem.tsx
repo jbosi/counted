@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router';
 import type { Expense } from '../types/expenses.model';
 import { Avatar } from './avatar';
+import { getExpenseEmoji } from '../utils/expenseEmojis';
+import { useCallback } from 'react';
 
 export interface ExpenseItemProps {
 	expense: Expense;
@@ -9,10 +11,11 @@ export interface ExpenseItemProps {
 export function ExpenseItem({ expense }: ExpenseItemProps) {
 	const formattedAmount = expense.amount;
 	const navigate = useNavigate();
+	const emoji = useCallback(() => getExpenseEmoji(expense.name), [expense.name]);
 
 	return (
 		<div className="flex items-center gap-4 p-3 hover:bg-base-300 rounded-lg transition-colors" onClick={() => navigate(`./expenses/${expense.id}`)}>
-			<Avatar name={'💵'} size={'w-10'} placeholderColor="var(--color-base-100)" />
+			<Avatar name={emoji()} size={'w-10'} placeholderColor="var(--color-base-100)" />
 
 			<div className="flex-1 min-w-0">
 				<p className="font-semibold text-base-content text-left truncate">{expense.name}</p>

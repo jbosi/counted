@@ -4,14 +4,16 @@ export interface AvatarProps {
 	name: string;
 	size?: AvatarSize;
 	placeholderColor?: string;
+	length?: number;
 }
 
 export type AvatarSize = 'w-8' | 'w-10' | 'w-12';
 
 const DEFAULT_SIZE = 'w-8';
+const DEFAULT_LENGTH = 2;
 
 export const Avatar = memo((props: AvatarProps) => {
-	const initials: string = props.name.slice(0, 2);
+	const initials: string = props.name.slice(0, props?.length ?? DEFAULT_LENGTH);
 	const size: string = props.size ?? DEFAULT_SIZE;
 	const placeholderColor: string | undefined = props.placeholderColor;
 

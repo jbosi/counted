@@ -15,8 +15,6 @@ export interface ProjectProps {
 	createdAt: string;
 }
 
-const DISPLAY_USER_LIMIT = 3;
-
 function getProgressPercentage(currentReimbursements: number, totalReimbursements: number): number {
 	if (currentReimbursements === 0 || totalReimbursements === 0) {
 		return 0;

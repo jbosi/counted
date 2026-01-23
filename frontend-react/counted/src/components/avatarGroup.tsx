@@ -11,12 +11,14 @@ export interface AvatarGroupProps {
 const DEFAULT_DISPLAY_USER_LIMIT = 3;
 
 export const AvatarGroup = memo(({ data, diplayUserLimit, size }: AvatarGroupProps) => {
+	const userLimit = diplayUserLimit ?? DEFAULT_DISPLAY_USER_LIMIT;
+
 	return (
 		<>
-			{data.slice(0, diplayUserLimit ?? DEFAULT_DISPLAY_USER_LIMIT).map((user) => (
+			{data.slice(0, userLimit).map((user) => (
 				<Avatar key={user.id} name={user.name} size={size} />
 			))}
-			{data.length > (diplayUserLimit ?? DEFAULT_DISPLAY_USER_LIMIT) && <Avatar size={size} name={`+${data.length - DEFAULT_DISPLAY_USER_LIMIT}`} />}
+			{data.length > userLimit && <Avatar size={size} name={`+${data.length - userLimit}`} length={3} />}
 		</>
 	);
 });

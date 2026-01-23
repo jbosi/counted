@@ -19,6 +19,11 @@ use shared::{Expense, Payment};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
 
+/// Round to 2 decimal places for currency
+fn round_currency(value: f64) -> f64 {
+    (value * 100.0).round() / 100.0
+}
+
 #[get("/api/expenses/{expense_id}/payments")]
 pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
@@ -82,13 +87,13 @@ pub async fn get_summary_by_user_ids(
     payments.iter().for_each(|payment| {
         if let Some(existing_payment) = result.get_mut(&payment.user_id) {
             match payment.is_debt {
-                true => *existing_payment -= payment.amount,
-                false => *existing_payment += payment.amount,
+                true => *existing_payment = round_currency(*existing_payment - payment.amount),
+                false => *existing_payment = round_currency(*existing_payment + payment.amount),
             }
         } else {
             result.insert(
                 payment.user_id,
-                if payment.is_debt { -payment.amount } else { payment.amount },
+                round_currency(if payment.is_debt { -payment.amount } else { payment.amount }),
             );
         }
     });
@@ -127,13 +132,13 @@ pub async fn get_summary_by_project_id(
     payments.iter().for_each(|payment| {
         if let Some(existing_payment) = result.get_mut(&payment.user_id) {
             match payment.is_debt {
-                true => *existing_payment -= payment.amount,
-                false => *existing_payment += payment.amount,
+                true => *existing_payment = round_currency(*existing_payment - payment.amount),
+                false => *existing_payment = round_currency(*existing_payment + payment.amount),
             }
         } else {
             result.insert(
                 payment.user_id,
-                if payment.is_debt { -payment.amount } else { payment.amount },
+                round_currency(if payment.is_debt { -payment.amount } else { payment.amount }),
             );
         }
     });

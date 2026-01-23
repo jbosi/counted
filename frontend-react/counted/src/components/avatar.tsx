@@ -2,15 +2,17 @@ import { memo } from 'react';
 
 export interface AvatarProps {
 	name: string;
-	size?: 'w-8' | 'w-10' | 'w-12';
+	size?: AvatarSize;
 	placeholderColor?: string;
 }
 
-const baseSize = 'w-8';
+export type AvatarSize = 'w-8' | 'w-10' | 'w-12';
+
+const DEFAULT_SIZE = 'w-8';
 
 export const Avatar = memo((props: AvatarProps) => {
 	const initials: string = props.name.slice(0, 2);
-	const size: string = props.size ?? baseSize;
+	const size: string = props.size ?? DEFAULT_SIZE;
 	const placeholderColor: string | undefined = props.placeholderColor;
 
 	return (

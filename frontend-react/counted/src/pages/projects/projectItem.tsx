@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Avatar } from '../../components/avatar';
+import { AvatarGroup } from '../../components/avatarGroup';
 import { useDeleteProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import { DropdownButton } from './components/dropdown';
@@ -75,10 +75,7 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 						</div>
 
 						<div className="flex gap-1 items-center">
-							{data.slice(0, DISPLAY_USER_LIMIT).map((user) => (
-								<Avatar key={user.id} name={user.name} />
-							))}
-							{data.length > DISPLAY_USER_LIMIT && <Avatar name={`+${data.length - DISPLAY_USER_LIMIT}`} />}
+							<AvatarGroup data={data} />
 						</div>
 					</div>
 				</div>

@@ -24,3 +24,7 @@ body {
 	flex-direction: column;
 	border-radius: var(--radius-xl);
 }
+
+.modal-box {
+	max-height: 95vh;
+}

@@ -41,7 +41,7 @@ function removeProjectFromStorage(existingStorage: CountedLocalStorage | undefin
 	const isProjectIdAlreadyStored = existingStorage?.projects?.some((p) => p.projectId === projectId);
 
 	if (!isProjectIdAlreadyStored) {
-		return structuredClone({ projects: [] });
+		return structuredClone(existingStorage ?? { projects: [] });
 	}
 
 	return structuredClone({ projects: existingStorage?.projects?.filter((p) => p.projectId !== projectId) ?? [] });

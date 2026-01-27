@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::expenses::get_expenses_by_project_id;
+use crate::utils::round_currency;
 #[cfg(feature = "server")]
 use axum::{
     extract::{Path, State},
@@ -15,14 +16,9 @@ use axum::{
     Json, Router,
 };
 use dioxus::logger::tracing::info;
-use shared::{Expense, Payment};
+use shared::{Expense, Payment, UserSummary};
 #[cfg(feature = "server")]
 use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
-
-/// Round to 2 decimal places for currency
-fn round_currency(value: f64) -> f64 {
-    (value * 100.0).round() / 100.0
-}
 
 #[get("/api/expenses/{expense_id}/payments")]
 pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {
@@ -103,9 +99,11 @@ pub async fn get_summary_by_user_ids(
 
 // Should require projectId as input, not a user list
 #[get("/api/projects/{project_id}/expenses/summary")]
-pub async fn get_summary_by_project_id(
-    project_id: Uuid,
-) -> Result<HashMap<i32, f64>, ServerFnError> {
+pub async fn get_summary_by_project_id(project_id: Uuid) -> Result<UserSummary, ServerFnError> {
+    use shared::UserBalance;
+
+    use crate::payments::balances::get_reimbursement_suggestions;
+
     let pool: Pool<Postgres> = get_db().await;
 
     let expenses: Vec<Expense> = get_expenses_by_project_id(project_id)
@@ -127,21 +125,30 @@ pub async fn get_summary_by_project_id(
     .context("Failed get payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    let mut result: HashMap<i32, f64> = HashMap::new();
+    let mut balances: HashMap<i32, f64> = HashMap::new();
 
     payments.iter().for_each(|payment| {
-        if let Some(existing_payment) = result.get_mut(&payment.user_id) {
+        if let Some(existing_payment) = balances.get_mut(&payment.user_id) {
             match payment.is_debt {
                 true => *existing_payment = round_currency(*existing_payment - payment.amount),
                 false => *existing_payment = round_currency(*existing_payment + payment.amount),
             }
         } else {
-            result.insert(
+            balances.insert(
                 payment.user_id,
                 round_currency(if payment.is_debt { -payment.amount } else { payment.amount }),
             );
         }
     });
 
-    Ok(result)
+    let reimbursement_suggestions = get_reimbursement_suggestions(
+        balances
+            .iter()
+            .map(|(user_id, amount)| UserBalance { amount: *amount, user_id: *user_id })
+            .collect(),
+    );
+
+    let user_summary = UserSummary { reimbursement_suggestions, summary: balances };
+
+    Ok(user_summary)
 }

@@ -4,7 +4,7 @@ pub mod view_models;
 
 #[cfg(feature = "server")]
 use sqlx::FromRow;
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -175,4 +175,32 @@ pub struct NewPayment {
     pub user_id: i32,
     pub is_debt: bool,
     pub amount: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UserSummary {
+    pub reimbursement_suggestions: Vec<ReimbursementSuggestion>,
+    pub summary: HashMap<i32, f64>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UserBalance {
+    pub amount: f64,
+    pub user_id: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UserBalanceComputation {
+    pub amount: f64,
+    pub remaining_amount: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ReimbursementSuggestion {
+    pub amount: f64,
+    pub user_id_debtor: i32,
+    pub user_id_payer: i32,
 }

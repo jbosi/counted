@@ -15,19 +15,21 @@ import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { ReimbursementSuggestions } from './reimbursementSuggestions';
 
 interface ProjectDetailsProps {
 	projectId: string;
 }
 
-type ActiveTab = 'ExpensesList' | 'Summary';
+type ActiveTab = 'ExpensesList' | 'Summary' | 'ReimbursementSuggestions';
 
 export const ProjectDetails = () => {
 	const props: ProjectDetailsProps = useLoaderData();
 	const project = useProject(props.projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const expenses = useExpensesByProjectId(props.projectId);
-	const summary = useExpenseSummary(props.projectId);
+	const projectSummary = useExpenseSummary(props.projectId);
+
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -60,11 +62,15 @@ export const ProjectDetails = () => {
 
 					<div role="tablist" className="tabs tabs-box justify-center">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
-							Liste des dépenses
+							Dépenses
 						</a>
 
 						<a role="tab" className={`tab ${activeTab === 'Summary' ? 'tab-active' : ''}`} onClick={() => setActiveTab('Summary')}>
 							Equilibre
+						</a>
+
+						<a role="tab" className={`tab ${activeTab === 'ReimbursementSuggestions' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ReimbursementSuggestions')}>
+							Remboursements
 						</a>
 					</div>
 
@@ -88,8 +94,12 @@ export const ProjectDetails = () => {
 								</>
 							)}
 						</>
+					) : activeTab === 'ReimbursementSuggestions' ? (
+						<>
+							<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
+						</>
 					) : (
-						<ProjectSummary summary={summary.data} users={users} />
+						<ProjectSummary projectSummary={projectSummary.data} users={users} />
 					)}
 				</>
 			) : (
@@ -102,14 +112,16 @@ export const ProjectDetails = () => {
 };
 
 interface ProjectSummaryProps {
-	summary: ProjectSummary | undefined;
+	projectSummary: ProjectSummary | undefined;
 	users: User[];
 }
 
-function ProjectSummary({ summary, users }: ProjectSummaryProps) {
-	if (summary === undefined) {
+function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
+	if (projectSummary === undefined) {
 		return <></>;
 	}
+
+	const summary = projectSummary.summary;
 
 	const usersWithoutExpense: User[] = users.filter((u) => !Object.entries(summary)?.some((s) => u.id === Number(s?.[0])));
 
@@ -117,24 +129,27 @@ function ProjectSummary({ summary, users }: ProjectSummaryProps) {
 		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
 
 		return (
-			<section className="flex flex-col gap-2">
-				{Object.entries(summary)
-					.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
-					.map(([userIdStr, amount]) => {
-						const userId = Number(userIdStr);
-						const user = users?.find((u) => u.id === userId);
-						if (!user) {
-							return null;
-						}
+			<>
+				<section className="flex flex-col gap-2">
+					{Object.entries(summary)
+						.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
+						.map(([userIdStr, amount]) => {
+							const userId = Number(userIdStr);
+							const user = users?.find((u) => u.id === userId);
+							if (!user) {
+								return null;
+							}
 
-						return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-					})}
-				{usersWithoutExpense.length > 0 ? (
-					usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)
-				) : (
-					<></>
-				)}
-			</section>
+							return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
+						})}
+					{usersWithoutExpense.length > 0 ? (
+						usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)
+					) : (
+						<></>
+					)}
+				</section>
+				<section></section>
+			</>
 		);
 	})();
 }

@@ -11,11 +11,6 @@ export const projectsService = {
 		return httpClient.get(`${API_BASE}/${project_id}/users`);
 	},
 
-	async getAllAsync(): Promise<ProjectDto[]> {
-		// TMP
-		return httpClient.get(`${API_BASE}`);
-	},
-
 	async getByProjectIds(projectsIds: string[]): Promise<ProjectDto[]> {
 		return httpClient.post(`${API_BASE}/batch`, { ids: projectsIds });
 	},

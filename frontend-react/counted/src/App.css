@@ -28,3 +28,7 @@ body {
 .modal-box {
 	max-height: 95vh;
 }
+
+.reimbursement-list {
+	grid-template-columns: min-content auto;
+}

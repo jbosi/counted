@@ -1,0 +1,60 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug Desktop App",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=desktop",
+					"--package=desktop"
+				],
+				"filter": {
+					"name": "desktop",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug Web Server",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=web",
+					"--package=web",
+					"--features=server"
+				],
+				"filter": {
+					"name": "web",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug API Tests",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--package=api"
+				],
+				"filter": {
+					"name": "api",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		}
+	]
+}

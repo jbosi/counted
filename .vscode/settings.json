@@ -8,6 +8,16 @@
 		"./packages/ui/Cargo.toml",
 		"./packages/web/Cargo.toml",
 	],
+	"rust-analyzer.cargo.features": "all",
+	"rust-analyzer.check.command": "clippy",
+	"rust-analyzer.procMacro.enable": true,
+	"rust-analyzer.procMacro.attributes.enable": true,
+	"[rust]": {
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "rust-lang.rust-analyzer",
+		"editor.tabSize": 4,
+		"editor.insertSpaces": false
+	},
 	"css.validate": false,
 	"[html]": {
 		"editor.formatOnSave": true,

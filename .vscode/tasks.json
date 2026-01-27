@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "dx serve (web dev)",
+			"type": "shell",
+			"command": "dx",
+			"args": ["serve", "--platform", "web"],
+			"problemMatcher": [],
+			"isBackground": true,
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			}
+		},
+		{
+			"label": "dx serve (desktop dev)",
+			"type": "shell",
+			"command": "dx",
+			"args": ["serve", "--platform", "desktop"],
+			"problemMatcher": [],
+			"isBackground": true,
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			}
+		},
+		{
+			"label": "cargo check",
+			"type": "shell",
+			"command": "cargo",
+			"args": ["check", "--workspace"],
+			"problemMatcher": ["$rustc"],
+			"group": "build"
+		},
+		{
+			"label": "cargo clippy",
+			"type": "shell",
+			"command": "cargo",
+			"args": ["clippy", "--workspace", "--all-targets", "--all-features"],
+			"problemMatcher": ["$rustc"],
+			"group": "test"
+		},
+		{
+			"label": "cargo test",
+			"type": "shell",
+			"command": "cargo",
+			"args": ["test", "--workspace"],
+			"problemMatcher": ["$rustc"],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "cargo build (release)",
+			"type": "shell",
+			"command": "cargo",
+			"args": ["build", "--release", "--workspace"],
+			"problemMatcher": ["$rustc"],
+			"group": "build"
+		}
+	]
+}

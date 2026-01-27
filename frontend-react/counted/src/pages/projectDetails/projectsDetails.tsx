@@ -37,7 +37,7 @@ export const ProjectDetails = () => {
 
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 
-	useAddToLocalStorage(countedLocalStorage, props.projectId, setCountedLocalStorage);
+	useAddToLocalStorage(countedLocalStorage, { projectId: props.projectId, userId: null }, setCountedLocalStorage);
 
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">

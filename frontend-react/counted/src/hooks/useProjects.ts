@@ -30,7 +30,7 @@ export function useAddProject() {
 		mutationFn: (creatableProject: CreatableProject) => projectsService.createProjectAsync(creatableProject),
 		onSuccess: (data) => {
 			queryClient.setQueryData(['projects'], (old: ProjectDto[]) => [...(old ?? []), data]);
-			addToLocalStorage(countedLocalStorage, data.id, setCountedLocalStorage);
+			addToLocalStorage(countedLocalStorage, { projectId: data.id, userId: null }, setCountedLocalStorage);
 		},
 	});
 }

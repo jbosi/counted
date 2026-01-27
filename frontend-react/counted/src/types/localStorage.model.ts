@@ -5,5 +5,5 @@ export interface CountedLocalStorage {
 
 export interface CountedLocalStorageProject {
 	projectId: string;
-	userId: number;
+	userId: number | null;
 }

@@ -2,30 +2,49 @@ import { type Dispatch, type SetStateAction, useEffect, useEffectEvent } from 'r
 import { type CountedLocalStorage, type CountedLocalStorageProject, COUNTED_LOCAL_STORAGE_KEY } from '../types/localStorage.model';
 
 export function useAddToLocalStorage(
-	countedLocalStorage: CountedLocalStorage | undefined,
-	projectId: string,
+	existingStorage: CountedLocalStorage | undefined,
+	projectToAdd: CountedLocalStorageProject,
 	setCountedLocalStorage: Dispatch<SetStateAction<CountedLocalStorage | undefined>>,
 ) {
 	useEffect(() => {
-		addToLocalStorage(countedLocalStorage, projectId, setCountedLocalStorage);
-	}, [countedLocalStorage, projectId, setCountedLocalStorage]);
+		addToLocalStorage(existingStorage, projectToAdd, setCountedLocalStorage);
+	}, []);
 }
 
 export function addToLocalStorage(
-	countedLocalStorage: CountedLocalStorage | undefined,
-	projectId: string,
+	existingStorage: CountedLocalStorage | undefined,
+	projectToAdd: CountedLocalStorageProject,
 	setCountedLocalStorage: Dispatch<SetStateAction<CountedLocalStorage | undefined>>,
 ) {
-	const isAlreadyStored = countedLocalStorage?.projects?.some((p) => p.projectId === projectId);
-	if (isAlreadyStored) {
+	const isPreviouslyStored = existingStorage?.projects?.some((p) => p.projectId === projectToAdd.projectId && p.userId === projectToAdd.userId);
+	if (isPreviouslyStored) {
 		return;
 	}
 
-	const newLocalStorage: CountedLocalStorage = structuredClone(countedLocalStorage ?? { projects: [] }) as CountedLocalStorage;
-	newLocalStorage.projects.push({ projectId: projectId, userId: 0 });
+	const localStorageProject = existingStorage?.projects?.find((p) => p.projectId === projectToAdd.projectId);
+	const isUserMissingInNewProject = localStorageProject?.userId != null && projectToAdd.userId === null;
+
+	if (isUserMissingInNewProject) {
+		return;
+	}
+
+	const newLocalStorage: CountedLocalStorage = removeProjectFromStorage(existingStorage, projectToAdd.projectId);
+
+	newLocalStorage.projects.push({ projectId: projectToAdd.projectId, userId: projectToAdd.userId });
 
 	localStorage.setItem(COUNTED_LOCAL_STORAGE_KEY, JSON.stringify(newLocalStorage));
+
 	setCountedLocalStorage(newLocalStorage);
+}
+
+function removeProjectFromStorage(existingStorage: CountedLocalStorage | undefined, projectId: string): CountedLocalStorage {
+	const isProjectIdAlreadyStored = existingStorage?.projects?.some((p) => p.projectId === projectId);
+
+	if (!isProjectIdAlreadyStored) {
+		return structuredClone({ projects: [] });
+	}
+
+	return structuredClone({ projects: existingStorage?.projects?.filter((p) => p.projectId !== projectId) ?? [] });
 }
 
 export function useInitializeLocalStorage(setCountedLocalStorage: Dispatch<SetStateAction<CountedLocalStorage | undefined>>) {

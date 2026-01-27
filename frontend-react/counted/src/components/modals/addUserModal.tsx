@@ -1,6 +1,8 @@
-import { useState, type RefObject } from 'react';
+import { useCallback, useContext, useState, type RefObject } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import * as z from 'zod';
+import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
+import { addToLocalStorage } from '../../hooks/useLocalStorage';
 import { useAddUser, useDeleteUser } from '../../hooks/useUsers';
 import type { User } from '../../types/users.model';
 import { ErrorValidationCallout } from '../errorCallout';
@@ -21,6 +23,8 @@ interface AddUserModalForm {
 }
 
 export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: AddUserModalProps) {
+	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+
 	const [addUserErrorState, addUserSetErrorState] = useState<string | null>(null);
 	const {
 		reset,
@@ -41,6 +45,13 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 		reset();
 		dialogRef.current?.close();
 	};
+
+	const setCurrentUserForProject = useCallback(
+		(userId: number, projectId: string) => {
+			addToLocalStorage(countedLocalStorage, { projectId, userId }, setCountedLocalStorage);
+		},
+		[countedLocalStorage, setCountedLocalStorage],
+	);
 
 	const onAddUser: SubmitHandler<AddUserModalForm> = (data) => {
 		const parsedResult = formSchema.safeParse(data);
@@ -98,7 +109,6 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 												strokeWidth="2"
 												strokeLinecap="round"
 												strokeLinejoin="round"
-												className="icon icon-tabler icons-tabler-outline icon-tabler-trash"
 											>
 												<path stroke="none" d="M0 0h24v24H0z" fill="none" />
 												<path d="M4 7l16 0" />
@@ -109,6 +119,13 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 											</svg>
 										)}
 									</button>
+									{countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId === u.id ? (
+										<div className="badge badge-soft badge-primary">Moi</div>
+									) : (
+										<button className="btn btn-outline btn-xs" type="button" onClick={() => setCurrentUserForProject(u.id, projectId)}>
+											C'est moi !
+										</button>
+									)}
 								</div>
 							);
 						})}

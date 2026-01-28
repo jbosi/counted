@@ -16,6 +16,10 @@ body {
 	place-items: center;
 }
 
+dialog {
+	padding: 1rem 0;
+}
+
 .app-container {
 	height: 100%;
 	background-color: var(--color-base-200);

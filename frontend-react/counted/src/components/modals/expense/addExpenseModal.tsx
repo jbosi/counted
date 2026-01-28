@@ -83,7 +83,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 	const {
 		register,
-		formState: { errors, isDirty },
+		formState: { errors },
 		getValues,
 		control,
 		reset,
@@ -172,24 +172,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui a payé ?</legend>
-								<label className="label justify-between mb-2">
-									<div className="flex gap-2">
-										<input
-											type="checkbox"
-											defaultChecked={false}
-											className="checkbox"
-											onClick={(e) => {
-												const isChecked = (e.target as HTMLInputElement).checked;
-												payersFields.forEach((p, index) => {
-													updatePayer(index, { ...p, isChecked });
-													resetExpenseAmountOnUnchecked(getValues, 'payers', index, updatePayer, p.user);
-												});
-												updateAmounts('payers', getValues(), updatePayer, payersFields);
-											}}
-										/>
-										Selectionner tous les utilisateurs
-									</div>
-								</label>
+								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
 								{payersFields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
@@ -208,24 +191,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
-								<label className="label justify-between mb-2">
-									<div className="flex gap-2">
-										<input
-											type="checkbox"
-											defaultChecked={true}
-											className="checkbox"
-											onClick={(e) => {
-												const isChecked = (e.target as HTMLInputElement).checked;
-												debtorsfields.forEach((p, index) => {
-													updateDebtor(index, { ...p, isChecked });
-													resetExpenseAmountOnUnchecked(getValues, 'debtors', index, updateDebtor, p.user);
-												});
-												updateAmounts('debtors', getValues(), updateDebtor, debtorsfields);
-											}}
-										/>
-										Selectionner tous les utilisateurs
-									</div>
-								</label>
+								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
@@ -258,6 +224,37 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 				</div>
 			</dialog>
 		</>
+	);
+}
+
+interface SelectAllCheckboxProps<T extends 'debtors' | 'payers' = 'debtors' | 'payers'> {
+	type: T;
+	fields: FieldArrayWithId<AddExpenseModalForm>[];
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm, T>;
+	getValues: UseFormGetValues<AddExpenseModalForm>;
+	initialValue: boolean;
+}
+
+function SelectAllCheckbox({ type, fields, updateMethod, getValues, initialValue }: SelectAllCheckboxProps) {
+	return (
+		<label className="label justify-between mb-2">
+			<div className="flex gap-2">
+				<input
+					type="checkbox"
+					defaultChecked={initialValue}
+					className="checkbox"
+					onClick={(e) => {
+						const isChecked = (e.target as HTMLInputElement).checked;
+						fields.forEach((p, index) => {
+							updateMethod(index, { ...p, isChecked });
+							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, p.user);
+						});
+						updateAmounts(type, getValues(), updateMethod, fields);
+					}}
+				/>
+				Selectionner tous les utilisateurs
+			</div>
+		</label>
 	);
 }
 

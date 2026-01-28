@@ -83,7 +83,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 	const {
 		register,
-		formState: { errors, isDirty },
+		formState: { errors },
 		getValues,
 		control,
 		reset,
@@ -157,8 +157,8 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 									required: true,
 									valueAsNumber: true,
 									onBlur() {
-										updateAmounts('debtors', getValues, updateDebtor, debtorsfields);
-										updateAmounts('payers', getValues, updatePayer, payersFields);
+										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields);
+										updateAmounts('payers', getValues(), updatePayer, payersFields);
 									},
 								})}
 							/>
@@ -172,6 +172,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui a payé ?</legend>
+								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
 								{payersFields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
@@ -190,6 +191,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
+								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
@@ -225,14 +227,45 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 	);
 }
 
+interface SelectAllCheckboxProps<T extends 'debtors' | 'payers' = 'debtors' | 'payers'> {
+	type: T;
+	fields: FieldArrayWithId<AddExpenseModalForm>[];
+	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm, T>;
+	getValues: UseFormGetValues<AddExpenseModalForm>;
+	initialValue: boolean;
+}
+
+function SelectAllCheckbox({ type, fields, updateMethod, getValues, initialValue }: SelectAllCheckboxProps) {
+	return (
+		<label className="label justify-between mb-2">
+			<div className="flex gap-2">
+				<input
+					type="checkbox"
+					defaultChecked={initialValue}
+					className="checkbox"
+					onClick={(e) => {
+						const isChecked = (e.target as HTMLInputElement).checked;
+						fields.forEach((p, index) => {
+							updateMethod(index, { ...p, isChecked });
+							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, p.user);
+						});
+						updateAmounts(type, getValues(), updateMethod, fields);
+					}}
+				/>
+				Selectionner tous les utilisateurs
+			</div>
+		</label>
+	);
+}
+
 function updateAmounts<T extends 'debtors' | 'payers'>(
 	type: T,
-	getValues: UseFormGetValues<AddExpenseModalForm>,
+	values: AddExpenseModalForm,
 	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors' | 'payers'>,
-	debtorsfields: FieldArrayWithId<AddExpenseModalForm>[],
+	debtorsOrPayersfields: FieldArrayWithId<AddExpenseModalForm>[],
 ) {
-	const debtorsOrPayers = getValues()[type];
-	const totalAmountValue = getValues().totalAmount;
+	const debtorsOrPayers = values[type];
+	const totalAmountValue = values.totalAmount;
 
 	const activeDebtorOrPayersFields = debtorsOrPayers.filter((field) => field.isChecked);
 	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
@@ -241,7 +274,7 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 
 	activeDebtorOrPayersFields.forEach((field) => {
 		updateMethod(
-			debtorsfields.findIndex((f) => f.user.id === field.user.id),
+			debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
 			{ amount: updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
 		);
 	});
@@ -258,7 +291,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					{...register(`${type}.${index}.isChecked`, {
 						onChange() {
 							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
-							updateAmounts(type, getValues, updateMethod, fields);
+							updateAmounts(type, getValues(), updateMethod, fields);
 						},
 					})}
 				/>

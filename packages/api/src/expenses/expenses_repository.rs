@@ -117,27 +117,73 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    delete_expense_by_id(expense.id)
+    sqlx::query!(
+        r#"
+        UPDATE expenses
+        SET
+            name          = $1,
+            amount        = $2,
+            expense_type  = $3,
+            project_id    = $4,
+            author_id     = $5,
+            description   = $6
+        WHERE id = $7
+        "#,
+        expense.name,
+        expense.amount,
+        expense.clone().expense_type as ExpenseType,
+        expense.project_id,
+        expense.author_id,
+        expense.description,
+        expense.id
+    )
+    .execute(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense.id)
+        .execute(&pool)
         .await
-        .context("Failed to delete expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    let creatable_expense = CreatableExpense {
+    let payers = Some(expense.payers.clone());
+    let debtors = Some(expense.debtors.clone());
+
+    let new_payments: Vec<NewPayment> =
+        forge_creatable_payments_from_expense(payers, debtors, expense.id);
+
+    let expense_ids: Vec<i32> = new_payments.iter().map(|p| p.expense_id).collect();
+    let user_ids: Vec<i32> = new_payments.iter().map(|p| p.user_id).collect();
+    let is_debts: Vec<bool> = new_payments.iter().map(|p| p.is_debt).collect();
+    let amounts: Vec<f64> = new_payments.iter().map(|p| p.amount).collect();
+
+    sqlx::query_scalar::<_, i32>(
+        r#"
+        INSERT INTO payments (expense_id, user_id, is_debt, amount)
+        SELECT * FROM UNNEST($1::INT4[], $2::INT4[], $3::BOOL[], $4::FLOAT8[])
+        RETURNING id
+        "#,
+    )
+    .bind(&expense_ids)
+    .bind(&user_ids)
+    .bind(&is_debts)
+    .bind(&amounts)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let updated_expense = Expense {
+        id: expense.id,
         name: expense.name,
         amount: expense.amount,
         expense_type: expense.expense_type,
         project_id: expense.project_id,
-        payers: expense.payers,
-        debtors: expense.debtors,
         author_id: expense.author_id,
         description: expense.description,
+        created_at: Local::now().naive_local(), // TODO
     };
-    let new_expense = add_expense(Json(creatable_expense))
-        .await
-        .context("Failed add expense")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(new_expense)
+    Ok(updated_expense)
 }
 
 #[get("/api/projects/{project_id}/expenses")]

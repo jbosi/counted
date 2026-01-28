@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { AppHeader } from '../../components/appHeader';
 import { Avatar } from '../../components/avatar';
 import { ExpenseContext } from '../../contexts/expenseContext';
@@ -10,12 +10,16 @@ import type { User } from '../../types/users.model';
 import { Loading } from '../../components/loading';
 import { useDeleteExpense } from '../../hooks/useExpenses';
 import { useNavigate } from 'react-router';
+import { EditExpenseModal } from '../../components/modals/expense/editExpenseModal';
 
 export function PaymentPage() {
 	const { expense } = useContext(ExpenseContext);
 	const { projectUsers } = useContext(ProjectUsersContext);
 	const { mutate } = useDeleteExpense();
 	const navigate = useNavigate();
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 
 	const onDeleteExpense = () => {
 		if (expense === undefined) {
@@ -26,22 +30,36 @@ export function PaymentPage() {
 		navigate('..');
 	};
 
+	const openModal = () => {
+		setIsModalOpen(true);
+		setTimeout(() => {
+			expenseDialogRef.current?.showModal();
+		}, 100);
+	};
+
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">
-			<AppHeader title={expense?.name} backButtonRoute=".." onDelete={onDeleteExpense} />
+			<AppHeader title={expense?.name} backButtonRoute=".." onDelete={onDeleteExpense} onEdit={() => openModal()} />
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">
-				{expense === undefined || projectUsers === undefined ? <Loading /> : <PaymentList expense={expense} projectUsers={projectUsers} />}
+				{expense == null || projectUsers == null ? (
+					<Loading />
+				) : (
+					<PaymentList expense={expense} projectUsers={projectUsers} expenseDialogRef={expenseDialogRef} isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} />
+				)}
 			</div>
 		</div>
 	);
 }
 
-interface PaymentListPage {
+interface PaymentListProps {
 	expense: Expense;
 	projectUsers: User[];
+	expenseDialogRef: RefObject<HTMLDialogElement | null>;
+	isModalOpen: boolean;
+	setIsModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function PaymentList({ expense, projectUsers }: PaymentListPage) {
+function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, setIsModalOpen }: PaymentListProps) {
 	const { data: payments, error, isError, isLoading } = usePaymentsByExpenseId(expense.id);
 	const paymentsViewModel: PaymentViewModel[] = (payments ?? []).map((p) => ({
 		amount: p.amount,
@@ -52,24 +70,42 @@ function PaymentList({ expense, projectUsers }: PaymentListPage) {
 		user: projectUsers?.find((pu) => pu.id === p.userId),
 	}));
 
+	const closeModal = () => {
+		setIsModalOpen(false);
+		expenseDialogRef.current?.close();
+	};
+
 	const payers = paymentsViewModel.filter((p) => !p.isDebt);
 	const debtors = paymentsViewModel.filter((p) => p.isDebt);
 
 	return (
-		<section className="flex flex-col gap-3">
-			<div>
-				<h2 className="text-left">Répartition du paiement</h2>
-				{payers?.map((payment) => (
-					<PaymentItem payment={payment} key={payment.id} />
-				))}
-			</div>
-			<div>
-				<h2 className="text-left">Répartition de la dette</h2>
-				{debtors?.map((payment) => (
-					<PaymentItem payment={payment} key={payment.id} />
-				))}
-			</div>
-		</section>
+		<>
+			<section className="flex flex-col gap-3">
+				<div>
+					<h2 className="text-left">Répartition du paiement</h2>
+					{payers?.map((payment) => (
+						<PaymentItem payment={payment} key={payment.id} />
+					))}
+				</div>
+				<div>
+					<h2 className="text-left">Répartition de la dette</h2>
+					{debtors?.map((payment) => (
+						<PaymentItem payment={payment} key={payment.id} />
+					))}
+				</div>
+			</section>
+			{isModalOpen && (
+				<EditExpenseModal
+					dialogRef={expenseDialogRef}
+					modalId={'EditExpenseModal'}
+					expense={expense}
+					projectId={expense.project_id}
+					users={projectUsers}
+					payments={payments ?? []}
+					closeModalFn={closeModal}
+				/>
+			)}
+		</>
 	);
 }
 

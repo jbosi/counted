@@ -1,19 +1,20 @@
 import { useContext, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useNavigate, useParams } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { Avatar } from '../../components/avatar';
-import { ExpenseContext } from '../../contexts/expenseContext';
-import { ProjectUsersContext } from '../../contexts/projectUsersContext';
-import { usePaymentsByExpenseId } from '../../hooks/usePayments';
-import type { PaymentViewModel } from '../../types/payments.model';
-import type { Expense } from '../../types/expenses.model';
-import type { User } from '../../types/users.model';
 import { Loading } from '../../components/loading';
-import { useDeleteExpense } from '../../hooks/useExpenses';
-import { useNavigate } from 'react-router';
 import { EditExpenseModal } from '../../components/modals/expense/editExpenseModal';
+import { ProjectUsersContext } from '../../contexts/projectUsersContext';
+import { useDeleteExpense, useExpense } from '../../hooks/useExpenses';
+import { usePaymentsByExpenseId } from '../../hooks/usePayments';
+import type { Expense } from '../../types/expenses.model';
+import type { PaymentViewModel } from '../../types/payments.model';
+import type { User } from '../../types/users.model';
 
 export function PaymentPage() {
-	const { expense } = useContext(ExpenseContext);
+	const { expenseId } = useParams<string>();
+	const { data: expense } = useExpense(parseInt(expenseId ?? '0', 10)); // TODO: handle error
+
 	const { projectUsers } = useContext(ProjectUsersContext);
 	const { mutate } = useDeleteExpense();
 	const navigate = useNavigate();
@@ -60,7 +61,7 @@ interface PaymentListProps {
 }
 
 function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, setIsModalOpen }: PaymentListProps) {
-	const { data: payments, error, isError, isLoading } = usePaymentsByExpenseId(expense.id);
+	const { data: payments } = usePaymentsByExpenseId(expense.id);
 	const paymentsViewModel: PaymentViewModel[] = (payments ?? []).map((p) => ({
 		amount: p.amount,
 		createdAt: p.createdAt,

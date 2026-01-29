@@ -6,7 +6,6 @@ import { RouterProvider } from 'react-router/dom';
 import './App.css';
 import { CountedLocalStorageContext } from './contexts/localStorageContext';
 import { useInitializeLocalStorage } from './hooks/useLocalStorage';
-import { ExpenseLayout } from './layouts/expenseLayout';
 import { ProjectLayout } from './layouts/projectLayout';
 import { PaymentPage } from './pages/payments/paymentList';
 import { ProjectDetails } from './pages/projectDetails/projectsDetails';
@@ -33,13 +32,7 @@ const router = createBrowserRouter([
 			},
 			{
 				path: 'expenses/:expenseId',
-				Component: ExpenseLayout,
-				children: [
-					{
-						index: true,
-						Component: PaymentPage,
-					},
-				],
+				Component: PaymentPage,
 			},
 		],
 	},

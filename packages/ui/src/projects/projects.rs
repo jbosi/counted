@@ -1,7 +1,7 @@
 use crate::modals::AddProjectModal;
 use crate::projects::project::ProjectComponent;
 use crate::utils::listen_to_sse_events;
-use api::projects::get_projects;
+use api::projects::projects_controller::get_projects;
 use dioxus::prelude::*;
 use shared::sse::EventSSE::{ProjectCreated, ProjectDeleted, ProjectModified};
 use shared::ProjectDto;

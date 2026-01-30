@@ -5,7 +5,7 @@ use crate::route::Route;
 use crate::utils::listen_to_sse_events;
 use api::expenses::expenses_controller::get_expenses_by_project_id;
 // use api::payments::payments_controller::get_summary_by_user_ids;
-use api::projects::get_project;
+use api::projects::projects_controller::get_project;
 use api::users::get_users_by_project_id;
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
@@ -101,13 +101,13 @@ pub fn Expenses(props: ExpensesProps) -> Element {
                     a {
                         role: "tab",
                         class: "tab",
-                        class: if active_tab() == ActiveTab::ExpensesList { "tab-active" }, // Expense list // Expense list // Expense list
+                        class: if active_tab() == ActiveTab::ExpensesList { "tab-active" }, // Expense list // Expense list // Expense list // Expense list
                         onclick: move |_| { active_tab.set(ActiveTab::ExpensesList) },
                         "Liste des dépenses"
                     }
                     a {
                         role: "tab",
-                        class: "tab", // position: absolute; // position: absolute; // position: absolute;
+                        class: "tab", // position: absolute; // position: absolute; // position: absolute; // position: absolute;
                         class: if active_tab() == ActiveTab::Summary { "tab-active" },
                         onclick: move |_| { active_tab.set(ActiveTab::Summary) },
                         "Equilibre"

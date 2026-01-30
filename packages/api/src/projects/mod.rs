@@ -1,2 +1,2 @@
-mod projects_repository;
-pub use projects_repository::*;
+pub mod projects_controller;
+pub mod projects_repository;

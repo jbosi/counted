@@ -2,7 +2,7 @@ use crate::common::{Avatar, DropdownButton, Toast};
 use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
 use crate::utils::close_dropdown;
-use api::projects::delete_project_by_id;
+use api::projects::projects_controller::delete_project_by_id;
 use api::users::get_users_by_project_id;
 use chrono::NaiveDateTime;
 use dioxus::document::Eval;
@@ -11,7 +11,7 @@ use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::view_models::users_project_view_model::UsersProject;
-use shared::{ProjectDto, EditableProject, User};
+use shared::{EditableProject, ProjectDto, User};
 use uuid::Uuid;
 
 #[derive(PartialEq, Props, Clone)]

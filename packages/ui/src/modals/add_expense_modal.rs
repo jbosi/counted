@@ -1,5 +1,5 @@
 use crate::common::{CalloutComponent, CalloutComponentTypes};
-use api::expenses::add_expense;
+use api::expenses::expenses_controller::add_expense;
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::{CreatableExpense, ExpenseType, User, UserAmount};

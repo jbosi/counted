@@ -1,2 +1,2 @@
-mod expenses_repository;
-pub use expenses_repository::*;
+pub mod expenses_controller;
+pub mod expenses_repository;

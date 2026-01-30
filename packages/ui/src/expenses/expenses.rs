@@ -3,8 +3,8 @@ use crate::expenses::{ExpenseBarChartComponent, ExpenseList, ExpensesUserSection
 use crate::modals::AddExpenseModal;
 use crate::route::Route;
 use crate::utils::listen_to_sse_events;
-use api::expenses::get_expenses_by_project_id;
-use api::payments::get_summary_by_user_ids;
+use api::expenses::expenses_controller::get_expenses_by_project_id;
+// use api::payments::payments_controller::get_summary_by_user_ids;
 use api::projects::get_project;
 use api::users::get_users_by_project_id;
 use dioxus::logger::tracing::info;
@@ -55,9 +55,9 @@ pub fn Expenses(props: ExpensesProps) -> Element {
 
         match users_resource.read_unchecked().as_ref() {
             None => HashMap::new(),
-            Some(users) => get_summary_by_user_ids(users.iter().map(|u| u.id).collect())
-                .await
-                .unwrap_or_default(),
+            Some(users) => HashMap::new(), // get_summary_by_user_ids(users.iter().map(|u| u.id).collect())
+                                           //     .await
+                                           //     .unwrap_or_default(),
         }
     });
 
@@ -71,15 +71,15 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             match project_resource.read_unchecked().as_ref() {
                 Some(p) => {
                     rsx! {
-                        AppHeader { title: p.name.clone(), back_button_route: Route::Projects {} }
-                    }
+                AppHeader { title: p.name.clone(), back_button_route: Route::Projects {} }
+            }
                 }
                 None => {
                     rsx! {
-                        div { class: "flex justify-center",
-                            span { class: "loading loading-spinner loading-m" }
-                        }
-                    }
+                div { class: "flex justify-center",
+                    span { class: "loading loading-spinner loading-m" }
+                }
+            }
                 }
             }
             match (
@@ -88,86 +88,86 @@ pub fn Expenses(props: ExpensesProps) -> Element {
             ) {
                 (Some(users), Some(expenses)) => {
                     rsx! {
-                        ExpensesUserSection { id: props.project_id, users: users.to_vec() }
-                        SummaryCard {
-                            my_total: 625.0,
-                            global_total: expenses
+                ExpensesUserSection { id: props.project_id, users: users.to_vec() }
+                SummaryCard {
+                    my_total: 625.0,
+                    global_total: expenses
+                        .iter()
+                        .map(|e| e.amount)
+                        .reduce(|acc, expense| acc + expense)
+                        .unwrap_or(0.0),
+                }
+                div { role: "tablist", class: "tabs tabs-box justify-center",
+                    a {
+                        role: "tab",
+                        class: "tab",
+                        class: if active_tab() == ActiveTab::ExpensesList { "tab-active" }, // Expense list // Expense list // Expense list
+                        onclick: move |_| { active_tab.set(ActiveTab::ExpensesList) },
+                        "Liste des dépenses"
+                    }
+                    a {
+                        role: "tab",
+                        class: "tab", // position: absolute; // position: absolute; // position: absolute;
+                        class: if active_tab() == ActiveTab::Summary { "tab-active" },
+                        onclick: move |_| { active_tab.set(ActiveTab::Summary) },
+                        "Equilibre"
+                    }
+                }
+
+                if active_tab() == ActiveTab::ExpensesList {
+                    // Expense list
+                    div { class: "mt-6",
+
+                        // DateSeparator { label: "Today" }
+                        ExpenseList { expenses: expenses.to_vec() }
+                    }
+                    if users.len() > 0 {
+                        button {
+                            r#type: "button",
+                            class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
+                            onclick: move |_| is_expense_modal_open.set(true),
+                            "+"
+                        }
+                        // position: absolute;
+                        //   bottom: 3rem;
+                        // }
+                        AddExpenseModal {
+                            is_expense_modal_open,
+                            users: users.to_vec(),
+                            project_id: props.project_id,
+                        }
+                    }
+                } else {
+                    match summary_resource.read_unchecked().as_ref() {
+                        Some(summary_by_users) => {
+                            let max_amount = summary_by_users
                                 .iter()
-                                .map(|e| e.amount)
-                                .reduce(|acc, expense| acc + expense)
-                                .unwrap_or(0.0),
-                        }
-                        div { role: "tablist", class: "tabs tabs-box justify-center",
-                            a {
-                                role: "tab",
-                                class: "tab",
-                                class: if active_tab() == ActiveTab::ExpensesList { "tab-active" },
-                                onclick: move |_| { active_tab.set(ActiveTab::ExpensesList) },
-                                "Liste des dépenses"
-                            }
-                            a {
-                                role: "tab",
-                                class: "tab",
-                                class: if active_tab() == ActiveTab::Summary { "tab-active" },
-                                onclick: move |_| { active_tab.set(ActiveTab::Summary) },
-                                "Equilibre"
-                            }
-                        }
-                        
-                        if active_tab() == ActiveTab::ExpensesList {
-                            // Expense list
-                            div { class: "mt-6",
-                        
-                                // DateSeparator { label: "Today" }
-                                ExpenseList { expenses: expenses.to_vec() }
-                            }
-                            if users.len() > 0 {
-                                button {
-                                    r#type: "button",
-                                    class: "btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6",
-                                    onclick: move |_| is_expense_modal_open.set(true),
-                                    "+"
+                                .map(|(_, a)| a.abs())
+                                .max_by(|a, b| a.partial_cmp(b).unwrap())
+                                .unwrap_or(1.0);
+                            rsx! {
+                        section { class: "flex flex-col gap-2",
+                            for (summary_user_id , summary_amount) in summary_by_users {
+                                ExpenseBarChartComponent {
+                                    user: users.iter().find(|u| u.id == *summary_user_id).unwrap().clone(),
+                                    summary_amount: *summary_amount,
+                                    max_amount,
                                 }
-                                // position: absolute;
-                                //   bottom: 3rem;
-                                // }
-                                AddExpenseModal {
-                                    is_expense_modal_open,
-                                    users: users.to_vec(),
-                                    project_id: props.project_id,
-                                }
-                            }
-                        } else {
-                            match summary_resource.read_unchecked().as_ref() {
-                                Some(summary_by_users) => {
-                                    let max_amount = summary_by_users
-                                        .iter()
-                                        .map(|(_, a)| a.abs())
-                                        .max_by(|a, b| a.partial_cmp(b).unwrap())
-                                        .unwrap_or(1.0);
-                                    rsx! {
-                                        section { class: "flex flex-col gap-2",
-                                            for (summary_user_id , summary_amount) in summary_by_users {
-                                                ExpenseBarChartComponent {
-                                                    user: users.iter().find(|u| u.id == *summary_user_id).unwrap().clone(),
-                                                    summary_amount: *summary_amount,
-                                                    max_amount,
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                _ => rsx! {},
                             }
                         }
                     }
+                        }
+                        _ => rsx! {},
+                    }
+                }
+            }
                 }
                 _ => {
                     rsx! {
-                        div { class: "flex justify-center mt-20",
-                            span { class: "loading loading-spinner loading-xl" }
-                        }
-                    }
+                div { class: "flex justify-center mt-20",
+                    span { class: "loading loading-spinner loading-xl" }
+                }
+            }
                 }
             }
         }

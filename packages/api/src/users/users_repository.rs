@@ -4,7 +4,7 @@ use uuid::Uuid;
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
-use crate::payments::get_payments_by_user_id;
+use crate::payments::payments_repository::get_payments_by_user_id;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]

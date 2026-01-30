@@ -1,4 +1,3 @@
-mod balances;
-mod payments_repository;
-
-pub use payments_repository::*;
+pub mod balances;
+pub mod payments_controller;
+pub mod payments_repository;

@@ -1,4 +1,4 @@
-use chrono::{Local, NaiveDateTime};
+use chrono::Local;
 use dioxus::logger::tracing;
 use dioxus::{fullstack::Json, prelude::*};
 use shared::sse::EventSSE;
@@ -10,17 +10,9 @@ use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]
-use axum::response::sse::{Event, KeepAlive, Sse};
+use axum::response::sse::Event;
 #[cfg(feature = "server")]
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Router,
-};
-#[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+use sqlx::{Pool, Postgres};
 
 #[get("/api/projects/{project_id}")]
 pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {

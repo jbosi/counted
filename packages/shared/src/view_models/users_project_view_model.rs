@@ -11,5 +11,4 @@ pub struct UsersProject {
     pub created_at: NaiveDateTime,
     pub currency: String,
     pub description: Option<String>,
-    // pub total_expenses: f64,
 }

@@ -2,15 +2,6 @@ use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Router,
-};
-
-#[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::payments::get_payments_by_user_id;
@@ -19,9 +10,9 @@ use crate::sse::BROADCASTER;
 #[cfg(feature = "server")]
 use anyhow::Context;
 use shared::sse::EventSSE;
-use shared::{CreatableUser, Payment, User};
+use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+use sqlx::{Pool, Postgres, QueryBuilder};
 
 #[get("/api/users")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {

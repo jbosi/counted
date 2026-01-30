@@ -7,18 +7,9 @@ use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::expenses::get_expenses_by_project_id;
 use crate::utils::round_currency;
-#[cfg(feature = "server")]
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-};
-use dioxus::logger::tracing::info;
 use shared::{Expense, Payment, UserSummary};
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+use sqlx::{Pool, Postgres};
 
 #[get("/api/expenses/{expense_id}/payments")]
 pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {

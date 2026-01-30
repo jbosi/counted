@@ -16,11 +16,9 @@ use uuid::Uuid;
 pub struct ProjectDto {
     pub id: Uuid,
     pub name: String,
-    // pub users: Vec<i32>, // TODO user_ids
     pub created_at: NaiveDateTime,
     pub currency: String,
     pub description: Option<String>,
-    // pub total_expenses: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -148,7 +146,6 @@ impl fmt::Display for ExpenseType {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "server", derive(FromRow))]
-
 pub struct Payment {
     pub id: i32,
     pub expense_id: i32,

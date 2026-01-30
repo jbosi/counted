@@ -1,26 +1,15 @@
-use chrono::{Local, NaiveDateTime};
+use chrono::Local;
 use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
-
-#[cfg(feature = "server")]
-use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Router,
-};
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use crate::sse::BROADCASTER;
 use shared::sse::EventSSE;
-use shared::{
-    CreatableExpense, EditableExpense, Expense, ExpenseType, NewPayment, Payment, UserAmount,
-};
+use shared::{CreatableExpense, EditableExpense, Expense, ExpenseType, NewPayment, UserAmount};
 #[cfg(feature = "server")]
-use sqlx::{FromRow, PgPool, Pool, Postgres, QueryBuilder};
+use sqlx::{Pool, Postgres};
 
 #[post("/api/expenses")]
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {

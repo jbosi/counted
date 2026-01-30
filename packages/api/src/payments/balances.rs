@@ -5,75 +5,6 @@ use shared::{ReimbursementSuggestion, UserBalance, UserBalanceComputation};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::ops::Sub;
-//
-// #[derive(Serialize, Deserialize, Debug, Clone)]
-// pub struct Balance {
-//     pub balances: Vec<UserBalance>,
-//     pub currency: String,
-//     pub total_expenses: f64,
-//     pub reimbursement_suggestions: Vec<ReimbursementSuggestion>,
-// }
-
-// pub fn forge_balance_from_payments(
-//     payments: Vec<Payment>,
-//     users_from_payments: Vec<User>,
-// ) -> Balance {
-//     let mut balance = get_initial_balance_values();
-
-//     let (balances_by_user, total_expenses) = get_balances_by_user(payments);
-
-//     for (user_id, amount) in balances_by_user {
-//         balance.balances.push(UserBalance {
-//             user_id: user_id,
-//             amount: amount,
-//             user_name: users_from_payments.iter().find(|u| u.id == user_id).cloned().unwrap().name,
-//         });
-
-//         balance.total_expenses = total_expenses;
-//         balance.currency = "€".to_string()
-//     }
-
-//     balance.reimbursement_suggestions = get_reimbursement_suggestions(balance.clone());
-
-//     return balance;
-// }
-
-// fn get_initial_balance_values() -> Balance {
-//     return Balance {
-//         balances: vec![],
-//         currency: "".to_string(),
-//         total_expenses: 0.0,
-//         reimbursement_suggestions: vec![],
-//     };
-// }
-
-// fn get_balances_by_user(payments: Vec<Payment>) -> (HashMap<i32, f64>, f64) {
-//     let mut balances_by_user: HashMap<i32, f64> = Default::default();
-//     let mut total_expenses: f64 = 0.0;
-
-//     for payment in payments {
-//         let mut default_insert: f64 = 0.0;
-
-//         if payment.is_debt {
-//             default_insert.sub_assign(payment.amount);
-//         } else {
-//             default_insert.add_assign(payment.amount);
-//             total_expenses.add_assign(payment.amount)
-//         }
-//         balances_by_user
-//             .entry(payment.user_id)
-//             .and_modify(|p| {
-//                 if payment.is_debt {
-//                     return p.sub_assign(payment.amount);
-//                 } else {
-//                     return p.add_assign(payment.amount);
-//                 }
-//             })
-//             .or_insert(default_insert);
-//     }
-
-//     return (balances_by_user, total_expenses);
-// }
 
 pub fn get_reimbursement_suggestions(
     mut balances: Vec<UserBalance>,
@@ -107,12 +38,10 @@ pub fn get_reimbursement_suggestions(
 
     result
 }
+
 //
-// /////////////////////
 // // Est-ce que ce ne serait pas mieux de faire la somme de tous les payments par userId (permet d'éliminer ceux qui sont à l'équilibre)
 // // Ensuite on calcule qui doit combien a qui
-// // Beaucoup plus simple
-// // fn sum_
 //
 // // Examples
 // // P 10, 30, 50 - 10, 30, 50
@@ -245,7 +174,7 @@ fn resolve_remaining_balances(
     result
 }
 
-// // returns the list of min_balances that are fully compensated and optionally the remainder
+// returns the list of min_balances that are fully compensated and optionally the remainder
 fn solve_max_balance(
     max_balance: (i32, UserBalanceComputation),
     min_balances: HashMap<i32, UserBalanceComputation>,
@@ -346,68 +275,6 @@ fn get_max_balance(
     }
 }
 
-// fn resolve_negative_balances(
-//     unsolved_positive_balances_by_user: &mut HashMap<i32, UserBalanceComputation>,
-//     unsolved_negative_balances_by_user: &mut HashMap<i32, UserBalanceComputation>,
-// ) -> Vec<ReimbursementSuggestion> {
-//     const RESULT: Vec<ReimbursementSuggestion> = Vec::new();
-//
-//     for (positive_user_id, positive_balance_amount) in &mut *unsolved_positive_balances_by_user {
-//         let mut positive_balance_amount_mut = positive_balance_amount.remaining_amount;
-//
-//         for (negative_user_id, negative_balance_amount) in &mut *unsolved_negative_balances_by_user
-//         {
-//             if (positive_balance_amount_mut.eq(&0.0)) {
-//                 break;
-//             }
-//
-//             if (negative_balance_amount
-//                 .remaining_amount
-//                 .abs()
-//                 .total_cmp(&positive_balance_amount_mut)
-//                 == Ordering::Less
-//                 || negative_balance_amount
-//                     .remaining_amount
-//                     .abs()
-//                     .total_cmp(&positive_balance_amount_mut)
-//                     == Ordering::Equal)
-//             {
-//                 RESULT.push(ReimbursementSuggestion {
-//                     amount: negative_balance_amount.remaining_amount,
-//                     user_id_debtor: *negative_user_id,
-//                     user_id_payer: *positive_user_id,
-//                 });
-//
-//                 positive_balance_amount_mut
-//                     .sub_assign(negative_balance_amount.remaining_amount.abs());
-//                 // unsolved_negative_balances_by_user.remove(negative_user_id);
-//             }
-//         }
-//
-//         //
-//         if (positive_balance_amount.remaining_amount.total_cmp(&positive_balance_amount_mut)
-//             != Ordering::Equal
-//             && !positive_balance_amount_mut.eq(&0.0))
-//         {
-//             let (negative_user_id, negative_balance_amount) =
-//                 unsolved_negative_balances_by_user.iter().collect_vec()[0];
-//
-//             RESULT.push(ReimbursementSuggestion {
-//                 amount: positive_balance_amount_mut,
-//                 user_id_debtor: *negative_user_id,
-//                 user_id_payer: *positive_user_id,
-//             });
-//
-//             // unsolved_positive_balances_by_user.remove(positive_user_id);
-//             // unsolved_negative_balances_by_user.iter().filter(|(u, b)| u == negative_user_id).update(|(u, b)| (u, b.add_assign(positive_balance_amount_mut)));
-//
-//             // eprint!("amount is not completely resolved for user id {0} with a value of {1}", positive_user_id, positive_balance_amount_mut)
-//         }
-//     }
-//
-//     return RESULT;
-// }
-//
 fn resolve_equally_opposed_balances(
     unsolved_positive_balances_by_user: &mut HashMap<i32, UserBalanceComputation>,
     unsolved_negative_balances_by_user: &mut HashMap<i32, UserBalanceComputation>,
@@ -692,8 +559,8 @@ mod tests {
         }
 
         // Verify creditors only receive (users 1, 2, 3)
-        let creditors = vec![1, 2, 3];
-        let debtors = vec![4, 5, 6];
+        let creditors = [1, 2, 3];
+        let debtors = [4, 5, 6];
 
         for suggestion in &suggestions {
             assert!(

@@ -1,9 +1,9 @@
 use crate::common::{Avatar, BackButtonArrow, DropdownButton};
 use crate::route::Route;
 use crate::utils::close_dropdown;
-use api::expenses::{delete_expense_by_id, get_expense_by_id};
-use api::payments::get_payments_by_expense_id;
-use api::users::get_users_by_project_id;
+use api::expenses::expenses_controller::{delete_expense, get_expense_by_id};
+use api::payments::payments_controller::get_payments_by_expense_id;
+use api::users::users_controller::get_users_by_project_id;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::{PaymentViewModel, User};
@@ -69,59 +69,57 @@ pub fn Payments(props: PaymentsProps) -> Element {
                 if let Some(expense) = &*expense_resource.read() {
                     match expense {
                         Ok(e) => rsx! {
-                            div { class: "flex flex-row",
-                                div {
-                                    class: "navbar-start flex-1",
-                                    onclick: move |_| {
-                                        navigator()
-                                            .push(Route::Expenses {
-                                                project_id: props.project_id,
-                                            });
-                                    },
-                                    BackButtonArrow {}
-                                }
-                                h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
-                                DropdownButton {
-                                    first_component: rsx! {
-                                        button {
-                                            class: "btn btn-ghost",
-                                            onclick: move |event| async move {
-                                                close_dropdown().await.unwrap_or("".into());
-                                            },
-                                            "Editer"
-                                        }
-                                    },
-                                    second_component: rsx! {
-                                        button {
-                                            class: "btn btn-ghost",
-                                            onclick: move |_| {
-                                                spawn(async move {
-                                                    close_dropdown().await.unwrap_or("".into());
-                                                    match delete_expense_by_id(props.expense_id).await {
-                                                        Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
-                                                        Err(error) => {
-                                                            api_expense_delete_state
-                                                                .set(ApiState::Error(ApiError(error.to_string())))
-                                                        }
-                                                    };
-                                                });
-                                            },
-                                            "Supprimer"
-                                        }
-                                    },
-                                }
-                            }
-                            span { class: "self-center", "Dépense de {total_payment} €" }
-                            match e.clone().description {
-                                Some(description) => rsx! {
-                                    span { "{description}" }
+                        div { class: "flex flex-row",
+                            div {
+                                class: "navbar-start flex-1",
+                                onclick: move |_| {
+                                    navigator()
+                                        .push(Route::Expenses {
+                                            project_id: props.project_id,
+                                        });
                                 },
-                                None => rsx! { "" },
+                                BackButtonArrow {}
                             }
+                            h1 { class: "text-xl font-bold self-center flex-grow", "{e.name}" }
+                            DropdownButton {
+                                first_component: rsx! {
+                                    button {
+                                        class: "btn btn-ghost",
+                                        onclick: move |event| async move {
+                                            close_dropdown().await.unwrap_or("".into());
+                                        },
+                                        "Editer"
+                                    }
+                                },
+                                second_component: rsx! {
+                                    button {
+                                        class: "btn btn-ghost",
+                                        onclick: move |_| {
+                                            spawn(async move {
+                                                close_dropdown().await.unwrap_or("".into());
+                                                match delete_expense(props.expense_id).await {
+                                                    Ok(()) => api_expense_delete_state.set(ApiState::Success(())),
+                                                    Err(error) => {
+                                                        api_expense_delete_state
+                                                            .set(ApiState::Error(ApiError(error.to_string())))
+                                                    }
+                                                };
+                                            });
+                                        },
+                                        "Supprimer"
+                                    }
+                                },
+                            }
+                        }
+                        span { class: "self-center", "Dépense de {total_payment} €" }
+                        match e.clone().description {
+                            Some(description) => rsx! {
+                            span { "{description}" }
                         },
-                        Err(err) => rsx! {
-                        "{err}"
-                        },
+                            None => rsx! { "" },
+                        }
+                    },
+                        Err(err) => rsx! { "{err}" },
                     }
                 }
             }

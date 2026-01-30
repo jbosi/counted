@@ -1,4 +1,4 @@
-use api::projects::{add_project, update_project_by_id};
+use api::projects::projects_controller::{add_project, update_project_by_id};
 use dioxus::prelude::*;
 use shared::{CreatableProject, EditableProject};
 use uuid::Uuid;

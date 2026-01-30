@@ -3,7 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import * as z from 'zod';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { addToLocalStorage } from '../../hooks/useLocalStorage';
-import { useAddUser, useDeleteUser } from '../../hooks/useUsers';
+import { useAddUsers, useDeleteUser } from '../../hooks/useUsers';
 import type { User } from '../../types/users.model';
 import { ErrorValidationCallout } from '../errorCallout';
 
@@ -32,7 +32,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 		formState: { errors },
 		getValues,
 	} = useForm<AddUserModalForm>({ defaultValues: { name: '' } });
-	const { error: addUserError, isPending: addUserIsPending, isError: addUserIsError, mutate: addUserMutate } = useAddUser(projectId);
+	const { error: addUserError, isPending: addUserIsPending, isError: addUserIsError, mutate: addUsersMutate } = useAddUsers(projectId);
 	const {
 		error: deleteUserError,
 		isPending: deleteUserIsPending,
@@ -61,7 +61,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 			return;
 		}
 
-		addUserMutate({ name: data.name, projectId });
+		addUsersMutate([{ name: data.name, projectId }]);
 		exitModal();
 	};
 

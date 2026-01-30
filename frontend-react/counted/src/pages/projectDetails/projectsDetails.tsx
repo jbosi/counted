@@ -46,7 +46,7 @@ export const ProjectDetails = () => {
 			{project.data ? (
 				<>
 					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute=".." />
-					<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} />
+					<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} />
 				</>
 			) : (
 				<div className="flex justify-center">

@@ -55,11 +55,25 @@ pub struct User {
     pub created_at: Option<NaiveDateTime>,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)] // Accept either a single object or an array
+pub enum CreatableUserBatch {
+    Single(CreatableUser),
+    Multiple(Vec<CreatableUser>),
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CreatableUser {
     pub name: String,
     pub project_id: Uuid,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "server", derive(FromRow))]
+pub struct UserProjects {
+    pub project_id: Uuid,
+    pub user_id: i32,
 }
 
 // -------- EXPENSE ---------

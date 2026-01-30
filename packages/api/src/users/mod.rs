@@ -1,2 +1,2 @@
-mod users_repository;
-pub use users_repository::*;
+pub mod users_controller;
+pub mod users_repository;

@@ -3,7 +3,7 @@ use crate::route::Route;
 use crate::utils::close_dropdown;
 use api::expenses::expenses_controller::{delete_expense, get_expense_by_id};
 use api::payments::payments_controller::get_payments_by_expense_id;
-use api::users::get_users_by_project_id;
+use api::users::users_controller::get_users_by_project_id;
 use dioxus::prelude::*;
 use shared::api::{ApiError, ApiState};
 use shared::{PaymentViewModel, User};

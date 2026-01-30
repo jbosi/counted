@@ -3,7 +3,7 @@ use crate::modals::{AddProjectModal, UpdateProjectModal};
 use crate::route::Route;
 use crate::utils::close_dropdown;
 use api::projects::projects_controller::delete_project_by_id;
-use api::users::get_users_by_project_id;
+use api::users::users_controller::get_users_by_project_id;
 use chrono::NaiveDateTime;
 use dioxus::document::Eval;
 use dioxus::hooks::{use_resource, use_signal};

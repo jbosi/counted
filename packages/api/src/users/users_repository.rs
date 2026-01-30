@@ -1,20 +1,15 @@
-use dioxus::{fullstack::Json, prelude::*};
+use dioxus::prelude::*;
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
-use crate::payments::payments_repository::get_payments_by_user_id;
-#[cfg(feature = "server")]
-use crate::sse::BROADCASTER;
-#[cfg(feature = "server")]
 use anyhow::Context;
-use shared::sse::EventSSE;
 use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{Pool, Postgres, QueryBuilder};
 
-#[get("/api/users")]
+#[cfg(feature = "server")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
@@ -27,19 +22,9 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
     Ok(users)
 }
 
-#[delete("/api/users/{user_id}")]
+#[cfg(feature = "server")]
 pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
-
-    let payments =
-        get_payments_by_user_id(user_id).await.map_err(|e| ServerFnError::new(e.to_string()))?;
-
-    if !payments.is_empty() {
-        // User still has payments → abort with a clear error
-        return Err(ServerFnError::new(
-            "User has existing payments in this project and cannot be removed",
-        ));
-    }
 
     // Anonymous user cannot be in more than one user_project
     sqlx::query("DELETE FROM user_projects WHERE user_id = $1")
@@ -58,8 +43,8 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
     Ok(())
 }
 
-#[post("/api/users")]
-pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnError> {
+#[cfg(feature = "server")]
+pub async fn add_user(user: CreatableUser) -> Result<i32, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let user_id: i32 =
@@ -77,20 +62,10 @@ pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnE
         .context("Failed to associate user with project")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    BROADCASTER
-        .broadcast(
-            axum::response::sse::Event::default()
-                .event::<String>(EventSSE::UserCreated.to_string())
-                .data(EventSSE::UserCreated.to_string()),
-        )
-        .await;
-
-    let created_user = User { id: user_id, name: user.name, balance: None, created_at: None };
-
-    Ok(created_user)
+    Ok(user_id)
 }
 
-#[get("/api/projects/{project_id}/users")]
+#[cfg(feature = "server")]
 pub async fn get_users_by_project_id(project_id: Uuid) -> Result<Vec<User>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 

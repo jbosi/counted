@@ -36,7 +36,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
 
 #[put("/api/expenses")]
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
-    expenses_repository::edit_expense(expense.clone());
+    expenses_repository::edit_expense(expense.clone()).await?;
 
     payments_repository::delete_payments_by_expense_id(expense.id).await?;
 
@@ -78,7 +78,7 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 
 #[delete("/api/expenses/{expense_id}")]
 pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
-    // delete_payments_by_expense_id()
+    payments_repository::delete_payments_by_expense_id(expense_id).await?;
 
     expenses_repository::delete_expense(expense_id).await?;
 

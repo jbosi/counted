@@ -38,17 +38,58 @@ jobs:
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
 
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            # For main branch, use semantic versioning
-            # Count commits since last tag or use commit count
-            TAG_COUNT=$(git tag -l "v*" | wc -l)
-            if [ "$TAG_COUNT" -gt 0 ]; then
-              LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-              VERSION=${LAST_TAG#v}
+            # Get the last tag or start with v0.0.0
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "Last tag: $LAST_TAG"
+            
+            # Parse version components
+            LAST_VERSION=${LAST_TAG#v}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
+            
+            # Get commits since last tag
+            if git describe --tags --abbrev=0 2>/dev/null; then
+              COMMITS=$(git log ${LAST_TAG}..HEAD --oneline)
             else
-              # No tags yet, start with 1.0
-              COMMIT_COUNT=$(git rev-list --count HEAD)
-              VERSION="1.0.$COMMIT_COUNT"
+              COMMITS=$(git log --oneline)
             fi
+            
+            # Determine version bump based on conventional commits
+            BUMP_TYPE="patch"
+            
+            if echo "$COMMITS" | grep -qiE "^[a-f0-9]+ (feat|feature)(\(.+\))?!:|^[a-f0-9]+ BREAKING CHANGE:|^[a-f0-9]+ [^:]+!:"; then
+              BUMP_TYPE="major"
+              echo "Found breaking change - bumping major version"
+            elif echo "$COMMITS" | grep -qiE "^[a-f0-9]+ (feat|feature)(\(.+\))?:"; then
+              BUMP_TYPE="minor"
+              echo "Found feature - bumping minor version"
+            elif echo "$COMMITS" | grep -qiE "^[a-f0-9]+ (fix|bugfix|perf|refactor|ref|docs|style|chore|test|enh|build|cln|ci|security)(\(.+\))?:"; then
+              BUMP_TYPE="patch"
+              echo "Found fix/improvement - bumping patch version"
+            else
+              # Fallback: if there are new commits but no conventional format, bump patch
+              if [ -n "$COMMITS" ]; then
+                BUMP_TYPE="patch"
+                echo "No conventional commits found - defaulting to patch version bump"
+              fi
+            fi
+            
+            # Calculate new version
+            case $BUMP_TYPE in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            
+            VERSION="$MAJOR.$MINOR.$PATCH"
           else
             # For other branches, use branch name and commit count
             COMMIT_COUNT=$(git rev-list --count HEAD)
@@ -158,8 +199,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "v${{ needs.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ needs.version.outputs.version }} already exists, skipping release creation"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create Release
+        if: steps.check_tag.outputs.exists == 'false'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

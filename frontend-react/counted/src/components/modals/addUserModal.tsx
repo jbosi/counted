@@ -6,6 +6,8 @@ import { addToLocalStorage } from '../../hooks/useLocalStorage';
 import { useAddUsers, useDeleteUser } from '../../hooks/useUsers';
 import type { User } from '../../types/users.model';
 import { ErrorValidationCallout } from '../errorCallout';
+import { TrashIcon } from '../../shared/icons/trashIcon';
+import { Loading } from '../loading';
 
 export interface AddUserModalProps {
 	modalId: string;
@@ -96,28 +98,7 @@ export function AddUserModal({ dialogRef, modalId, projectId, currentUsers }: Ad
 								<div key={u.id} className="flex gap-3">
 									<span className="self-center">{u.name}</span>
 									<button type="button" className="btn btn-square btn-sm p-1.5 btn-soft" onClick={() => deleteUserMutate(u.id)}>
-										{deleteUserIsPending && u.id === userIdBeingDeleted ? (
-											<span className="loading loading-spinner"></span>
-										) : (
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="24"
-												height="24"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-												<path d="M4 7l16 0" />
-												<path d="M10 11l0 6" />
-												<path d="M14 11l0 6" />
-												<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
-												<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
-											</svg>
-										)}
+										{deleteUserIsPending && u.id === userIdBeingDeleted ? <Loading /> : <TrashIcon />}
 									</button>
 									{countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId === u.id ? (
 										<div className="badge badge-soft badge-primary">Moi</div>

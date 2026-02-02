@@ -1,26 +1,11 @@
-import { useState, type RefObject } from 'react';
+import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAddProject } from '../../../hooks/useProjects';
-import { ProjectModalContent, type ProjectModalForm } from './projectModalContent';
-import type { CreatableUser, User } from '../../../types/users.model';
-import * as z from 'zod';
 import { useAddUsers } from '../../../hooks/useUsers';
-
-export interface AddProjectModalProps {
-	modalId: string;
-	dialogRef: RefObject<HTMLDialogElement | null>;
-}
-
-const formSchema = z.object({
-	projectName: z.string().min(2).max(100),
-	users: z
-		.array(
-			z.object({
-				name: z.string().min(2).max(100),
-			}),
-		)
-		.min(1),
-});
+import type { CreatableUser, User } from '../../../types/users.model';
+import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
+import type { AddProjectModalProps, ProjectModalForm } from './models/projectModal.model';
+import { ProjectModalContent } from './projectModalContent';
 
 export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 	const [users, setUsers] = useState<(User | CreatableUser)[]>([]);
@@ -32,7 +17,7 @@ export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 
 	const onSubmit: SubmitHandler<ProjectModalForm> = async (data) => {
 		const formValues: ProjectModalForm & { users: (User | CreatableUser)[] } = { ...data, users };
-		const parsedResult = formSchema.safeParse(formValues);
+		const parsedResult = PROJECT_FORM_SCHEMA.safeParse(formValues);
 
 		if (parsedResult.error) {
 			setProjectErrorState(parsedResult.error.message);
@@ -41,6 +26,7 @@ export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 
 		const createdProject = await addProject.mutateAsync({ name: data.projectName, description: data.projectDescription });
 		await addUsers.mutateAsync(users.map((u) => ({ name: u.name, projectId: createdProject?.id ?? '' })));
+
 		dialogRef.current?.close();
 	};
 

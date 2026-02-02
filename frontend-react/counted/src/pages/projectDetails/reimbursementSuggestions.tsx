@@ -1,4 +1,5 @@
 import { Avatar } from '../../components/avatar';
+import { RightArrowIcon } from '../../shared/icons/righArrowIcon';
 import type { ReimbursementSuggestion } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 
@@ -55,19 +56,7 @@ function ReimbursementSuggestionsItem({ debtor, payer, amount }: ReimbursementSu
 					</div>
 					<div>
 						{' '}
-						<svg
-							xmlns={'http://www.w3.org/2000/svg'}
-							width={'14'}
-							height={'24'}
-							viewBox={'0 0 14 24'}
-							fill={'none'}
-							stroke={'currentColor'}
-							strokeWidth={'1.5'}
-							strokeLinecap={'round'}
-							strokeLinejoin={'round'}
-						>
-							<polyline points="6 18 12 12 0 12 12 12 6 6" />
-						</svg>
+						<RightArrowIcon />
 					</div>
 					<div>
 						<Avatar name={payer.name} size={'w-8'} />

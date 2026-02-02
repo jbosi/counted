@@ -1,23 +1,11 @@
-import { useState, type RefObject } from 'react';
+import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import * as z from 'zod';
 import { useEditProject } from '../../../hooks/useProjects';
 import { useAddUsers, useDeleteUser } from '../../../hooks/useUsers';
-import type { ProjectDto } from '../../../types/projects.model';
 import type { CreatableUser, User } from '../../../types/users.model';
-import { ProjectModalContent, type ProjectModalForm } from './projectModalContent';
-
-export interface EditProjectModalProps {
-	modalId: string;
-	dialogRef: RefObject<HTMLDialogElement | null>;
-	project: ProjectDto;
-	users: User[];
-}
-
-const formSchema = z.object({
-	projectName: z.string().min(2).max(100),
-	name: z.array(z.string().min(2).max(100)).min(1),
-});
+import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
+import { ProjectModalContent } from './projectModalContent';
+import type { EditProjectModalProps, ProjectModalForm } from './models/projectModal.model';
 
 export function EditProjectModal({ dialogRef, modalId, project, users: initialUsers }: EditProjectModalProps) {
 	const [users, setUsers] = useState<(CreatableUser | User)[]>(initialUsers);
@@ -35,7 +23,7 @@ export function EditProjectModal({ dialogRef, modalId, project, users: initialUs
 
 	const onSubmit: SubmitHandler<ProjectModalForm> = async (data) => {
 		const formValues: ProjectModalForm & { users: (User | CreatableUser)[] } = { ...data, users };
-		const parsedResult = formSchema.safeParse(formValues);
+		const parsedResult = PROJECT_FORM_SCHEMA.safeParse(formValues);
 
 		if (parsedResult.error) {
 			setProjectErrorState(parsedResult.error.message);

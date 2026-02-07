@@ -39,6 +39,6 @@ dialog {
 
 .projectModalContent-userList {
 	display: grid;
-	grid-template-columns: 150px min-content 80px;
-	gap: 8px;
+	grid-template-columns: min-content 150px 80px;
+	gap: 10px;
 }

@@ -7,6 +7,7 @@ import type { CreatableProject, EditableProject, ProjectDto } from '../../../typ
 import type { CreatableUser, User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
+import { UserIcon } from '../../../shared/icons/userIcon';
 
 export interface ProjectModalContentProps {
 	modalId: string;
@@ -57,7 +58,7 @@ export function ProjectModalContent({
 		(u: User | CreatableUser, projectId: string | undefined) => {
 			const storedUserId = countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId;
 
-			return selectedUserName === u.name || (storedUserId && storedUserId === (u as User)?.id);
+			return selectedUserName === u.name || (selectedUserName == null && storedUserId && storedUserId === (u as User)?.id);
 		},
 		[countedLocalStorage?.projects, selectedUserName],
 	);
@@ -97,12 +98,7 @@ export function ProjectModalContent({
 							<div className="flex">
 								<div className="flex-1">
 									<label className="input w-full">
-										<svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-											<g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
-												<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-												<circle cx="12" cy="7" r="4"></circle>
-											</g>
-										</svg>
+										<UserIcon />
 										<input type="text" placeholder="Clark Kent" onChange={handleAddUser} value={newUser.name} />
 									</label>
 								</div>
@@ -122,7 +118,6 @@ export function ProjectModalContent({
 								{users?.map((u, index) => {
 									return (
 										<li key={index} className="projectModalContent-userList">
-											<span className="self-center text-left">{u.name}</span>
 											<button
 												type="button"
 												className="btn btn-square btn-sm p-1.5 btn-soft"
@@ -132,6 +127,7 @@ export function ProjectModalContent({
 											>
 												<TrashIcon />
 											</button>
+											<span className="self-center text-left text-sm">{u.name}</span>
 											{isUserSelected(u, projectId) ? (
 												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
 											) : (

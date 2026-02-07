@@ -1,15 +1,14 @@
 import type { UseMutationResult } from '@tanstack/react-query';
-import { useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { type FormState, type SubmitHandler, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { TrashIcon } from '../../../shared/icons/trashIcon';
 import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
 import type { CreatableUser, User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
-import { TrashIcon } from '../../../shared/icons/trashIcon';
 
 export interface ProjectModalContentProps {
-	isEdition: boolean;
 	modalId: string;
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	register: UseFormRegister<ProjectModalForm>;
@@ -21,10 +20,12 @@ export interface ProjectModalContentProps {
 	setUsers: Dispatch<SetStateAction<(CreatableUser | User)[]>>;
 	projectErrorState: string | null;
 	isSubmitLoading: boolean;
+	selectedUserName: string | null;
+	setSelectedUserName: Dispatch<SetStateAction<string | null>>;
+	projectId?: string;
 }
 
 export function ProjectModalContent({
-	isEdition,
 	dialogRef,
 	modalId,
 	onSubmit,
@@ -36,8 +37,11 @@ export function ProjectModalContent({
 	setUsers,
 	projectErrorState,
 	isSubmitLoading,
+	selectedUserName,
+	setSelectedUserName,
+	projectId,
 }: ProjectModalContentProps) {
-	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const errors = formState.errors;
 	const { error, isPending, isError } = mutationHook;
 
@@ -47,6 +51,15 @@ export function ProjectModalContent({
 		setNewUser({ name: event.target.value, projectId: '' });
 	};
 
+	const isUserSelected = useCallback(
+		(u: User | CreatableUser, projectId: string | undefined) => {
+			const storedUserId = countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId;
+
+			return selectedUserName === u.name || (storedUserId && storedUserId === (u as User)?.id);
+		},
+		[countedLocalStorage?.projects, selectedUserName],
+	);
+
 	return (
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
@@ -54,7 +67,7 @@ export function ProjectModalContent({
 					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
 						✕
 					</button>
-					<h1>{isEdition ? 'Editer le projet' : 'Ajouter un projet'}</h1>
+					<h1>{projectId ? 'Editer le projet' : 'Ajouter un projet'}</h1>
 					<ErrorValidationCallout errorState={projectErrorState} /> {/* TODO, use error boundary ? */}
 					<form
 						className="ml-4 mr-4"
@@ -116,13 +129,13 @@ export function ProjectModalContent({
 										>
 											<TrashIcon />
 										</button>
-										{/* {countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId === u.id ? (
-											<div className="badge badge-soft badge-primary">Moi</div>
+										{isUserSelected(u, projectId) ? (
+											<div className="badge badge-soft badge-accent self-center">Moi</div>
 										) : (
-											<button className="btn btn-outline btn-xs" type="button" onClick={() => setCurrentUserForProject(u.id, projectId)}>
+											<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
 												C'est moi !
 											</button>
-										)} */}
+										)}
 									</div>
 								);
 							})}

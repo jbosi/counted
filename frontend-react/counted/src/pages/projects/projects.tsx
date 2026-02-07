@@ -21,7 +21,7 @@ export function Projects() {
 	return (
 		<div className="container overflow-auto app-container p-4">
 			<AppHeader title="Counted" hideDropdown={true} />
-			<div className="stats shadow">
+			<div className="stats shadow overflow-visible">
 				<div className="stat">
 					<div className="stat-title">Nombre de Projets</div>
 					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>

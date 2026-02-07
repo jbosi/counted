@@ -4,7 +4,6 @@ RUN cargo install cargo-chef
 # Install `dx`
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall dioxus-cli --root /.cargo -y --force
-ENV PATH="/.cargo/bin:$PATH"
 
 # install runtime system packages and sqlx-cli
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -13,4 +12,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN cargo install sqlx-cli --locked --root /usr/local/cargo && \
 	ln -s /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
 
-ENV PATH="/usr/local/cargo/bin:${PATH}"
+ENV PATH="/.cargo/bin:$PATH"

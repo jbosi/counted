@@ -1,15 +1,15 @@
 import { useCallback, useContext, useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { addToLocalStorage } from '../../../hooks/useLocalStorage';
 import { useAddProject } from '../../../hooks/useProjects';
 import { useAddUsers } from '../../../hooks/useUsers';
 import type { CreatableUser, User } from '../../../types/users.model';
 import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
 import type { AddProjectModalProps, ProjectModalForm } from './models/projectModal.model';
 import { ProjectModalContent } from './projectModalContent';
-import { addToLocalStorage } from '../../../hooks/useLocalStorage';
-import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 
-export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
+export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjectModalProps) {
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 	const [users, setUsers] = useState<(User | CreatableUser)[]>([]);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 			setCurrentUserForProject(selectedUserId, createdProject.id);
 		}
 
-		dialogRef.current?.close();
+		closeDialogFn();
 	};
 
 	return (
@@ -61,6 +61,7 @@ export function AddProjectModal({ dialogRef, modalId }: AddProjectModalProps) {
 			isSubmitLoading={addProject.isPending || addUsers.isPending}
 			selectedUserName={selectedUserName}
 			setSelectedUserName={setSelectedUserName}
+			closeDialogFn={closeDialogFn}
 		/>
 	);
 }

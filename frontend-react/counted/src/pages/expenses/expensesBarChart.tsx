@@ -16,9 +16,9 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 	const width: number = Math.max((Math.abs(summaryAmount) * 100.0) / maxAmount, 2);
 
 	return (
-		<div className="grid expenseBarChart-row">
+		<li className="grid expenseBarChart-row">
 			<Avatar name={props.user.name} size="w-8" />
-			<span className="self-center text-sm">{props.user.name}</span>
+			<span className="self-center text-sm ml-1 text-left">{props.user.name}</span>
 			<div className="self-center w-20 text-left ml-1">
 				<span className={getTextClass(summaryAmount, isPositiveAmount)}>{`${isPositiveAmount ? '+' : ''}${summaryAmount} €`}</span>
 			</div>
@@ -36,7 +36,7 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 				</span>
 				{isPositiveAmount ? <></> : <span className="w-full"></span>}
 			</div>
-		</div>
+		</li>
 	);
 }
 

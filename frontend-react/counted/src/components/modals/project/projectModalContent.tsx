@@ -22,6 +22,7 @@ export interface ProjectModalContentProps {
 	isSubmitLoading: boolean;
 	selectedUserName: string | null;
 	setSelectedUserName: Dispatch<SetStateAction<string | null>>;
+	closeDialogFn: () => void;
 	projectId?: string;
 }
 
@@ -40,6 +41,7 @@ export function ProjectModalContent({
 	selectedUserName,
 	setSelectedUserName,
 	projectId,
+	closeDialogFn,
 }: ProjectModalContentProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const errors = formState.errors;
@@ -64,7 +66,7 @@ export function ProjectModalContent({
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => closeDialogFn()}>
 						✕
 					</button>
 					<h1>{projectId ? 'Editer le projet' : 'Ajouter un projet'}</h1>
@@ -116,36 +118,38 @@ export function ProjectModalContent({
 								</button>
 							</div>
 
-							{users?.map((u, index) => {
-								return (
-									<div key={index} className="flex gap-3">
-										<span className="self-center">{u.name}</span>
-										<button
-											type="button"
-											className="btn btn-square btn-sm p-1.5 btn-soft"
-											onClick={() => {
-												setUsers(users?.filter((user) => user.name !== u.name));
-											}}
-										>
-											<TrashIcon />
-										</button>
-										{isUserSelected(u, projectId) ? (
-											<div className="badge badge-soft badge-accent self-center">Moi</div>
-										) : (
-											<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
-												C'est moi !
+							<ul className="flex flex-col gap-1">
+								{users?.map((u, index) => {
+									return (
+										<li key={index} className="projectModalContent-userList">
+											<span className="self-center text-left">{u.name}</span>
+											<button
+												type="button"
+												className="btn btn-square btn-sm p-1.5 btn-soft"
+												onClick={() => {
+													setUsers(users?.filter((user) => user.name !== u.name));
+												}}
+											>
+												<TrashIcon />
 											</button>
-										)}
-									</div>
-								);
-							})}
+											{isUserSelected(u, projectId) ? (
+												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
+											) : (
+												<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
+													C'est moi !
+												</button>
+											)}
+										</li>
+									);
+								})}
+							</ul>
 						</fieldset>
 
 						<footer className="flex gap-1.5 mt-12 justify-end">
 							<button className={`btn btn-primary ${isSubmitLoading ? 'loading' : ''}`} type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+							<button className="btn btn-outline" type="button" onClick={() => closeDialogFn()}>
 								Annuler
 							</button>
 						</footer>

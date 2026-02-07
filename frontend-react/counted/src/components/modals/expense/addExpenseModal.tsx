@@ -11,6 +11,7 @@ export interface AddExpenseModalProps {
 	projectId: string;
 	users: User[];
 	dialogRef: RefObject<HTMLDialogElement | null>;
+	closeDialogFn: () => void;
 }
 
 export interface AddExpenseModalForm {
@@ -77,7 +78,7 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 	};
 }
 
-export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExpenseModalProps) {
+export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
 	const [errorState, setErrorState] = useState<string | null>(null);
 	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
@@ -86,15 +87,9 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 		formState: { errors },
 		getValues,
 		control,
-		reset,
 	} = useForm<AddExpenseModalForm>({
 		defaultValues: defaultValues,
 	});
-
-	const exitModal = useCallback(() => {
-		reset(defaultValues);
-		dialogRef.current?.close();
-	}, [reset, defaultValues, dialogRef]);
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
@@ -124,16 +119,16 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 			};
 
 			mutate(creatableExpense);
-			exitModal();
+			closeDialogFn();
 		},
-		[exitModal, getValues, mutate, projectId, users],
+		[closeDialogFn, getValues, mutate, projectId, users],
 	);
 
 	return (
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={exitModal}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
 						✕
 					</button>
 					<h1>Ajouter une dépense</h1>
@@ -216,7 +211,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId }: AddExp
 							<button className="btn btn-primary" type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={exitModal}>
+							<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
 								Annuler
 							</button>
 						</footer>

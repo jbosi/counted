@@ -103,7 +103,7 @@ function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, set
 					projectId={expense.project_id}
 					users={projectUsers}
 					payments={payments ?? []}
-					closeModalFn={closeModal}
+					closeDialogFn={closeModal}
 				/>
 			)}
 		</>

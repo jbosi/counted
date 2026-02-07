@@ -26,12 +26,12 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 				{isPositiveAmount ? <span className="w-full"></span> : <></>}
 				<span className={`w-full ${isPositiveAmount ? 'text-left' : 'text-right'}`}>
 					<progress
-						className={`progress progress-summary self-center ${isPositiveAmount ? 'progress-primary' : isZeroAmount ? 'justify-self-end' : 'progress-error justify-self-end'}`}
+						className={`progress ${isPositiveAmount ? 'progress-primary' : isZeroAmount ? '' : 'progress-error'}`}
 						style={{
 							width: `${width}%`,
 						}}
-						value={'100'}
-						max={'100'}
+						value="100"
+						max="100"
 					/>
 				</span>
 				{isPositiveAmount ? <></> : <span className="w-full"></span>}

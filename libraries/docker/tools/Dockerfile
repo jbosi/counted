@@ -6,9 +6,6 @@ RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ca
 RUN cargo binstall dioxus-cli --root /.cargo -y --force
 ENV PATH="/.cargo/bin:$PATH"
 
-# Copy migration folder
-COPY --from=builder /app/migrations /usr/local/app/migrations
-
 # install runtime system packages and sqlx-cli
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	postgresql-client && \

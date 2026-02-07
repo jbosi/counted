@@ -17,6 +17,7 @@ RUN dx bundle --web --release --package web
 FROM chef AS runtime
 COPY --from=builder /app/target/dx/web/release/web/ /usr/local/app
 COPY --from=builder /app/migrations /usr/local/app/migrations
+COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
 
 # set our port and make sure to listen for all connections
 ENV PORT=8080

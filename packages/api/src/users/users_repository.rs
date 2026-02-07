@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::db::get_db;
 #[cfg(feature = "server")]
 use anyhow::Context;
+use shared::UserProjects;
 use shared::{CreatableUser, User};
 #[cfg(feature = "server")]
 use sqlx::{Pool, Postgres, QueryBuilder};
@@ -41,6 +42,54 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(())
+}
+
+#[cfg(feature = "server")]
+pub async fn add_users(creatable_users: Vec<CreatableUser>) -> Result<Vec<User>, ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+    // TODO: handle different project_ids or force only one project_id
+    if creatable_users.is_empty() {
+        return Ok(vec![]);
+        // Err(ServerFnError::new("No users supplied"))
+    }
+
+    let project_id = creatable_users[0].project_id;
+
+    // ADD into user table
+    let mut users_query_builder: QueryBuilder<Postgres> =
+        QueryBuilder::new("INSERT INTO users (name) ");
+
+    users_query_builder
+        .push_values(creatable_users, |mut query_builder, user| {
+            query_builder.push_bind(user.name);
+        })
+        .push(" RETURNING id, name, balance, created_at");
+
+    let users_query = users_query_builder.build_query_as::<User>();
+
+    let users: Vec<User> = users_query
+        .fetch_all(&pool)
+        .await
+        .context("Failed to add users")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    // ADD into user_projects table
+    let mut user_projects_query_builder: QueryBuilder<Postgres> =
+        QueryBuilder::new("INSERT INTO user_projects(user_id, project_id) ");
+
+    user_projects_query_builder.push_values(users.clone(), |mut query_builder, user| {
+        query_builder.push_bind(user.id).push_bind(project_id);
+    });
+
+    let user_projects_query = user_projects_query_builder.build();
+
+    user_projects_query
+        .execute(&pool)
+        .await
+        .context("Failed to associate user with project")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(users)
 }
 
 #[cfg(feature = "server")]

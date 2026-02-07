@@ -1,33 +1,77 @@
-import type { RefObject } from 'react';
-import { type FormState, type SubmitHandler, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
-import type { AddProjectModalForm } from './addProjectModal';
-import type { EditProjectModalForm } from './editProjectModal';
-import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { type FormState, type SubmitHandler, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { TrashIcon } from '../../../shared/icons/trashIcon';
+import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
+import type { CreatableUser, User } from '../../../types/users.model';
+import { ErrorValidationCallout } from '../../errorCallout';
+import type { ProjectModalForm } from './models/projectModal.model';
+import { UserIcon } from '../../../shared/icons/userIcon';
 
 export interface ProjectModalContentProps {
-	isEdition: boolean;
 	modalId: string;
 	dialogRef: RefObject<HTMLDialogElement | null>;
-	register: UseFormRegister<AddProjectModalForm>;
-	onSubmit: SubmitHandler<AddProjectModalForm | EditProjectModalForm>;
-	getValues: UseFormGetValues<AddProjectModalForm | EditProjectModalForm>;
-	formState: FormState<AddProjectModalForm | EditProjectModalForm>;
+	register: UseFormRegister<ProjectModalForm>;
+	onSubmit: SubmitHandler<ProjectModalForm>;
+	getValues: UseFormGetValues<ProjectModalForm>;
+	formState: FormState<ProjectModalForm>;
 	mutationHook: UseMutationResult<ProjectDto, Error, CreatableProject, unknown> | UseMutationResult<ProjectDto, Error, EditableProject, unknown>;
+	users: (CreatableUser | User)[];
+	setUsers: Dispatch<SetStateAction<(CreatableUser | User)[]>>;
+	projectErrorState: string | null;
+	isSubmitLoading: boolean;
+	selectedUserName: string | null;
+	setSelectedUserName: Dispatch<SetStateAction<string | null>>;
+	closeDialogFn: () => void;
+	projectId?: string;
 }
 
-export function ProjectModalContent({ isEdition, dialogRef, modalId, onSubmit, getValues, register, formState, mutationHook }: ProjectModalContentProps) {
+export function ProjectModalContent({
+	dialogRef,
+	modalId,
+	onSubmit,
+	getValues,
+	register,
+	formState,
+	mutationHook,
+	users,
+	setUsers,
+	projectErrorState,
+	isSubmitLoading,
+	selectedUserName,
+	setSelectedUserName,
+	projectId,
+	closeDialogFn,
+}: ProjectModalContentProps) {
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const errors = formState.errors;
 	const { error, isPending, isError } = mutationHook;
+
+	const [newUser, setNewUser] = useState<CreatableUser>({ name: '', projectId: '' });
+
+	const handleAddUser = (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
+		setNewUser({ name: event.target.value, projectId: '' });
+	};
+
+	const isUserSelected = useCallback(
+		(u: User | CreatableUser, projectId: string | undefined) => {
+			const storedUserId = countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId;
+
+			return selectedUserName === u.name || (selectedUserName == null && storedUserId && storedUserId === (u as User)?.id);
+		},
+		[countedLocalStorage?.projects, selectedUserName],
+	);
 
 	return (
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => dialogRef.current?.close()}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => closeDialogFn()}>
 						✕
 					</button>
-					<h1>{isEdition ? 'Editer le projet' : 'Ajouter un projet'}</h1>
+					<h1>{projectId ? 'Editer le projet' : 'Ajouter un projet'}</h1>
+					<ErrorValidationCallout errorState={projectErrorState} /> {/* TODO, use error boundary ? */}
 					<form
 						className="ml-4 mr-4"
 						onSubmit={(e) => {
@@ -48,11 +92,60 @@ export function ProjectModalContent({ isEdition, dialogRef, modalId, onSubmit, g
 							{isError && <span className="text-error">{(error as Error).message}</span>}
 						</div>
 
+						<fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
+							<legend className="fieldset-legend">Liste des utilisateurs</legend>
+
+							<div className="flex">
+								<div className="flex-1">
+									<label className="input w-full">
+										<UserIcon />
+										<input type="text" placeholder="Clark Kent" onChange={handleAddUser} value={newUser.name} />
+									</label>
+								</div>
+								<button
+									type="button"
+									className="btn btn-neutral join-item"
+									onClick={() => {
+										setUsers([...users, newUser]);
+										setNewUser({ name: '', projectId: '' });
+									}}
+								>
+									Ajouter
+								</button>
+							</div>
+
+							<ul className="flex flex-col gap-1">
+								{users?.map((u, index) => {
+									return (
+										<li key={index} className="projectModalContent-userList">
+											<button
+												type="button"
+												className="btn btn-square btn-sm p-1.5 btn-soft"
+												onClick={() => {
+													setUsers(users?.filter((user) => user.name !== u.name));
+												}}
+											>
+												<TrashIcon />
+											</button>
+											<span className="self-center text-left text-sm">{u.name}</span>
+											{isUserSelected(u, projectId) ? (
+												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
+											) : (
+												<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
+													C'est moi !
+												</button>
+											)}
+										</li>
+									);
+								})}
+							</ul>
+						</fieldset>
+
 						<footer className="flex gap-1.5 mt-12 justify-end">
-							<button className="btn btn-primary" type="submit">
+							<button className={`btn btn-primary ${isSubmitLoading ? 'loading' : ''}`} type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={() => dialogRef.current?.close()}>
+							<button className="btn btn-outline" type="button" onClick={() => closeDialogFn()}>
 								Annuler
 							</button>
 						</footer>

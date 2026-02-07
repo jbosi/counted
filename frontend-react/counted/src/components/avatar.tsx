@@ -20,7 +20,10 @@ export const Avatar = memo((props: AvatarProps) => {
 	return (
 		<div className="avatar avatar-placeholder">
 			<div className={`bg-primary-content ${size} rounded-full`} style={{ backgroundColor: placeholderColor ?? defaultAvatarPlaceholderColor(initials) }}>
-				<span className="text-xs">{initials}</span>
+				<span className="text-xs">
+					{initials?.[0]?.toUpperCase()}
+					{initials?.[1]?.toLowerCase()}
+				</span>
 			</div>
 		</div>
 	);

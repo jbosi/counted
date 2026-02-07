@@ -1,4 +1,4 @@
-import { useContext, useRef, type RefObject } from 'react';
+import { useContext, useRef, useState, type RefObject } from 'react';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
@@ -9,6 +9,19 @@ export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const openModal = () => {
+		setIsModalOpen(true);
+		setTimeout(() => {
+			dialogRef.current?.showModal();
+		}, 100);
+	};
+
+	const closeModal = () => {
+		setIsModalOpen(false);
+		dialogRef.current?.close();
+	};
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -21,7 +34,7 @@ export function Projects() {
 	return (
 		<div className="container overflow-auto app-container p-4">
 			<AppHeader title="Counted" hideDropdown={true} />
-			<div className="stats shadow">
+			<div className="stats shadow overflow-visible">
 				<div className="stat">
 					<div className="stat-title">Nombre de Projets</div>
 					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>
@@ -50,15 +63,11 @@ export function Projects() {
 				)}
 			</div>
 
-			<button
-				type="button"
-				className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary"
-				onClick={() => (dialogRef as RefObject<HTMLDialogElement>).current.showModal()}
-			>
+			<button type="button" className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary" onClick={() => openModal()}>
 				+
 			</button>
 
-			<AddProjectModal dialogRef={dialogRef} modalId={'AddProjectModal'} />
+			{isModalOpen && <AddProjectModal dialogRef={dialogRef} modalId={'AddProjectModal'} closeDialogFn={closeModal} />}
 		</div>
 	);
 }

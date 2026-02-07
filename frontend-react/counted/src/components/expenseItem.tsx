@@ -14,16 +14,16 @@ export function ExpenseItem({ expense }: ExpenseItemProps) {
 	const emoji = useCallback(() => getExpenseEmoji(expense.name), [expense.name]);
 
 	return (
-		<div className="flex items-center gap-4 p-3 hover:bg-base-300 rounded-lg transition-colors" onClick={() => navigate(`./expenses/${expense.id}`)}>
+		<li className="flex items-center gap-3 p-2 bg-base-100 hover:bg-base-300 rounded-lg transition-colors" onClick={() => navigate(`./expenses/${expense.id}`)}>
 			<Avatar name={emoji()} size={'w-10'} placeholderColor="var(--color-base-100)" />
 
 			<div className="flex-1 min-w-0">
-				<p className="font-semibold text-base-content text-left truncate">{expense.name}</p>
+				<p className="text-base-content text-left truncate">{expense.name}</p>
 			</div>
 
 			<div className="text-right">
-				<p className="font-bold text-lg text-base-content">{formattedAmount} €</p>
+				<p className="text-sm text-base-content">{formattedAmount} €</p>
 			</div>
-		</div>
+		</li>
 	);
 }

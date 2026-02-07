@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, type RefObject } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -35,6 +35,33 @@ export const ProjectDetails = () => {
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 
+	const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+	const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+
+	const openProjectModal = () => {
+		setIsProjectDialogOpen(true);
+		setTimeout(() => {
+			projectDialogRef.current?.showModal();
+		}, 100);
+	};
+
+	const openExpenseModal = () => {
+		setIsExpenseDialogOpen(true);
+		setTimeout(() => {
+			expenseDialogRef.current?.showModal();
+		}, 100);
+	};
+
+	const closeProjectDialog = () => {
+		setIsProjectDialogOpen(false);
+		projectDialogRef.current?.close();
+	};
+
+	const closeExpenseDialog = () => {
+		setIsExpenseDialogOpen(false);
+		expenseDialogRef.current?.close();
+	};
+
 	const globalTotal = expenses?.data?.reduce((acc, e) => acc + e.amount, 0) ?? 0;
 
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
@@ -45,8 +72,10 @@ export const ProjectDetails = () => {
 		<div className="container overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
-					<AppHeader onEdit={() => (projectDialogRef as RefObject<HTMLDialogElement>).current.showModal()} title={project.data?.name ?? ''} backButtonRoute=".." />
-					<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} />
+					<AppHeader onEdit={() => openProjectModal()} title={project.data?.name ?? ''} backButtonRoute=".." />
+					{isProjectDialogOpen && (
+						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
+					)}
 				</>
 			) : (
 				<div className="flex justify-center">
@@ -76,21 +105,23 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<div className="mt-6">
-								<ExpenseList expenses={expenses.data ?? []} />
-							</div>
+							<ExpenseList expenses={expenses.data ?? []} />
 
 							{(users?.length ?? 0) > 0 && (
 								<>
-									<button
-										type="button"
-										className="btn btn-circle btn-outline btn-lg sticky bottom-0 self-center mt-6"
-										onClick={() => (expenseDialogRef as RefObject<HTMLDialogElement>).current.showModal()}
-									>
+									<button type="button" className="btn btn-circle btn-lg sticky bottom-0 self-center mt-6 btn-soft" onClick={() => openExpenseModal()}>
 										+
 									</button>
 
-									<AddExpenseModal modalId={'addExpenseModal'} projectId={props.projectId} users={users ?? []} dialogRef={expenseDialogRef} />
+									{isExpenseDialogOpen && (
+										<AddExpenseModal
+											modalId={'addExpenseModal'}
+											projectId={props.projectId}
+											users={users ?? []}
+											dialogRef={expenseDialogRef}
+											closeDialogFn={closeExpenseDialog}
+										/>
+									)}
 								</>
 							)}
 						</>
@@ -130,7 +161,7 @@ function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
 
 		return (
 			<>
-				<section className="flex flex-col gap-2">
+				<ul className="flex flex-col gap-3">
 					{Object.entries(summary)
 						.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
 						.map(([userIdStr, amount]) => {
@@ -147,8 +178,7 @@ function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
 					) : (
 						<></>
 					)}
-				</section>
-				<section></section>
+				</ul>
 			</>
 		);
 	})();

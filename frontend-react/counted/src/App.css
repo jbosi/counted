@@ -36,3 +36,9 @@ dialog {
 .reimbursement-list {
 	grid-template-columns: min-content auto;
 }
+
+.projectModalContent-userList {
+	display: grid;
+	grid-template-columns: min-content 150px 80px;
+	gap: 10px;
+}

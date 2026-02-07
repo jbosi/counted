@@ -14,15 +14,15 @@ export function useUsersByProjectId(projectId: string | undefined) {
 	});
 }
 
-export function useAddUser(projectId: string) {
+export function useAddUsers(projectId: string) {
 	const queryClient = useQueryClient();
 	const { projectUsers, setProjectUsers } = useContext(ProjectUsersContext);
 
 	return useMutation({
-		mutationFn: (creatableUser: CreatableUser) => usersService.createUserAsync(creatableUser),
-		onSuccess: (newUser) => {
-			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => [...(old ?? []), newUser]);
-			setProjectUsers([...(projectUsers ?? []), newUser]);
+		mutationFn: (creatableUsers: CreatableUser[]) => usersService.createUsersAsync(creatableUsers),
+		onSuccess: (newUsers) => {
+			queryClient.setQueryData(['users', 'project', projectId], (old: User[] | undefined) => [...(old ?? []), ...newUsers]);
+			setProjectUsers([...(projectUsers ?? []), ...newUsers]);
 		},
 	});
 }

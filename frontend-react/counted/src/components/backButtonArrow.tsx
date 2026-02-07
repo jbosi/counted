@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { BackArrowIcon } from '../shared/icons/backArrowIcon';
 
 interface BackButtonArrowProps {
 	backButtonRoute: string;
@@ -8,19 +9,7 @@ export function BackButtonArrow({ backButtonRoute }: BackButtonArrowProps) {
 
 	return (
 		<button className="btn btn-circle" onClick={() => navigate(backButtonRoute)}>
-			<svg
-				xmlns={'http://www.w3.org/2000/svg'}
-				width={'24'}
-				height={'24'}
-				viewBox={'0 0 24 24'}
-				fill={'none'}
-				stroke={'currentColor'}
-				strokeWidth={'2'}
-				strokeLinecap={'round'}
-				strokeLinejoin={'round'}
-			>
-				<polyline points="15 18 9 12 15 6" />
-			</svg>
+			<BackArrowIcon />
 		</button>
 	);
 }

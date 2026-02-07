@@ -15,7 +15,7 @@ export interface EditExpenseModalProps {
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	expense: Expense;
 	payments: Payment[];
-	closeModalFn: () => void;
+	closeDialogFn: () => void;
 }
 
 export interface EditExpenseModalForm {
@@ -89,7 +89,7 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 	};
 }
 
-export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense, payments, closeModalFn }: EditExpenseModalProps) {
+export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense, payments, closeDialogFn }: EditExpenseModalProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const [errorState, setErrorState] = useState<string | null>(null);
 	const defaultValues = useMemo(() => getInitialValues(users, expense, payments), [users, expense, payments]);
@@ -131,16 +131,16 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 			};
 
 			mutate(editableExpense);
-			closeModalFn();
+			closeDialogFn();
 		},
-		[countedLocalStorage, closeModalFn, getValues, mutate, projectId, users, expense],
+		[countedLocalStorage, closeDialogFn, getValues, mutate, projectId, users, expense],
 	);
 
 	return (
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeModalFn}>
+					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
 						✕
 					</button>
 					<h1>Editer une dépense</h1>
@@ -223,7 +223,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							<button className="btn btn-primary" type="submit">
 								Enregistrer
 							</button>
-							<button className="btn btn-outline" type="button" onClick={closeModalFn}>
+							<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
 								Annuler
 							</button>
 						</footer>

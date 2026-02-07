@@ -1,10 +1,11 @@
+use chrono::Local;
 use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
 use crate::payments::payments_repository::get_payments_by_user_id;
 use crate::users::users_repository;
-use shared::{CreatableUser, User};
+use shared::{CreatableUser, CreatableUserBatch, User};
 
 #[get("/api/users")]
 pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
@@ -31,12 +32,20 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
 }
 
 #[post("/api/users")]
-pub async fn add_user(Json(user): Json<CreatableUser>) -> Result<User, ServerFnError> {
-    let user_id = users_repository::add_user(user.clone()).await?;
+pub async fn add_user(Json(payload): Json<CreatableUserBatch>) -> Result<Vec<User>, ServerFnError> {
+    let users: Vec<CreatableUser> = match payload {
+        CreatableUserBatch::Single(u) => vec![u],
+        CreatableUserBatch::Multiple(v) => v,
+    };
 
-    let created_user = User { id: user_id, name: user.name, balance: None, created_at: None };
+    const MAX_BATCH: usize = 100;
+    if users.len() > MAX_BATCH {
+        return Err(ServerFnError::new(format!("Batch size exceeds {}", MAX_BATCH)));
+    }
 
-    Ok(created_user)
+    let users = users_repository::add_users(users.clone()).await?;
+
+    Ok(users)
 }
 
 #[get("/api/projects/{project_id}/users")]

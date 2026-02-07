@@ -16,7 +16,7 @@ export const AvatarGroup = memo(({ data, diplayUserLimit, size }: AvatarGroupPro
 	return (
 		<>
 			{data.slice(0, userLimit).map((user) => (
-				<Avatar key={user.id} name={user.name} size={size} />
+				<Avatar key={user.id} name={user.name} size={size} /> // TODO: Should be a list ul ?
 			))}
 			{data.length > userLimit && <Avatar size={size} name={`+${data.length - userLimit}`} length={3} />}
 		</>

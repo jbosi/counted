@@ -1,4 +1,4 @@
-FROM rust:1 AS chef
+FROM jbosi/counted-tools AS chef
 RUN cargo install cargo-chef
 WORKDIR /app
 
@@ -11,26 +11,13 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 
-# Install `dx`
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall dioxus-cli --root /.cargo -y --force
-ENV PATH="/.cargo/bin:$PATH"
-
 # Create the final bundle folder. Bundle with release build profile to enable optimizations.
 RUN dx bundle --web --release --package web
 
 FROM chef AS runtime
 COPY --from=builder /app/target/dx/web/release/web/ /usr/local/app
-
-# Copy migration folder & run
 COPY --from=builder /app/migrations /usr/local/app/migrations
-RUN apt-get update && apt-get install -y --no-install-recommends \
-	postgresql-client && \
-	rm -rf /var/lib/apt/lists/*
-RUN cargo install sqlx-cli --locked --root /usr/local/cargo && \
-	ln -s /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
-
-ENV PATH="/usr/local/cargo/bin:${PATH}"
+COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx
 
 # set our port and make sure to listen for all connections
 ENV PORT=8080

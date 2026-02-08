@@ -1,7 +1,12 @@
 use chrono::Local;
-use dioxus::{fullstack::Json, prelude::*};
+use dioxus::core::bail;
+use dioxus::fullstack::Json;
+use dioxus::prelude::*;
 use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto};
 use uuid::Uuid;
+
+#[cfg(feature = "server")]
+use crate::users::users_repository::{delete_users, get_users_by_project_id};
 
 #[cfg(feature = "server")]
 use crate::projects::projects_repository;
@@ -59,6 +64,16 @@ pub async fn update_project_by_id(
 #[delete("/api/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     projects_repository::delete_project_by_id(project_id).await?;
+
+    let users_bound_to_project = get_users_by_project_id(project_id)
+        .await
+        .context("failed to deleted project")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    delete_users(users_bound_to_project.iter().map(|user| user.id).collect())
+        .await
+        .context("failed to deleted bound users")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(())
 }

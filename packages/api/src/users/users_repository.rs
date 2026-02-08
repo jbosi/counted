@@ -24,18 +24,23 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
 }
 
 #[cfg(feature = "server")]
-pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
+pub async fn delete_user(user_id: i32) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    // Anonymous user cannot be in more than one user_project
-    sqlx::query("DELETE FROM user_projects WHERE user_id = $1")
-        .bind(user_id)
+    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
         .execute(&pool)
         .await
-        .context("Failed to delete user in user_projects table with specified id")
+        .context("Failed to delete user in user table with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    sqlx::query!("DELETE FROM users WHERE id = $1", user_id)
+    Ok(())
+}
+
+#[cfg(feature = "server")]
+pub async fn delete_users(user_ids: Vec<i32>) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    sqlx::query!("DELETE FROM users WHERE id = ANY($1)", &user_ids[..])
         .execute(&pool)
         .await
         .context("Failed to delete user in user table with specified id")

@@ -1,4 +1,3 @@
-use chrono::Local;
 use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
@@ -15,7 +14,7 @@ pub async fn get_users() -> Result<Vec<User>, ServerFnError> {
 }
 
 #[delete("/api/users/{user_id}")]
-pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
+pub async fn delete_user(user_id: i32) -> Result<(), ServerFnError> {
     let payments =
         get_payments_by_user_id(user_id).await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -26,7 +25,7 @@ pub async fn delete_users(user_id: i32) -> Result<(), ServerFnError> {
         ));
     }
 
-    users_repository::delete_users(user_id).await?;
+    users_repository::delete_user(user_id).await?;
 
     Ok(())
 }

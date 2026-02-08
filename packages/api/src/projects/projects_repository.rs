@@ -111,7 +111,6 @@ pub async fn update_project_by_id(
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    // TODO throw error if some users / expenses / payments are still bound to this project
     // TODO allow to archive projects
 
     sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)

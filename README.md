@@ -7,6 +7,8 @@ Generate image for dioxus + sqlx-cli used for the main image
 ```bash
 cd .\libraries\docker\tools\
 docker build -t counted-tools -f Dockerfile .
+docker tag counted-tools:latest jbosi/counted-tools:latest
+docker push jbosi/counted-tools:latest
 ```
 
 ## Update sqlx schema
@@ -17,7 +19,7 @@ Run every time the db queries / schema change
 cargo sqlx prepare --workspace -- --all-features
 ```
 
-# Deploy
+## Debug
 
 To check status and ports
 
@@ -29,4 +31,10 @@ Get docker db (ex: projects)
 
 ```bash
 docker-compose exec db psql -U hcount_user -d hcount -c "SELECT id, name, currency, description FROM projects;"
+```
+
+# Deploy
+
+```bash
+docker compose -f docker-compose.release.yml up -d
 ```

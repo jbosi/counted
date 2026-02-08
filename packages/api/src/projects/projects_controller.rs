@@ -63,12 +63,12 @@ pub async fn update_project_by_id(
 
 #[delete("/api/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
-    projects_repository::delete_project_by_id(project_id).await?;
-
     let users_bound_to_project = get_users_by_project_id(project_id)
         .await
-        .context("failed to deleted project")
+        .context("failed to get users bound to project")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    projects_repository::delete_project_by_id(project_id).await?;
 
     delete_users(users_bound_to_project.iter().map(|user| user.id).collect())
         .await

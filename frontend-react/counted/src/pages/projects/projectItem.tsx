@@ -1,35 +1,38 @@
-import { useCallback } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AvatarGroup } from '../../components/avatarGroup';
+import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 import { useDeleteProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
+import type { ProjectDto } from '../../types/projects.model';
 import { DropdownButton } from './components/dropdown';
 
 export interface ProjectProps {
-	id: string;
-	title: string;
+	project: ProjectDto;
 	currentReimbursements: number;
 	totalReimbursements: number;
-	description?: string;
-	currency: string;
-	createdAt: string;
 }
 
-function getProgressPercentage(currentReimbursements: number, totalReimbursements: number): number {
-	if (currentReimbursements === 0 || totalReimbursements === 0) {
-		return 0;
-	}
-
-	return Math.round((currentReimbursements / totalReimbursements) * 100);
-}
-
-export function ProjectItem({ id, title, currentReimbursements: currentReimbursements, totalReimbursements: totalReimbursements, description }: ProjectProps) {
-	const { data, error, isLoading } = useUsersByProjectId(id);
+export function ProjectItem({ currentReimbursements: currentReimbursements, totalReimbursements: totalReimbursements, project }: ProjectProps) {
+	const { data: users, error, isLoading } = useUsersByProjectId(project.id);
 	const { mutate } = useDeleteProject();
 
-	const navigate = useNavigate();
+	const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+	const projectDialogRef = useRef<HTMLDialogElement>(null);
 
-	const progressPercentage = useCallback(() => getProgressPercentage(currentReimbursements, totalReimbursements), [currentReimbursements, totalReimbursements]);
+	const openProjectModal = () => {
+		setIsProjectDialogOpen(true);
+		setTimeout(() => {
+			projectDialogRef.current?.showModal();
+		}, 100);
+	};
+
+	const closeProjectDialog = () => {
+		setIsProjectDialogOpen(false);
+		projectDialogRef.current?.close();
+	};
+
+	const navigate = useNavigate();
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -39,32 +42,26 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 		return <div>Error loading users: {error.message}</div>;
 	}
 
-	if (!data) {
+	if (!users) {
 		return <div>Error loading users</div>;
 	}
 
 	return (
 		<>
-			<section className="card bg-base-100 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${id}`)}>
+			<section className="card bg-base-100 shadow-sm cursor-pointer" onClick={() => navigate(`projects/${project.id}`)}>
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
-						<h2 className="card-title">{title}</h2>
-						<DropdownButton id={id} onDelete={() => mutate(id)}>
+						<h2 className="card-title">{project.name}</h2>
+						<DropdownButton id={project.id} onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()}>
 							...
-						</DropdownButton>{' '}
+						</DropdownButton>
+						{isProjectDialogOpen && (
+							<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project} users={users ?? []} closeDialogFn={closeProjectDialog} />
+						)}
 						{/* TODO handle errors */}
 					</div>
 
-					<p>{description}</p>
-
-					{/* <div className="flex justify-between">
-						<span>Remboursements</span>
-						<span>
-							{currentReimbursements}/{totalReimbursements}
-						</span>
-					</div>
-
-					<progress className="progress" value={progressPercentage()} max={100}></progress> */}
+					<p>{project.description}</p>
 
 					<div className="card-actions justify-between">
 						<div className="flex gap-1 items-center">
@@ -73,7 +70,7 @@ export function ProjectItem({ id, title, currentReimbursements: currentReimburse
 						</div>
 
 						<div className="flex gap-1 items-center">
-							<AvatarGroup data={data} />
+							<AvatarGroup data={users} />
 						</div>
 					</div>
 				</div>

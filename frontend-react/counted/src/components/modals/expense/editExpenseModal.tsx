@@ -85,7 +85,7 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 		totalAmount: expense.amount,
 		name: expense.name,
 		description: expense.description ?? '',
-		type: expense.expense_type,
+		type: expense.expenseType,
 	};
 }
 

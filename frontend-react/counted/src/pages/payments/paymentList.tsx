@@ -12,11 +12,11 @@ import type { PaymentViewModel } from '../../types/payments.model';
 import type { User } from '../../types/users.model';
 
 export function PaymentPage() {
-	const { expenseId } = useParams<string>();
+	const { expenseId, projectId } = useParams<string>();
 	const { data: expense } = useExpense(parseInt(expenseId ?? '0', 10)); // TODO: handle error
 
 	const { projectUsers } = useContext(ProjectUsersContext);
-	const { mutate } = useDeleteExpense();
+	const { mutate } = useDeleteExpense(projectId ?? '');
 	const navigate = useNavigate();
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -100,7 +100,7 @@ function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, set
 					dialogRef={expenseDialogRef}
 					modalId={'EditExpenseModal'}
 					expense={expense}
-					projectId={expense.project_id}
+					projectId={expense.projectId}
 					users={projectUsers}
 					payments={payments ?? []}
 					closeDialogFn={closeModal}

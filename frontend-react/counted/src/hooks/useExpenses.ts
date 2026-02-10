@@ -34,6 +34,7 @@ export function useAddExpense() {
 		mutationFn: (creatableExpense: CreatableExpense) => expensesService.createExpenseAsync(creatableExpense),
 		onSuccess: (data) => {
 			queryClient.setQueryData(['expenses'], (previous: Expense[] | undefined) => [...(previous ?? []), data]);
+			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', data.projectId] });
 		},
 	});
 }
@@ -45,22 +46,24 @@ export function useEditExpense() {
 		mutationFn: (editableExpense: EditableExpense) => expensesService.editExpenseAsync(editableExpense),
 		onSuccess: (editedExpense) => {
 			queryClient.setQueryData(['expenses'], (previous: Expense[] | undefined) => [
-				...(previous?.filter((p) => p.project_id !== editedExpense.project_id) ?? []),
+				...(previous?.filter((p) => p.projectId !== editedExpense.projectId) ?? []),
 				editedExpense,
 			]);
 			queryClient.setQueryData(['expense', editedExpense.id], () => editedExpense);
 			queryClient.invalidateQueries({ queryKey: ['payments', editedExpense.id] });
+			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', editedExpense.projectId] });
 		},
 	});
 }
 
-export function useDeleteExpense() {
+export function useDeleteExpense(projectId: string) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (expenseId: number) => expensesService.deleteExpense(expenseId),
 		onSuccess: (_, expenseId) => {
 			queryClient.setQueryData(['expenses'], (previous: Expense[] | undefined) => (previous ?? []).filter((o) => o.id !== expenseId));
+			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', projectId] });
 		},
 	});
 }

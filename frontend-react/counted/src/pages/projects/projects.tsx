@@ -1,9 +1,9 @@
-import { useContext, useRef, useState, type RefObject } from 'react';
+import { useContext, useRef, useState } from 'react';
+import { AppHeader } from '../../components/appHeader';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
+import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
-import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
-import { AppHeader } from '../../components/appHeader';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -48,18 +48,7 @@ export function Projects() {
 				{!projects ? (
 					<div className="m-2">Vous n'avez aucun projet</div>
 				) : (
-					projects.map((project) => (
-						<ProjectItem
-							key={project.id}
-							id={project.id}
-							title={project.name}
-							currentReimbursements={0}
-							totalReimbursements={0}
-							description={project.description ?? ''}
-							currency={project.currency}
-							createdAt={project.createdAt}
-						/>
-					))
+					projects.map((project) => <ProjectItem key={project.id} project={project} currentReimbursements={0} totalReimbursements={0} />)
 				)}
 			</div>
 

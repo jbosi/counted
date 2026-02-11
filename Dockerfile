@@ -15,9 +15,9 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 COPY . .
 
 # Create the final bundle folder. Bundle with release build profile to enable optimizations.
+# Note: We don't cache /app/target here because we need to copy the build output in the next stage
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
     dx bundle --web --release --package web
 
 FROM chef AS runtime

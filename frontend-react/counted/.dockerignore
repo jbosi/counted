@@ -1,24 +1,49 @@
-# Ignore node_modules directory
+# Node modules (will be installed in container)
 node_modules
 npm-debug.log
+yarn.log
+pnpm-debug.log
 
-# Ignore build output (optional, as the build happens inside Docker)
+# Build output (built in container)
 build
+dist
+.cache
 
-# Ignore local environment files
+# Local environment files
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
+!.env.example
 
-# Ignore editor and IDE config files
+# Editor and IDE config files
 *.swp
 *.swo
 *.idea
 .vscode/
 *.log
+.eslintcache
 
-# Ignore OS-specific files
+# OS-specific files
 .DS_Store
 Thumbs.db
+
+# Git and CI files
+.git
+.gitignore
+.github
+
+# Docker files
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Testing
+coverage
+.nyc_output
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Documentation
+*.md
+!README.md

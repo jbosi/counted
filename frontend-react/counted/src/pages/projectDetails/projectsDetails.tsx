@@ -87,7 +87,7 @@ export const ProjectDetails = () => {
 				<>
 					<ExpensesUserSection id={props.projectId} users={users ?? []} />
 
-					<SummaryCard myTotal={625.0} globalTotal={globalTotal} />
+					<SummaryCard users={users} projectId={props.projectId} globalTotal={globalTotal} />
 
 					<div role="tablist" className="tabs tabs-box justify-center">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>

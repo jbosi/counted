@@ -25,12 +25,12 @@ export const SummaryCard = ({ users, globalTotal, projectId }: SummaryCardProps)
 		<div>
 			<div className="card-body p-4 space-y-3">
 				<div className="flex justify-between items-center">
-					<span className="text-base-content/70">Total global</span>
+					<span className="text-base-content/70">Total des dépenses</span>
 					<span className="font-semibold text-lg text-base-content/70">{formatCurrency(globalTotal ?? 0)}</span>
 				</div>
 				{me?.balance && (
 					<div className="flex justify-between items-center">
-						<span className="text-base-content/70">Mon total</span>
+						<span className="text-base-content/70">Mes dépenses</span>
 						<span className="font-semibold text-lg text-base-content/70">{formatCurrency(me.balance)}</span>
 					</div>
 				)}

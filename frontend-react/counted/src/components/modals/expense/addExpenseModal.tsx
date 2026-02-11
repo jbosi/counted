@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
-import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import * as z from 'zod';
 import { useAddExpense } from '../../../hooks/useExpenses';
 import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../../types/expenses.model';
 import type { User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
+import { getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -91,6 +92,12 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 		defaultValues: defaultValues,
 	});
 
+	const expenseType = useWatch({
+		control,
+		name: 'type',
+		defaultValue: defaultValues.type,
+	});
+
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
 
@@ -166,7 +173,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							</select>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">Qui a payé ?</legend>
+								<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
 								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
 								{payersFields.map((field, index) => (
 									<FormCheckbox
@@ -185,7 +192,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							</fieldset>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
+								<legend className="fieldset-legend">{getDebtorsFieldLabel(expenseType)}</legend>
 								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox

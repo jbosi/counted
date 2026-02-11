@@ -1,3 +1,5 @@
+use anyhow::Context;
+use dioxus::prelude::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -122,7 +124,9 @@ pub async fn delete_payments_by_expense_id(expense_id: i32) -> Result<(), Server
 }
 
 #[cfg(feature = "server")]
-pub async fn get_summary_by_project_id(project_id: Uuid) -> Result<shared::UserSummary, ServerFnError> {
+pub async fn get_summary_by_project_id(
+    project_id: Uuid,
+) -> Result<shared::UserSummary, ServerFnError> {
     use shared::UserBalance;
     let pool: Pool<Postgres> = get_db().await;
 
@@ -217,7 +221,13 @@ mod tests {
     }
 
     /// Helper function to create a mock payment
-    fn create_payment(id: i32, expense_id: i32, user_id: i32, is_debt: bool, amount: f64) -> Payment {
+    fn create_payment(
+        id: i32,
+        expense_id: i32,
+        user_id: i32,
+        is_debt: bool,
+        amount: f64,
+    ) -> Payment {
         use chrono::DateTime;
 
         Payment {
@@ -254,13 +264,13 @@ mod tests {
         let expenses = vec![create_expense(1, ExpenseType::Gain)];
 
         let payments = vec![
-            create_payment(1, 1, 100, true, 30.0),  // User 100 receives 30 (marked as debt but inverted)
+            create_payment(1, 1, 100, true, 30.0), // User 100 receives 30 (marked as debt but inverted)
             create_payment(2, 1, 101, false, 30.0), // User 101 contributes 30 (marked as payer but inverted)
         ];
 
         let balances = calculate_balances(&expenses, &payments);
 
-        assert_eq!(balances.get(&100), Some(&30.0));  // Receiver has positive balance
+        assert_eq!(balances.get(&100), Some(&30.0)); // Receiver has positive balance
         assert_eq!(balances.get(&101), Some(&-30.0)); // Contributor has negative balance
 
         // Balances should sum to zero
@@ -310,11 +320,11 @@ mod tests {
     fn test_complex_mixed_expense_types() {
         // Complex scenario: Multiple users, multiple expenses of different types
         let expenses = vec![
-            create_expense(1, ExpenseType::Expense),  // Expense 1: Restaurant bill
-            create_expense(2, ExpenseType::Gain),     // Expense 2: Lottery win
+            create_expense(1, ExpenseType::Expense), // Expense 1: Restaurant bill
+            create_expense(2, ExpenseType::Gain),    // Expense 2: Lottery win
             create_expense(3, ExpenseType::Transfer), // Expense 3: Money transfer
-            create_expense(4, ExpenseType::Expense),  // Expense 4: Groceries
-            create_expense(5, ExpenseType::Gain),     // Expense 5: Refund received
+            create_expense(4, ExpenseType::Expense), // Expense 4: Groceries
+            create_expense(5, ExpenseType::Gain),    // Expense 5: Refund received
         ];
 
         let payments = vec![
@@ -324,26 +334,22 @@ mod tests {
             create_payment(3, 1, 3, true, 30.0),
             create_payment(4, 1, 4, true, 30.0),
             create_payment(5, 1, 1, true, 30.0), // User 1 also owes their share
-
             // Expense 2: User 2 and User 3 won $100 lottery, User 1 and 4 contributed $50 each
-            create_payment(6, 2, 2, true, 50.0),  // User 2 receives 50 (Gain, so inverted)
-            create_payment(7, 2, 3, true, 50.0),  // User 3 receives 50 (Gain, so inverted)
+            create_payment(6, 2, 2, true, 50.0), // User 2 receives 50 (Gain, so inverted)
+            create_payment(7, 2, 3, true, 50.0), // User 3 receives 50 (Gain, so inverted)
             create_payment(8, 2, 1, false, 50.0), // User 1 contributed 50 (Gain, so inverted)
             create_payment(9, 2, 4, false, 50.0), // User 4 contributed 50 (Gain, so inverted)
-
             // Expense 3: User 3 transferred $40 to User 4
             create_payment(10, 3, 3, false, 40.0),
             create_payment(11, 3, 4, true, 40.0),
-
             // Expense 4: User 4 paid $80 for groceries, everyone owes $20
             create_payment(12, 4, 4, false, 80.0),
             create_payment(13, 4, 1, true, 20.0),
             create_payment(14, 4, 2, true, 20.0),
             create_payment(15, 4, 3, true, 20.0),
             create_payment(16, 4, 4, true, 20.0),
-
             // Expense 5: User 1 received $60 refund, User 2, 3, 4 contributed $20 each
-            create_payment(17, 5, 1, true, 60.0),  // User 1 receives 60 (Gain, so inverted)
+            create_payment(17, 5, 1, true, 60.0), // User 1 receives 60 (Gain, so inverted)
             create_payment(18, 5, 2, false, 20.0), // User 2 contributed 20 (Gain, so inverted)
             create_payment(19, 5, 3, false, 20.0), // User 3 contributed 20 (Gain, so inverted)
             create_payment(20, 5, 4, false, 20.0), // User 4 contributed 20 (Gain, so inverted)
@@ -382,10 +388,8 @@ mod tests {
     fn test_edge_case_zero_amounts() {
         let expenses = vec![create_expense(1, ExpenseType::Expense)];
 
-        let payments = vec![
-            create_payment(1, 1, 100, false, 0.0),
-            create_payment(2, 1, 101, true, 0.0),
-        ];
+        let payments =
+            vec![create_payment(1, 1, 100, false, 0.0), create_payment(2, 1, 101, true, 0.0)];
 
         let balances = calculate_balances(&expenses, &payments);
 
@@ -397,10 +401,8 @@ mod tests {
     fn test_edge_case_single_user() {
         let expenses = vec![create_expense(1, ExpenseType::Expense)];
 
-        let payments = vec![
-            create_payment(1, 1, 100, false, 50.0),
-            create_payment(2, 1, 100, true, 50.0),
-        ];
+        let payments =
+            vec![create_payment(1, 1, 100, false, 50.0), create_payment(2, 1, 100, true, 50.0)];
 
         let balances = calculate_balances(&expenses, &payments);
 
@@ -426,5 +428,50 @@ mod tests {
         assert_eq!(balances.get(&101), Some(&-3.33));
         assert_eq!(balances.get(&102), Some(&-3.33));
         assert_eq!(balances.get(&103), Some(&-3.33));
+    }
+
+    #[test]
+    fn test_user_reported_issue() {
+        // Exact data from user's application
+        let expenses = vec![
+            create_expense(5, ExpenseType::Expense), // Expense 5: "Dépense 1"
+            create_expense(6, ExpenseType::Transfer), // Expense 6: "Transfert 1"
+            create_expense(7, ExpenseType::Gain),    // Expense 7: "Gain"
+        ];
+
+        let payments = vec![
+            // Expense 5 payments
+            create_payment(13, 5, 5, true, 50.0), // User 5 owes 50
+            create_payment(14, 5, 6, true, 50.0), // User 6 owes 50
+            create_payment(15, 5, 5, false, 100.0), // User 5 paid 100
+            // Expense 6 payments
+            create_payment(16, 6, 6, true, 20.0), // User 6 owes 20
+            create_payment(17, 6, 5, false, 20.0), // User 5 paid 20
+            // Expense 7 payments (Gain)
+            create_payment(18, 7, 5, true, 15.0), // User 5 receives 15
+            create_payment(19, 7, 6, true, 15.0), // User 6 receives 15
+            create_payment(20, 7, 5, false, 30.0), // User 5 contributes 30
+        ];
+
+        let balances = calculate_balances(&expenses, &payments);
+
+        // Expected calculation:
+        // User 5:
+        //   Expense 5: -50 (owes) + 100 (paid) = +50
+        //   Expense 6: +20 (paid transfer)
+        //   Expense 7 (Gain): +15 (receives, inverted) - 30 (contributes, inverted) = -15
+        //   Total: 50 + 20 - 15 = +55
+        //
+        // User 6:
+        //   Expense 5: -50 (owes)
+        //   Expense 6: -20 (owes transfer)
+        //   Expense 7 (Gain): +15 (receives, inverted)
+        //   Total: -50 - 20 + 15 = -55
+
+        println!("User 5 balance: {:?}", balances.get(&5));
+        println!("User 6 balance: {:?}", balances.get(&6));
+
+        assert_eq!(balances.get(&5), Some(&55.0), "User 5 should have balance of +55.0");
+        assert_eq!(balances.get(&6), Some(&-55.0), "User 6 should have balance of -55.0");
     }
 }

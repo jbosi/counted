@@ -62,6 +62,7 @@ export const ProjectDetails = () => {
 		expenseDialogRef.current?.close();
 	};
 
+	// Sum expenses - sum gains
 	const globalTotal = useCallback(
 		() => expenses?.filter((e) => e.expenseType !== 'Transfer')?.reduce((acc, e) => (e.expenseType === 'Expense' ? acc + e.amount : acc - e.amount), 0) ?? 0,
 		[expenses],

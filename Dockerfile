@@ -1,5 +1,4 @@
 FROM jbosi/counted-tools AS chef
-RUN cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -8,11 +7,18 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+# Use cache mounts to speed up cargo builds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo chef cook --release --recipe-path recipe.json
 COPY . .
 
 # Create the final bundle folder. Bundle with release build profile to enable optimizations.
-RUN dx bundle --web --release --package web
+# Note: We don't cache /app/target here because we need to copy the build output in the next stage
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    dx bundle --web --release --package web
 
 FROM chef AS runtime
 COPY --from=builder /app/target/dx/web/release/web/ /usr/local/app

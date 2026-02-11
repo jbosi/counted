@@ -7,6 +7,7 @@
 		"dev": "vite",
 		"build": "tsc -b --noCheck && vite build",
 		"build:strict": "tsc -b && vite build",
+		"build:csp": "npm run build && bash update-csp.sh",
 		"lint": "eslint .",
 		"test": "vitest",
 		"preview": "vite preview"

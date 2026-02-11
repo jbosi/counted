@@ -80,6 +80,7 @@ pub struct UserProjects {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "server", derive(FromRow))]
+#[serde(rename_all = "camelCase")]
 pub struct Expense {
     pub id: i32,
     pub author_id: i32,

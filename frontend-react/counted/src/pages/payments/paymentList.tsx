@@ -7,7 +7,7 @@ import { EditExpenseModal } from '../../components/modals/expense/editExpenseMod
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useDeleteExpense, useExpense } from '../../hooks/useExpenses';
 import { usePaymentsByExpenseId } from '../../hooks/usePayments';
-import type { Expense } from '../../types/expenses.model';
+import type { Expense, ExpenseType } from '../../types/expenses.model';
 import type { PaymentViewModel } from '../../types/payments.model';
 import type { User } from '../../types/users.model';
 
@@ -79,17 +79,41 @@ function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, set
 	const payers = paymentsViewModel.filter((p) => !p.isDebt);
 	const debtors = paymentsViewModel.filter((p) => p.isDebt);
 
+	const getPayersTitle = (expenseType: ExpenseType): string => {
+		switch (expenseType) {
+			case 'Gain':
+				return 'Contributeurs';
+			case 'Transfer':
+				return 'Émetteur';
+			case 'Expense':
+			default:
+				return 'Payeurs';
+		}
+	};
+
+	const getDebtorsTitle = (expenseType: ExpenseType): string => {
+		switch (expenseType) {
+			case 'Gain':
+				return 'Bénéficiaires';
+			case 'Transfer':
+				return 'Destinataires';
+			case 'Expense':
+			default:
+				return 'Débiteurs';
+		}
+	};
+
 	return (
 		<>
 			<section className="flex flex-col gap-3">
 				<div>
-					<h2 className="text-left">Répartition du paiement</h2>
+					<h2 className="text-left">{getPayersTitle(expense.expenseType)}</h2>
 					{payers?.map((payment) => (
 						<PaymentItem payment={payment} key={payment.id} />
 					))}
 				</div>
 				<div>
-					<h2 className="text-left">Répartition de la dette</h2>
+					<h2 className="text-left">{getDebtorsTitle(expense.expenseType)}</h2>
 					{debtors?.map((payment) => (
 						<PaymentItem payment={payment} key={payment.id} />
 					))}

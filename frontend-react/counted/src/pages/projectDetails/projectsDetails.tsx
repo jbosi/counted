@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from 'react';
+import { useCallback, useContext, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -27,7 +27,7 @@ export const ProjectDetails = () => {
 	const props: ProjectDetailsProps = useLoaderData();
 	const project = useProject(props.projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
-	const expenses = useExpensesByProjectId(props.projectId);
+	const { data: expenses } = useExpensesByProjectId(props.projectId);
 	const projectSummary = useExpenseSummary(props.projectId);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
@@ -62,7 +62,11 @@ export const ProjectDetails = () => {
 		expenseDialogRef.current?.close();
 	};
 
-	const globalTotal = expenses?.data?.reduce((acc, e) => acc + e.amount, 0) ?? 0;
+	// Sum expenses - sum gains
+	const globalTotal = useCallback(
+		() => expenses?.filter((e) => e.expenseType !== 'Transfer')?.reduce((acc, e) => (e.expenseType === 'Expense' ? acc + e.amount : acc - e.amount), 0) ?? 0,
+		[expenses],
+	);
 
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 
@@ -87,7 +91,7 @@ export const ProjectDetails = () => {
 				<>
 					<ExpensesUserSection id={props.projectId} users={users ?? []} />
 
-					<SummaryCard myTotal={625.0} globalTotal={globalTotal} />
+					<SummaryCard users={users} projectId={props.projectId} globalTotal={globalTotal()} />
 
 					<div role="tablist" className="tabs tabs-box justify-center">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
@@ -105,7 +109,7 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<ExpenseList expenses={expenses.data ?? []} />
+							<ExpenseList expenses={expenses ?? []} />
 
 							{(users?.length ?? 0) > 0 && (
 								<>

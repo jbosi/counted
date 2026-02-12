@@ -42,6 +42,7 @@ RUN adduser \
 
 
 USER $USERNAME
+ENV PATH="/home/${USERNAME}/.cargo/bin:${PATH}"
 
 WORKDIR /home/$USERNAME
 
@@ -53,7 +54,7 @@ RUN npm config set ignore-scripts true
 RUN rustup toolchain install stable
 RUN rustup target add wasm32-unknown-unknown
 # RUN cargo binstall dioxus-cli --force
-RUN RUN mkdir -p /home/$USERNAME/.cargo/bin && \
+RUN mkdir -p /home/$USERNAME/.cargo/bin && \
 	curl -sSL https://dioxus.dev/install.sh | bash
 RUN rustup default stable
 

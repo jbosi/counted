@@ -1,10 +1,14 @@
 {
 	"name": "Counted Dev Container",
 	"dockerComposeFile": [
-		"../docker-compose.yml"
+		"docker-compose.yml"
 	],
 	"workspaceFolder": "/workspace",
 	"service": "web",
+	"forwardPorts": [
+		4321,
+		5432
+	],
 	"postCreateCommand": {
 		"back": "dx serve --package web",
 		"front": "cd ./frontend-react/counted && npm i && npm run dev"
@@ -21,13 +25,9 @@
 				"dbaeumer.vscode-eslint",
 				"prettier.prettier-vscode",
 				"gencer.html-slim-scss-css-class-completion",
-				"bradlc.vscode-tailwindcss"	,
+				"bradlc.vscode-tailwindcss",
 				"burkeholland.simple-react-snippets",
 				"ms-ossdata.vscode-pgsql"
-			],
-			"forwardPorts": [
-				4321,
-				5432
 			],
 			"settings": {
 				"remote": {

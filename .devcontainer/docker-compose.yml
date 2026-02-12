@@ -1,0 +1,38 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: .devcontainer/dockerFile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    environment:
+      DATABASE_URL: postgres://hcount_user:supersecret@db:5432/hcount
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - counted-dev
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hcount
+      POSTGRES_USER: hcount_user
+      POSTGRES_PASSWORD: supersecret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hcount_user -d hcount"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - counted-dev
+
+networks:
+  counted-dev:
+    driver: bridge
+
+volumes:
+  pgdata:

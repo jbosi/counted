@@ -1,5 +1,6 @@
-import { useCallback, useContext, useMemo, useState, type FormEvent, type RefObject } from 'react';
+import { useCallback, useContext, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useEditExpense } from '../../../hooks/useExpenses';
 import { ExpenseTypeConst, type EditableExpense, type Expense, type ExpenseType } from '../../../types/expenses.model';
@@ -18,29 +19,30 @@ export interface EditExpenseModalProps {
 	closeDialogFn: () => void;
 }
 
-export interface EditExpenseModalForm {
-	name: string;
-	description: string;
-	totalAmount: number;
-	type: ExpenseType;
-	payers: FormCheckbox[];
-	debtors: FormCheckbox[];
-}
+const userSchema = z.object({
+	id: z.number(),
+	name: z.string(),
+	balance: z.number().optional(),
+	created_at: z.string().optional(),
+});
 
 const payersAndDebtorsForm = z.object({
 	amount: z.number().min(0),
 	isChecked: z.boolean(),
-	user: z.object().optional(),
+	user: userSchema,
 });
 
 const formSchema = z.object({
 	name: z.string().min(2).max(100),
 	description: z.string().max(200).optional(),
 	totalAmount: z.number().min(0.01).max(100000),
-	type: z.literal(ExpenseTypeConst),
+	type: z.enum(ExpenseTypeConst),
 	payers: z.array(payersAndDebtorsForm).min(1),
 	debtors: z.array(payersAndDebtorsForm).min(1),
 });
+
+export type EditExpenseModalForm = z.infer<typeof formSchema>;
+type FormCheckbox = EditExpenseModalForm['payers'][number];
 
 interface FormCheckboxProps {
 	user: User;
@@ -52,12 +54,6 @@ interface FormCheckboxProps {
 	amount: number;
 	isChecked: boolean;
 	index: number;
-}
-
-interface FormCheckbox {
-	user: User;
-	isChecked: boolean;
-	amount: number;
 }
 
 function getInitialValues(users: User[], expense: Expense, payments: Payment[]): Partial<EditExpenseModalForm> {
@@ -91,15 +87,16 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 
 export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense, payments, closeDialogFn }: EditExpenseModalProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
-	const [errorState, setErrorState] = useState<string | null>(null);
 	const defaultValues = useMemo(() => getInitialValues(users, expense, payments), [users, expense, payments]);
 	const {
 		register,
+		handleSubmit,
 		formState: { errors },
 		getValues,
 		control,
 	} = useForm<EditExpenseModalForm>({
 		defaultValues: defaultValues,
+		resolver: zodResolver(formSchema),
 	});
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
@@ -107,18 +104,8 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 
 	const { mutate, isPending, isError, error } = useEditExpense();
 
-	const handleSubmit = useCallback(
-		(e: FormEvent<HTMLFormElement>) => {
-			e.preventDefault();
-
-			const formValues = getValues();
-			const parsedResult = formSchema.safeParse(formValues);
-
-			if (parsedResult.error) {
-				setErrorState(parsedResult.error.message);
-				return;
-			}
-
+	const onSubmit = useCallback(
+		(formValues: EditExpenseModalForm) => {
 			const editableExpense: EditableExpense = {
 				id: expense.id,
 				name: formValues.name,
@@ -133,7 +120,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 			mutate(editableExpense);
 			closeDialogFn();
 		},
-		[countedLocalStorage, closeDialogFn, getValues, mutate, projectId, users, expense],
+		[countedLocalStorage, closeDialogFn, mutate, projectId, users, expense],
 	);
 
 	return (
@@ -144,15 +131,15 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 						✕
 					</button>
 					<h1>Editer une dépense</h1>
-					<ErrorValidationCallout errorState={errorState} /> {/* TODO, use error boundary ? */}
-					<form className="ml-4 mr-4" onSubmit={handleSubmit}>
+					<ErrorValidationCallout errors={errors} />
+					<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
 						<div className="flex flex-col gap-3">
 							<label className="label">Nom</label>
-							<input className="input w-full" {...register('name', { required: true, maxLength: 100 })} />
+							<input className="input w-full" {...register('name')} />
 							{errors.name && <span>Ce champ est requis</span>}
 
 							<label className="label">Description</label>
-							<input className="input w-full" {...register('description', { maxLength: 200 })} />
+							<input className="input w-full" {...register('description')} />
 
 							<label className="label">Valeur</label>
 							<input
@@ -161,7 +148,6 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 								step="0.01"
 								type="number"
 								{...register('totalAmount', {
-									required: true,
 									valueAsNumber: true,
 									onBlur() {
 										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields);
@@ -171,7 +157,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							/>
 
 							<label className="label">Type de dépense</label>
-							<select defaultValue="Dépense" className="select w-full" {...register('type', { required: true })}>
+							<select defaultValue="Dépense" className="select w-full" {...register('type')}>
 								<option value={'Expense' as ExpenseType}>Dépense</option>
 								<option value={'Gain' as ExpenseType}>Gain</option>
 								<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>

@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState, type FormEvent, type RefObject } from 'react';
+import { useCallback, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAddExpense } from '../../../hooks/useExpenses';
 import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../../types/expenses.model';
@@ -15,29 +16,30 @@ export interface AddExpenseModalProps {
 	closeDialogFn: () => void;
 }
 
-export interface AddExpenseModalForm {
-	name: string;
-	description: string;
-	totalAmount: number;
-	type: ExpenseType;
-	payers: FormCheckbox[];
-	debtors: FormCheckbox[];
-}
+const userSchema = z.object({
+	id: z.number(),
+	name: z.string(),
+	balance: z.number().optional(),
+	created_at: z.string().optional(),
+});
 
-const payersAndDebtorsForm = z.object({
+const CheckboxFormSchema = z.object({
 	amount: z.number().min(0),
 	isChecked: z.boolean(),
-	user: z.object().optional(),
+	user: userSchema,
 });
 
 const formSchema = z.object({
 	name: z.string().min(2).max(100),
 	description: z.string().max(200).optional(),
 	totalAmount: z.number().min(0.01).max(100000),
-	type: z.literal(ExpenseTypeConst),
-	payers: z.array(payersAndDebtorsForm).min(1),
-	debtors: z.array(payersAndDebtorsForm).min(1),
+	type: z.enum(ExpenseTypeConst),
+	payers: z.array(CheckboxFormSchema).min(1),
+	debtors: z.array(CheckboxFormSchema).min(1),
 });
+
+export type AddExpenseModalForm = z.infer<typeof formSchema>;
+type FormCheckbox = AddExpenseModalForm['payers'][number];
 
 interface FormCheckboxProps {
 	user: User;
@@ -49,12 +51,6 @@ interface FormCheckboxProps {
 	amount: number;
 	isChecked: boolean;
 	index: number;
-}
-
-interface FormCheckbox {
-	user: User;
-	isChecked: boolean;
-	amount: number;
 }
 
 function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
@@ -80,16 +76,17 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 }
 
 export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
-	const [errorState, setErrorState] = useState<string | null>(null);
 	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
 	const {
 		register,
+		handleSubmit,
 		formState: { errors },
 		getValues,
 		control,
 	} = useForm<AddExpenseModalForm>({
 		defaultValues: defaultValues,
+		resolver: zodResolver(formSchema),
 	});
 
 	const expenseType = useWatch({
@@ -103,18 +100,8 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 
 	const { mutate, isPending, isError, error } = useAddExpense();
 
-	const handleSubmit = useCallback(
-		(e: FormEvent<HTMLFormElement>) => {
-			e.preventDefault();
-
-			const formValues = getValues();
-			const parsedResult = formSchema.safeParse(formValues);
-
-			if (parsedResult.error) {
-				setErrorState(parsedResult.error.message);
-				return;
-			}
-
+	const onSubmit = useCallback(
+		(formValues: AddExpenseModalForm) => {
 			const creatableExpense: CreatableExpense = {
 				name: formValues.name,
 				amount: formValues.totalAmount,
@@ -128,7 +115,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 			mutate(creatableExpense);
 			closeDialogFn();
 		},
-		[closeDialogFn, getValues, mutate, projectId, users],
+		[closeDialogFn, mutate, projectId, users],
 	);
 
 	return (
@@ -139,15 +126,15 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 						✕
 					</button>
 					<h1>Ajouter une dépense</h1>
-					<ErrorValidationCallout errorState={errorState} /> {/* TODO, use error boundary ? */}
-					<form className="ml-4 mr-4" onSubmit={handleSubmit}>
+					<ErrorValidationCallout errors={errors} />
+					<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
 						<div className="flex flex-col gap-3">
 							<label className="label">Nom</label>
-							<input className="input w-full" {...register('name', { required: true, maxLength: 100 })} />
+							<input className="input w-full" {...register('name')} />
 							{errors.name && <span>Ce champ est requis</span>}
 
 							<label className="label">Description</label>
-							<input className="input w-full" {...register('description', { maxLength: 200 })} />
+							<input className="input w-full" {...register('description')} />
 
 							<label className="label">Valeur</label>
 							<input
@@ -156,7 +143,6 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 								step="0.01"
 								type="number"
 								{...register('totalAmount', {
-									required: true,
 									valueAsNumber: true,
 									onBlur() {
 										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields);
@@ -166,7 +152,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							/>
 
 							<label className="label">Type de dépense</label>
-							<select defaultValue="Dépense" className="select w-full" {...register('type', { required: true })}>
+							<select defaultValue="Dépense" className="select w-full" {...register('type')}>
 								<option value={'Expense' as ExpenseType}>Dépense</option>
 								<option value={'Gain' as ExpenseType}>Gain</option>
 								<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>

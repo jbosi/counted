@@ -3,6 +3,7 @@ export interface Expense {
 	authorId: number;
 	projectId: string;
 	createdAt: string;
+	date: string;
 	amount: number;
 	description?: string;
 	name: string;
@@ -21,6 +22,7 @@ export interface CreatableExpense {
 	debtors: UserAmount[];
 	authorId: number;
 	description?: string;
+	date: string;
 }
 
 export interface EditableExpense extends CreatableExpense {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type RefObject } from 'react';
+import { useCallback, useContext, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,6 +7,8 @@ import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../..
 import type { User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import { getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
+import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
+import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -19,8 +21,8 @@ export interface AddExpenseModalProps {
 const userSchema = z.object({
 	id: z.number(),
 	name: z.string(),
-	balance: z.number().optional(),
-	created_at: z.string().optional(),
+	balance: z.number().nullish(),
+	created_at: z.string().nullish(),
 });
 
 const CheckboxFormSchema = z.object({
@@ -34,6 +36,7 @@ const formSchema = z.object({
 	description: z.string().max(200).optional(),
 	totalAmount: z.number().min(0.01).max(100000),
 	type: z.enum(ExpenseTypeConst),
+	date: z.string().min(1, 'La date est requise'),
 	payers: z.array(CheckboxFormSchema).min(1),
 	debtors: z.array(CheckboxFormSchema).min(1),
 });
@@ -72,10 +75,12 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 		totalAmount: 0,
 		name: '',
 		description: '',
+		date: new Date().toLocaleDateString('en-CA'),
 	};
 }
 
 export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
 	const {
@@ -109,13 +114,14 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 				projectId,
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: users[0].id, // TODO
+				authorId: getProjectUserIdFromLocalstorage(countedLocalStorage, projectId) ?? users[0].id, // TODO
+				date: formValues.date,
 			};
 
 			mutate(creatableExpense);
 			closeDialogFn();
 		},
-		[closeDialogFn, mutate, projectId, users],
+		[closeDialogFn, mutate, projectId, users, countedLocalStorage],
 	);
 
 	return (
@@ -136,7 +142,10 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							<label className="label">Description</label>
 							<input className="input w-full" {...register('description')} />
 
-							<label className="label">Valeur</label>
+							<label className="label">Date</label>
+							<input className="input w-full" type="date" {...register('date')} />
+
+							<label className="label">Montant</label>
 							<input
 								min="0"
 								className="input w-full"
@@ -257,6 +266,10 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 
 	const activeDebtorOrPayersFields = debtorsOrPayers.filter((field) => field.isChecked);
 	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
+
+	if (activeDebtorOrPayersCount === 0) {
+		return;
+	}
 
 	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
 

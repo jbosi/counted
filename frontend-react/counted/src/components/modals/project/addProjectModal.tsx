@@ -1,5 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { addToLocalStorage } from '../../../hooks/useLocalStorage';
 import { useAddProject } from '../../../hooks/useProjects';
@@ -13,8 +14,7 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 	const [users, setUsers] = useState<(User | CreatableUser)[]>([]);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
-	const [projectErrorState, setProjectErrorState] = useState<string | null>(null);
-	const { register, formState, getValues } = useForm<ProjectModalForm>();
+	const useFormReturn = useForm<ProjectModalForm>({ resolver: zodResolver(PROJECT_FORM_SCHEMA) });
 
 	const addProject = useAddProject();
 	const addUsers = useAddUsers(addProject.data?.id ?? '');
@@ -26,16 +26,10 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 		[countedLocalStorage, setCountedLocalStorage],
 	);
 
-	const onSubmit: SubmitHandler<ProjectModalForm> = async (data) => {
-		const formValues: ProjectModalForm & { users: (User | CreatableUser)[] } = { ...data, users };
-		const parsedResult = PROJECT_FORM_SCHEMA.safeParse(formValues);
+	const onSubmit = async (data: ProjectModalForm): Promise<void> => {
+		const formValues: ProjectModalForm = { ...data, users };
 
-		if (parsedResult.error) {
-			setProjectErrorState(parsedResult.error.message);
-			return;
-		}
-
-		const createdProject = await addProject.mutateAsync({ name: data.projectName, description: data.projectDescription });
+		const createdProject = await addProject.mutateAsync({ name: formValues.projectName, description: formValues.projectDescription });
 		const createdUsers = await addUsers.mutateAsync(users.map((u) => ({ name: u.name, projectId: createdProject?.id ?? '' })));
 
 		const selectedUserId = createdUsers?.find((u) => u.name === selectedUserName)?.id;
@@ -51,17 +45,14 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 			modalId={modalId}
 			onSubmit={onSubmit}
 			dialogRef={dialogRef}
-			formState={formState}
-			getValues={getValues}
 			mutationHook={addProject}
-			register={register}
 			users={users}
 			setUsers={setUsers}
-			projectErrorState={projectErrorState}
 			isSubmitLoading={addProject.isPending || addUsers.isPending}
 			selectedUserName={selectedUserName}
 			setSelectedUserName={setSelectedUserName}
 			closeDialogFn={closeDialogFn}
+			useFormReturn={useFormReturn}
 		/>
 	);
 }

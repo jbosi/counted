@@ -1,11 +1,10 @@
 import { useCallback, useContext, useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { addToLocalStorage } from '../../../hooks/useLocalStorage';
 import { useEditProject } from '../../../hooks/useProjects';
 import { useAddUsers, useDeleteUser } from '../../../hooks/useUsers';
 import type { CreatableUser, User } from '../../../types/users.model';
-import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
 import type { EditProjectModalProps, ProjectModalForm } from './models/projectModal.model';
 import { ProjectModalContent } from './projectModalContent';
 
@@ -13,8 +12,7 @@ export function EditProjectModal({ dialogRef, modalId, project, users: initialUs
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 	const [users, setUsers] = useState<(CreatableUser | User)[]>(initialUsers);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
-	const [projectErrorState, setProjectErrorState] = useState<string | null>(null);
-	const { register, formState, getValues } = useForm<ProjectModalForm>({
+	const useFormReturn = useForm<ProjectModalForm>({
 		defaultValues: {
 			projectDescription: project.description,
 			projectName: project.name,
@@ -32,16 +30,10 @@ export function EditProjectModal({ dialogRef, modalId, project, users: initialUs
 	const addUsers = useAddUsers(project.id);
 	const removeUser = useDeleteUser(project.id);
 
-	const onSubmit: SubmitHandler<ProjectModalForm> = async (data) => {
-		const formValues: ProjectModalForm & { users: (User | CreatableUser)[] } = { ...data, users };
-		const parsedResult = PROJECT_FORM_SCHEMA.safeParse(formValues);
+	const onSubmit = async (data: ProjectModalForm): Promise<void> => {
+		const formValues: ProjectModalForm = { ...data, users };
 
-		if (parsedResult.error) {
-			setProjectErrorState(parsedResult.error.message);
-			return;
-		}
-
-		await editProject.mutateAsync({ name: data.projectName, description: data.projectDescription, id: project.id });
+		await editProject.mutateAsync({ name: formValues.projectName, description: formValues.projectDescription, id: project.id });
 
 		const createdUsers = await addUsers.mutateAsync(users.filter((u) => !('id' in u)).map((u) => ({ name: u.name, projectId: project.id })));
 		const userIdsToRemove = initialUsers.map((u) => u.id).filter((uId) => !(users as User[]).some((u) => u.id === uId));
@@ -63,17 +55,14 @@ export function EditProjectModal({ dialogRef, modalId, project, users: initialUs
 			modalId={modalId}
 			onSubmit={onSubmit}
 			dialogRef={dialogRef}
-			formState={formState}
-			getValues={getValues}
 			mutationHook={editProject}
-			register={register}
 			users={users}
 			setUsers={setUsers}
-			projectErrorState={projectErrorState}
 			isSubmitLoading={editProject.isPending || addUsers.isPending}
 			selectedUserName={selectedUserName}
 			setSelectedUserName={setSelectedUserName}
 			closeDialogFn={closeDialogFn}
+			useFormReturn={useFormReturn}
 		/>
 	);
 }

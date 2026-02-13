@@ -9,4 +9,5 @@ export const PROJECT_FORM_SCHEMA = z.object({
 			}),
 		)
 		.min(2),
+	projectDescription: z.string().max(200).optional(),
 });

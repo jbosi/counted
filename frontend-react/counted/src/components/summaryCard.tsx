@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import type { User } from '../types/users.model';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
+import { getProjectUserIdFromLocalstorage } from '../utils/get-project-from-localstorage';
 
 interface SummaryCardProps {
 	users: User[];
@@ -18,7 +19,7 @@ function formatCurrency(value: number): string {
 export const SummaryCard = ({ users, globalTotal, projectId }: SummaryCardProps) => {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 
-	const userId: number | undefined | null = countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId;
+	const userId: number | undefined = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 	const me: User | undefined = users.find((u) => u.id === userId);
 
 	return (

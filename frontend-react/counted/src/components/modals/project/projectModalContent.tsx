@@ -1,11 +1,12 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
-import { type SubmitHandler, type UseFormReturn } from 'react-hook-form';
+import { type UseFormReturn } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { TrashIcon } from '../../../shared/icons/trashIcon';
 import { UserIcon } from '../../../shared/icons/userIcon';
 import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
 import type { CreatableUser, User } from '../../../types/users.model';
+import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
 
@@ -50,11 +51,11 @@ export function ProjectModalContent({
 
 	const isUserSelected = useCallback(
 		(u: User | CreatableUser, projectId: string | undefined) => {
-			const storedUserId = countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId;
+			const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
 			return selectedUserName === u.name || (selectedUserName == null && storedUserId && storedUserId === (u as User)?.id);
 		},
-		[countedLocalStorage?.projects, selectedUserName],
+		[countedLocalStorage, selectedUserName],
 	);
 
 	return (
@@ -105,7 +106,7 @@ export function ProjectModalContent({
 							<ul className="flex flex-col gap-1">
 								{users?.map((u, index) => {
 									return (
-										<li key={index} className="projectModalContent-userList">
+										<li key={index} className="projectDialogContent-userList">
 											<button
 												type="button"
 												className="btn btn-square btn-sm p-1.5 btn-soft"

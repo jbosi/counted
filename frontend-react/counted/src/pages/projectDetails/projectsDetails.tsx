@@ -26,12 +26,14 @@ interface ProjectDetailsProps {
 type ActiveTab = 'ExpensesList' | 'Summary' | 'ReimbursementSuggestions';
 
 export const ProjectDetails = () => {
-	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { projectId }: ProjectDetailsProps = useLoaderData();
 	const project = useProject(projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const { data: expenses } = useExpensesByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
+
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
@@ -59,7 +61,6 @@ export const ProjectDetails = () => {
 	};
 
 	useEffect(() => {
-		const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 		if (storedUserId == null) {
 			openDialog(setIsUserselectionDialogOpen, userSelectionDialogRef, 400);
 		}
@@ -117,7 +118,7 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<ExpenseList expenses={expenses ?? []} />
+							<ExpenseList expenses={expenses ?? []} selectedUserId={storedUserId} />
 
 							{(users?.length ?? 0) > 0 && (
 								<>

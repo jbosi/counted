@@ -23,8 +23,8 @@ export interface EditExpenseModalProps {
 const userSchema = z.object({
 	id: z.number(),
 	name: z.string(),
-	balance: z.number().optional(),
-	created_at: z.string().optional(),
+	balance: z.number().nullish(),
+	created_at: z.string().nullish(),
 });
 
 const payersAndDebtorsForm = z.object({
@@ -269,6 +269,10 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 
 	const activeDebtorOrPayersFields = debtorsOrPayers.filter((field) => field.isChecked);
 	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
+
+	if (activeDebtorOrPayersCount === 0) {
+		return;
+	}
 
 	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
 

@@ -37,8 +37,14 @@ dialog {
 	grid-template-columns: min-content auto;
 }
 
-.projectModalContent-userList {
+.projectDialogContent-userList {
 	display: grid;
 	grid-template-columns: min-content 150px 80px;
+	gap: 10px;
+}
+
+.userSelectionDialog-userList {
+	display: grid;
+	grid-template-columns: auto 80px;
 	gap: 10px;
 }

@@ -8,6 +8,7 @@ import type { User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { Payment } from '../../../types/payments.model';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -114,7 +115,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 				projectId,
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: countedLocalStorage?.projects.find((p) => p.projectId === projectId)?.userId ?? users[0].id,
+				authorId: getProjectUserIdFromLocalstorage(countedLocalStorage, projectId) ?? users[0].id,
 			};
 
 			mutate(editableExpense);

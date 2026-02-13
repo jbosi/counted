@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import type { Expense } from '../types/expenses.model';
 import { Avatar } from './avatar';
-import { getExpenseEmoji } from '../utils/expenseEmojis';
+import { getExpenseEmoji } from '../utils/get-expense-emojis';
 import { useCallback } from 'react';
 
 export interface ExpenseItemProps {

@@ -1,18 +1,20 @@
-import { useCallback, useContext, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
 import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
+import { UserSelectionDialog } from '../../components/modals/user/userSelectionDialog';
 import { SummaryCard } from '../../components/summaryCard';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
-import { useAddToLocalStorage } from '../../hooks/useLocalStorage';
 import { useProject } from '../../hooks/useProjects';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
+import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
+import { openDialog } from '../../utils/open-dialog';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
 import { ReimbursementSuggestions } from './reimbursementSuggestions';
@@ -24,33 +26,22 @@ interface ProjectDetailsProps {
 type ActiveTab = 'ExpensesList' | 'Summary' | 'ReimbursementSuggestions';
 
 export const ProjectDetails = () => {
-	const props: ProjectDetailsProps = useLoaderData();
-	const project = useProject(props.projectId);
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { projectId }: ProjectDetailsProps = useLoaderData();
+	const project = useProject(projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
-	const { data: expenses } = useExpensesByProjectId(props.projectId);
-	const projectSummary = useExpenseSummary(props.projectId);
+	const { data: expenses } = useExpensesByProjectId(projectId);
+	const projectSummary = useExpenseSummary(projectId);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
+	const userSelectionDialogRef = useRef<HTMLDialogElement>(null);
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>('ExpensesList');
 
 	const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
 	const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-
-	const openProjectModal = () => {
-		setIsProjectDialogOpen(true);
-		setTimeout(() => {
-			projectDialogRef.current?.showModal();
-		}, 100);
-	};
-
-	const openExpenseModal = () => {
-		setIsExpenseDialogOpen(true);
-		setTimeout(() => {
-			expenseDialogRef.current?.showModal();
-		}, 100);
-	};
+	const [isUserSelectionDialogOpen, setIsUserselectionDialogOpen] = useState(false);
 
 	const closeProjectDialog = () => {
 		setIsProjectDialogOpen(false);
@@ -62,23 +53,40 @@ export const ProjectDetails = () => {
 		expenseDialogRef.current?.close();
 	};
 
+	const closeUserSelectionDialog = () => {
+		setIsUserselectionDialogOpen(false);
+		userSelectionDialogRef.current?.close();
+	};
+
+	useEffect(() => {
+		const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
+		if (storedUserId == null) {
+			openDialog(setIsUserselectionDialogOpen, userSelectionDialogRef, 400);
+		}
+	}, []);
+
 	// Sum expenses - sum gains
 	const globalTotal = useCallback(
 		() => expenses?.filter((e) => e.expenseType !== 'Transfer')?.reduce((acc, e) => (e.expenseType === 'Expense' ? acc + e.amount : acc - e.amount), 0) ?? 0,
 		[expenses],
 	);
 
-	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
-
-	useAddToLocalStorage(countedLocalStorage, { projectId: props.projectId, userId: null }, setCountedLocalStorage);
-
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
-					<AppHeader onEdit={() => openProjectModal()} title={project.data?.name ?? ''} backButtonRoute=".." />
+					<AppHeader onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} title={project.data?.name ?? ''} backButtonRoute=".." />
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
+					)}
+					{isUserSelectionDialogOpen && (users ?? [])?.length > 0 && (
+						<UserSelectionDialog
+							modalId={'userSelectionDialog'}
+							projectId={projectId}
+							users={users ?? []}
+							dialogRef={userSelectionDialogRef}
+							closeDialogFn={closeUserSelectionDialog}
+						/>
 					)}
 				</>
 			) : (
@@ -89,9 +97,9 @@ export const ProjectDetails = () => {
 
 			{users && expenses ? (
 				<>
-					<ExpensesUserSection id={props.projectId} users={users ?? []} />
+					<ExpensesUserSection id={projectId} users={users ?? []} />
 
-					<SummaryCard users={users} projectId={props.projectId} globalTotal={globalTotal()} />
+					<SummaryCard users={users} projectId={projectId} globalTotal={globalTotal()} />
 
 					<div role="tablist" className="tabs tabs-box justify-center">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
@@ -113,14 +121,18 @@ export const ProjectDetails = () => {
 
 							{(users?.length ?? 0) > 0 && (
 								<>
-									<button type="button" className="btn btn-circle btn-lg sticky bottom-0 self-center mt-6 btn-soft" onClick={() => openExpenseModal()}>
+									<button
+										type="button"
+										className="btn btn-circle btn-lg sticky bottom-0 self-center mt-6 btn-soft"
+										onClick={() => openDialog(setIsExpenseDialogOpen, expenseDialogRef)}
+									>
 										+
 									</button>
 
 									{isExpenseDialogOpen && (
 										<AddExpenseModal
 											modalId={'addExpenseModal'}
-											projectId={props.projectId}
+											projectId={projectId}
 											users={users ?? []}
 											dialogRef={expenseDialogRef}
 											closeDialogFn={closeExpenseDialog}
@@ -177,11 +189,8 @@ function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
 
 							return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
 						})}
-					{usersWithoutExpense.length > 0 ? (
-						usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)
-					) : (
-						<></>
-					)}
+					{usersWithoutExpense.length > 0 &&
+						usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)}
 				</ul>
 			</>
 		);

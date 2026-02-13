@@ -19,6 +19,7 @@ export function ExpenseItem({ expense }: ExpenseItemProps) {
 
 			<div className="flex-1 min-w-0">
 				<p className="text-base-content text-left truncate">{expense.name}</p>
+				<p className="text-xs text-base-content/60 text-left">{new Date(expense.date + 'T00:00:00').toLocaleDateString()}</p>
 			</div>
 
 			<div className="text-right">

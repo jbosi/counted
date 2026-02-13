@@ -34,6 +34,7 @@ const formSchema = z.object({
 	description: z.string().max(200).optional(),
 	totalAmount: z.number().min(0.01).max(100000),
 	type: z.enum(ExpenseTypeConst),
+	date: z.string().min(1, 'La date est requise'),
 	payers: z.array(CheckboxFormSchema).min(1),
 	debtors: z.array(CheckboxFormSchema).min(1),
 });
@@ -72,6 +73,7 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 		totalAmount: 0,
 		name: '',
 		description: '',
+		date: new Date().toLocaleDateString('en-CA'),
 	};
 }
 
@@ -110,6 +112,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				authorId: users[0].id, // TODO
+				date: formValues.date,
 			};
 
 			mutate(creatableExpense);
@@ -136,7 +139,10 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							<label className="label">Description</label>
 							<input className="input w-full" {...register('description')} />
 
-							<label className="label">Valeur</label>
+							<label className="label">Date</label>
+							<input className="input w-full" type="date" {...register('date')} />
+
+							<label className="label">Montant</label>
 							<input
 								min="0"
 								className="input w-full"

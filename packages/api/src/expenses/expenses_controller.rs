@@ -29,6 +29,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
         author_id: expense.author_id,
         description: expense.description,
         created_at: Local::now().naive_local(),
+        date: expense.date,
     };
 
     Ok(created_expense)
@@ -57,6 +58,7 @@ pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expens
         author_id: expense.author_id,
         description: expense.description,
         created_at: Local::now().naive_local(), // TODO
+        date: expense.date,
     };
 
     Ok(updated_expense)

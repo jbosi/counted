@@ -21,21 +21,24 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
                 expense_type,
                 project_id,
                 author_id,
-                description
+                description,
+                date
             ) VALUES (
                 $1,
                 $2,
                 $3,
                 $4,
                 $5,
-                $6
+                $6,
+                $7
             ) RETURNING id",
         expense.clone().name,
         expense.clone().amount,
         expense.clone().expense_type as ExpenseType,
         expense.clone().project_id,
         expense.clone().author_id,
-        expense.clone().description
+        expense.clone().description,
+        expense.clone().date
     )
     .fetch_one(&pool)
     .await
@@ -58,8 +61,9 @@ pub async fn edit_expense(expense: EditableExpense) -> Result<(), ServerFnError>
             expense_type  = $3,
             project_id    = $4,
             author_id     = $5,
-            description   = $6
-        WHERE id = $7
+            description   = $6,
+            date          = $7
+        WHERE id = $8
         "#,
         expense.name,
         expense.amount,
@@ -67,6 +71,7 @@ pub async fn edit_expense(expense: EditableExpense) -> Result<(), ServerFnError>
         expense.project_id,
         expense.author_id,
         expense.description,
+        expense.date,
         expense.id
     )
     .execute(&pool)
@@ -81,7 +86,7 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
     let pool: Pool<Postgres> = get_db().await;
     let expenses: Vec<Expense> = sqlx::query_as!(
         Expense,
-        "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
+        "SELECT id, author_id, project_id, created_at, date, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
         FROM expenses \
         WHERE project_id = $1",
         project_id)
@@ -98,7 +103,7 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
     let pool: Pool<Postgres> = get_db().await;
     let expense: Expense = sqlx::query_as!(
         Expense,
-        "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1", expense_id)
+        "SELECT id, author_id, project_id, created_at, date, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1", expense_id)
         .fetch_one(&pool)
         .await
         .context("Failed to get expense")

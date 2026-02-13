@@ -1,4 +1,4 @@
-import { useCallback, useMemo, type RefObject } from 'react';
+import { useCallback, useContext, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,6 +7,8 @@ import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../..
 import type { User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import { getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
+import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
+import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -78,6 +80,7 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 }
 
 export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const defaultValues = useMemo(() => getInitialValues(users), [users]);
 
 	const {
@@ -111,14 +114,14 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 				projectId,
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
-				authorId: users[0].id, // TODO
+				authorId: getProjectUserIdFromLocalstorage(countedLocalStorage, projectId) ?? users[0].id, // TODO
 				date: formValues.date,
 			};
 
 			mutate(creatableExpense);
 			closeDialogFn();
 		},
-		[closeDialogFn, mutate, projectId, users],
+		[closeDialogFn, mutate, projectId, users, countedLocalStorage],
 	);
 
 	return (

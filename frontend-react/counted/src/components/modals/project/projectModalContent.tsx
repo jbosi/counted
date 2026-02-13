@@ -1,51 +1,45 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
-import { type FormState, type SubmitHandler, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { type SubmitHandler, type UseFormReturn } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { TrashIcon } from '../../../shared/icons/trashIcon';
+import { UserIcon } from '../../../shared/icons/userIcon';
 import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
 import type { CreatableUser, User } from '../../../types/users.model';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
-import { UserIcon } from '../../../shared/icons/userIcon';
 
 export interface ProjectModalContentProps {
 	modalId: string;
 	dialogRef: RefObject<HTMLDialogElement | null>;
-	register: UseFormRegister<ProjectModalForm>;
-	onSubmit: SubmitHandler<ProjectModalForm>;
-	getValues: UseFormGetValues<ProjectModalForm>;
-	formState: FormState<ProjectModalForm>;
+	onSubmit: (data: ProjectModalForm) => Promise<void>;
 	mutationHook: UseMutationResult<ProjectDto, Error, CreatableProject, unknown> | UseMutationResult<ProjectDto, Error, EditableProject, unknown>;
 	users: (CreatableUser | User)[];
 	setUsers: Dispatch<SetStateAction<(CreatableUser | User)[]>>;
-	projectErrorState: string | null;
 	isSubmitLoading: boolean;
 	selectedUserName: string | null;
 	setSelectedUserName: Dispatch<SetStateAction<string | null>>;
 	closeDialogFn: () => void;
 	projectId?: string;
+	useFormReturn: UseFormReturn<ProjectModalForm>;
 }
 
 export function ProjectModalContent({
 	dialogRef,
 	modalId,
 	onSubmit,
-	getValues,
-	register,
-	formState,
 	mutationHook,
 	users,
 	setUsers,
-	projectErrorState,
 	isSubmitLoading,
 	selectedUserName,
 	setSelectedUserName,
 	projectId,
 	closeDialogFn,
+	useFormReturn,
 }: ProjectModalContentProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
-	const errors = formState.errors;
+	const errors = useFormReturn.formState.errors;
 	const { error, isPending, isError } = mutationHook;
 
 	const [newUser, setNewUser] = useState<CreatableUser>({ name: '', projectId: '' });
@@ -71,21 +65,15 @@ export function ProjectModalContent({
 						✕
 					</button>
 					<h1>{projectId ? 'Editer le projet' : 'Ajouter un projet'}</h1>
-					<ErrorValidationCallout errorState={projectErrorState} /> {/* TODO, use error boundary ? */}
-					<form
-						className="ml-4 mr-4"
-						onSubmit={(e) => {
-							e.preventDefault();
-							onSubmit(getValues());
-						}}
-					>
+					<ErrorValidationCallout errors={useFormReturn.formState.errors} />
+					<form className="ml-4 mr-4" onSubmit={useFormReturn.handleSubmit(onSubmit)}>
 						<div className="flex flex-col gap-3">
 							<label className="label">Nom</label>
-							<input className="input w-full" {...register('projectName', { required: true, maxLength: 100 })} />
+							<input className="input w-full" {...useFormReturn.register('projectName')} />
 							{errors.projectName && <span>Ce champ est requis</span>}
 
 							<label className="label">Description</label>
-							<input className="input w-full" {...register('projectDescription', { required: true, maxLength: 200 })} />
+							<input className="input w-full" {...useFormReturn.register('projectDescription')} />
 							{errors.projectDescription && <span>Ce champ est requis</span>}
 
 							{isPending && <span>Enregistrement…</span>}

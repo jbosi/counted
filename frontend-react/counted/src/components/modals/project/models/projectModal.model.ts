@@ -1,6 +1,8 @@
 import type { RefObject } from 'react';
 import type { ProjectDto } from '../../../../types/projects.model';
 import type { User } from '../../../../types/users.model';
+import * as z from 'zod';
+import type { PROJECT_FORM_SCHEMA } from '../helpers/projectModal.helper';
 
 export interface AddProjectModalProps {
 	modalId: string;
@@ -16,7 +18,4 @@ export interface EditProjectModalProps {
 	closeDialogFn: () => void;
 }
 
-export interface ProjectModalForm {
-	projectName: string;
-	projectDescription: string;
-}
+export type ProjectModalForm = z.infer<typeof PROJECT_FORM_SCHEMA>;

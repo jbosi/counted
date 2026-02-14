@@ -35,6 +35,7 @@ export function useAddExpense() {
 		onSuccess: (data) => {
 			queryClient.setQueryData(['expenses'], (previous: Expense[] | undefined) => [...(previous ?? []), data]);
 			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', data.projectId] });
+			queryClient.invalidateQueries({ queryKey: ['payments', 'project'] });
 		},
 	});
 }
@@ -52,6 +53,7 @@ export function useEditExpense() {
 			queryClient.setQueryData(['expense', editedExpense.id], () => editedExpense);
 			queryClient.invalidateQueries({ queryKey: ['payments', editedExpense.id] });
 			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', editedExpense.projectId] });
+			queryClient.invalidateQueries({ queryKey: ['payments', 'project'] });
 		},
 	});
 }
@@ -64,6 +66,7 @@ export function useDeleteExpense(projectId: string) {
 		onSuccess: (_, expenseId) => {
 			queryClient.setQueryData(['expenses'], (previous: Expense[] | undefined) => (previous ?? []).filter((o) => o.id !== expenseId));
 			queryClient.invalidateQueries({ queryKey: ['expenses', 'summary', projectId] });
+			queryClient.invalidateQueries({ queryKey: ['payments', 'project'] });
 		},
 	});
 }

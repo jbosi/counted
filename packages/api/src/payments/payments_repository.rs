@@ -213,6 +213,7 @@ mod tests {
             author_id: 1,
             project_id: Uuid::new_v4(),
             created_at: DateTime::from_timestamp(0, 0).unwrap().naive_utc(),
+            date: chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap(),
             amount: 0.0, // Not used in balance calculation
             description: None,
             name: "Test Expense".to_string(),

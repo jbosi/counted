@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -10,6 +10,7 @@ import { SummaryCard } from '../../components/summaryCard';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
+import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useProject } from '../../hooks/useProjects';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
@@ -30,10 +31,19 @@ export const ProjectDetails = () => {
 	const project = useProject(projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const { data: expenses } = useExpensesByProjectId(projectId);
+	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
 
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
+
+	const [showOnlyMine, setShowOnlyMine] = useState(false);
+
+	const filteredExpenses = useMemo(() => {
+		if (!showOnlyMine || !payments || storedUserId == null) return expenses ?? [];
+		const myExpenseIds = new Set(payments.filter((p) => p.userId === storedUserId).map((p) => p.expenseId));
+		return (expenses ?? []).filter((e) => myExpenseIds.has(e.id));
+	}, [expenses, payments, showOnlyMine, storedUserId]);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
@@ -118,7 +128,11 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<ExpenseList expenses={expenses ?? []} selectedUserId={storedUserId} />
+							<label className="label cursor-pointer justify-start gap-2">
+								<input type="checkbox" className="toggle toggle-sm" checked={showOnlyMine} onChange={(e) => setShowOnlyMine(e.target.checked)} />
+								<span className="text-sm">Mes dépenses</span>
+							</label>
+							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && (
 								<>

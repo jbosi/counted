@@ -1,11 +1,10 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
-import { type UseFormReturn } from 'react-hook-form';
+import { useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { TrashIcon } from '../../../shared/icons/trashIcon';
 import { UserIcon } from '../../../shared/icons/userIcon';
 import type { CreatableProject, EditableProject, ProjectDto } from '../../../types/projects.model';
-import type { CreatableUser, User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
@@ -15,8 +14,6 @@ export interface ProjectModalContentProps {
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	onSubmit: (data: ProjectModalForm) => Promise<void>;
 	mutationHook: UseMutationResult<ProjectDto, Error, CreatableProject, unknown> | UseMutationResult<ProjectDto, Error, EditableProject, unknown>;
-	users: (CreatableUser | User)[];
-	setUsers: Dispatch<SetStateAction<(CreatableUser | User)[]>>;
 	isSubmitLoading: boolean;
 	selectedUserName: string | null;
 	setSelectedUserName: Dispatch<SetStateAction<string | null>>;
@@ -30,8 +27,6 @@ export function ProjectModalContent({
 	modalId,
 	onSubmit,
 	mutationHook,
-	users,
-	setUsers,
 	isSubmitLoading,
 	selectedUserName,
 	setSelectedUserName,
@@ -43,17 +38,22 @@ export function ProjectModalContent({
 	const errors = useFormReturn.formState.errors;
 	const { error, isPending, isError } = mutationHook;
 
-	const [newUser, setNewUser] = useState<CreatableUser>({ name: '', projectId: '' });
+	const { fields, append, remove } = useFieldArray({
+		control: useFormReturn.control,
+		name: 'users',
+	});
 
-	const handleAddUser = (event: ChangeEvent<HTMLInputElement, HTMLInputElement>) => {
-		setNewUser({ name: event.target.value, projectId: '' });
+	const [newUserName, setNewUserName] = useState('');
+
+	const handleAddUser = (event: ChangeEvent<HTMLInputElement>) => {
+		setNewUserName(event.target.value);
 	};
 
 	const isUserSelected = useCallback(
-		(u: User | CreatableUser, projectId: string | undefined) => {
+		(field: { name: string; userId?: number }, projectId: string | undefined) => {
 			const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
-			return selectedUserName === u.name || (selectedUserName == null && storedUserId && storedUserId === (u as User)?.id);
+			return selectedUserName === field.name || (selectedUserName == null && storedUserId != null && storedUserId === field.userId);
 		},
 		[countedLocalStorage, selectedUserName],
 	);
@@ -88,15 +88,17 @@ export function ProjectModalContent({
 								<div className="flex-1">
 									<label className="input w-full">
 										<UserIcon />
-										<input type="text" placeholder="Clark Kent" onChange={handleAddUser} value={newUser.name} />
+										<input type="text" placeholder="Clark Kent" onChange={handleAddUser} value={newUserName} />
 									</label>
 								</div>
 								<button
 									type="button"
 									className="btn btn-neutral join-item"
 									onClick={() => {
-										setUsers([...users, newUser]);
-										setNewUser({ name: '', projectId: '' });
+										if (newUserName.trim()) {
+											append({ name: newUserName.trim() });
+											setNewUserName('');
+										}
 									}}
 								>
 									Ajouter
@@ -104,23 +106,17 @@ export function ProjectModalContent({
 							</div>
 
 							<ul className="flex flex-col gap-1">
-								{users?.map((u, index) => {
+								{fields.map((field, index) => {
 									return (
-										<li key={index} className="projectDialogContent-userList">
-											<button
-												type="button"
-												className="btn btn-square btn-sm p-1.5 btn-soft"
-												onClick={() => {
-													setUsers(users?.filter((user) => user.name !== u.name));
-												}}
-											>
+										<li key={field.id} className="projectDialogContent-userList">
+											<button type="button" className="btn btn-square btn-sm p-1.5 btn-soft" onClick={() => remove(index)}>
 												<TrashIcon />
 											</button>
-											<span className="self-center text-left text-sm">{u.name}</span>
-											{isUserSelected(u, projectId) ? (
+											<span className="self-center text-left text-sm">{field.name}</span>
+											{isUserSelected(field, projectId) ? (
 												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
 											) : (
-												<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
+												<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(field.name)}>
 													C'est moi !
 												</button>
 											)}

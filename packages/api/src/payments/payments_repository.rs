@@ -202,7 +202,6 @@ pub fn calculate_balances(expenses: &[Expense], payments: &[Payment]) -> HashMap
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::NaiveDateTime;
 
     /// Helper function to create a mock expense
     fn create_expense(id: i32, expense_type: ExpenseType) -> Expense {

@@ -18,6 +18,7 @@ import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-l
 import { openDialog } from '../../utils/open-dialog';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import { ReimbursementSuggestions } from './reimbursementSuggestions';
 
 interface ProjectDetailsProps {
@@ -37,13 +38,18 @@ export const ProjectDetails = () => {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
-	const [showOnlyMine, setShowOnlyMine] = useState(false);
+	const [showMyPayments, setShowMyPayments] = useState(false);
+	const [showMyDebts, setShowMyDebts] = useState(false);
 
 	const filteredExpenses = useMemo(() => {
-		if (!showOnlyMine || !payments || storedUserId == null) return expenses ?? [];
-		const myExpenseIds = new Set(payments.filter((p) => p.userId === storedUserId).map((p) => p.expenseId));
+		if ((!showMyPayments && !showMyDebts) || !payments || storedUserId == null) {
+			return expenses ?? [];
+		}
+		const myExpenseIds = new Set(
+			payments.filter((p) => p.userId === storedUserId && ((showMyPayments && !p.isDebt) || (showMyDebts && p.isDebt))).map((p) => p.expenseId),
+		);
 		return (expenses ?? []).filter((e) => myExpenseIds.has(e.id));
-	}, [expenses, payments, showOnlyMine, storedUserId]);
+	}, [expenses, payments, showMyPayments, showMyDebts, storedUserId]);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
@@ -128,10 +134,21 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<label className="label cursor-pointer justify-start gap-2">
-								<input type="checkbox" className="toggle toggle-sm" checked={showOnlyMine} onChange={(e) => setShowOnlyMine(e.target.checked)} />
-								<span className="text-sm">Mes dépenses</span>
-							</label>
+							<div className="dropdown dropdown-end self-end">
+								<div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-circle">
+									<SettingsIcon />
+								</div>
+								<div tabIndex={0} className="dropdown-content bg-base-200 rounded-box z-10 w-52 p-3 shadow flex flex-col gap-2">
+									<label className="label cursor-pointer justify-between gap-2">
+										<span className="text-sm">Mes paiements</span>
+										<input type="checkbox" className="toggle toggle-sm" checked={showMyPayments} onChange={(e) => setShowMyPayments(e.target.checked)} />
+									</label>
+									<label className="label cursor-pointer justify-between gap-2">
+										<span className="text-sm">Mes dettes</span>
+										<input type="checkbox" className="toggle toggle-sm" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
+									</label>
+								</div>
+							</div>
 							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && (

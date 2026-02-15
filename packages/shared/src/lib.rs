@@ -6,7 +6,7 @@ pub mod view_models;
 use sqlx::FromRow;
 use std::{collections::HashMap, fmt};
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -86,6 +86,7 @@ pub struct Expense {
     pub author_id: i32,
     pub project_id: Uuid,
     pub created_at: NaiveDateTime,
+    pub date: NaiveDate,
     pub amount: f64,
     pub description: Option<String>,
     pub name: String,
@@ -115,6 +116,7 @@ pub struct CreatableExpense {
     pub debtors: Vec<UserAmount>,
     pub author_id: i32,
     pub description: Option<String>,
+    pub date: NaiveDate,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -129,6 +131,7 @@ pub struct EditableExpense {
     pub debtors: Vec<UserAmount>,
     pub author_id: i32,
     pub description: Option<String>,
+    pub date: NaiveDate,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

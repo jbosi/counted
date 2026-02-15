@@ -20,10 +20,26 @@ export function ErrorValidationCallout({ errors }: ErrorCalloutProps) {
 }
 
 function getErrorMessages(errors: FieldErrors<FieldValues> | undefined): string[] {
-	if (errors != null) {
-		return Object.entries(errors)
-			.filter(([, e]) => e?.message)
-			.map(([field, e]) => `Field: ${field} - error : ${e?.message}`);
+	if (!errors) return [];
+
+	const messages: string[] = [];
+
+	for (const [key, error] of Object.entries(errors)) {
+		if (!error) {
+			continue;
+		}
+
+		if (typeof error.message === 'string') {
+			messages.push(`${key}: ${error.message}`);
+		} else if ('root' in error && (error.root as FieldErrors[string])?.message) {
+			messages.push(`${key}: ${(error.root as FieldErrors[string])!.message}`);
+		} else if (typeof error === 'object' && !error.message && !error.type) {
+			const nested = getErrorMessages(error as FieldErrors<FieldValues>);
+			if (nested.length > 0) {
+				messages.push(`${key}: ${nested[0]}`);
+			}
+		}
 	}
-	return [];
+
+	return messages;
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, author_id, project_id, created_at, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE project_id = $1",
+  "query": "SELECT id, author_id, project_id, created_at, date, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE project_id = $1",
   "describe": {
     "columns": [
       {
@@ -25,21 +25,26 @@
       },
       {
         "ordinal": 4,
+        "name": "date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 5,
         "name": "amount",
         "type_info": "Float8"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "description",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "expense_type: ExpenseType",
         "type_info": {
           "Custom": {
@@ -66,10 +71,11 @@
       false,
       false,
       false,
+      false,
       true,
       false,
       false
     ]
   },
-  "hash": "3261e4cc0178324681d1eed5e767a0995f3164e433561c3066e286b7d4f97d2b"
+  "hash": "049851d7292316441905c443ff4ef05a7cc045f1f4dc687b3a6093a00c74f63f"
 }

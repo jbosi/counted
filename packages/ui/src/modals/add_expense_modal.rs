@@ -1,5 +1,6 @@
 use crate::common::{CalloutComponent, CalloutComponentTypes};
 use api::expenses::expenses_controller::add_expense;
+use chrono::{Local, NaiveDate, NaiveDateTime};
 use dioxus::logger::tracing::info;
 use dioxus::prelude::*;
 use shared::{CreatableExpense, ExpenseType, User, UserAmount};
@@ -182,6 +183,7 @@ pub fn AddExpenseModal(mut props: AddExpenseModalProps) -> Element {
                                         })
                                         .collect(),
                                     author_id: users[0].id,
+                                    date: chrono::NaiveDate::from_ymd_opt(1, 1, 1).unwrap(), // TODO
                                 };
                                 if has_expense_amount_mismatch() {
                                     info!(

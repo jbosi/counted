@@ -23,8 +23,8 @@ export interface EditExpenseModalProps {
 const userSchema = z.object({
 	id: z.number(),
 	name: z.string(),
-	balance: z.number().optional(),
-	created_at: z.string().optional(),
+	balance: z.number().nullish(),
+	created_at: z.string().nullish(),
 });
 
 const payersAndDebtorsForm = z.object({
@@ -38,6 +38,7 @@ const formSchema = z.object({
 	description: z.string().max(200).optional(),
 	totalAmount: z.number().min(0.01).max(100000),
 	type: z.enum(ExpenseTypeConst),
+	date: z.string().min(1, 'La date est requise'),
 	payers: z.array(payersAndDebtorsForm).min(1),
 	debtors: z.array(payersAndDebtorsForm).min(1),
 });
@@ -83,6 +84,7 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 		name: expense.name,
 		description: expense.description ?? '',
 		type: expense.expenseType,
+		date: expense.date,
 	};
 }
 
@@ -116,6 +118,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 				payers: formValues.payers.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				debtors: formValues.debtors.map((p) => ({ amount: p.amount, userId: p.user.id })),
 				authorId: getProjectUserIdFromLocalstorage(countedLocalStorage, projectId) ?? users[0].id,
+				date: formValues.date,
 			};
 
 			mutate(editableExpense);
@@ -142,7 +145,10 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							<label className="label">Description</label>
 							<input className="input w-full" {...register('description')} />
 
-							<label className="label">Valeur</label>
+							<label className="label">Date</label>
+							<input className="input w-full" type="date" {...register('date')} />
+
+							<label className="label">Montant</label>
 							<input
 								min="0"
 								className="input w-full"
@@ -263,6 +269,10 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 
 	const activeDebtorOrPayersFields = debtorsOrPayers.filter((field) => field.isChecked);
 	const activeDebtorOrPayersCount = activeDebtorOrPayersFields.length;
+
+	if (activeDebtorOrPayersCount === 0) {
+		return;
+	}
 
 	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
 

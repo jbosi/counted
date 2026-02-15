@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { ExpenseList } from '../../components/expenseList';
@@ -10,6 +10,7 @@ import { SummaryCard } from '../../components/summaryCard';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
+import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useProject } from '../../hooks/useProjects';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
@@ -17,6 +18,7 @@ import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-l
 import { openDialog } from '../../utils/open-dialog';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
+import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import { ReimbursementSuggestions } from './reimbursementSuggestions';
 
 interface ProjectDetailsProps {
@@ -26,12 +28,28 @@ interface ProjectDetailsProps {
 type ActiveTab = 'ExpensesList' | 'Summary' | 'ReimbursementSuggestions';
 
 export const ProjectDetails = () => {
-	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { projectId }: ProjectDetailsProps = useLoaderData();
 	const project = useProject(projectId);
 	const { projectUsers: users } = useContext(ProjectUsersContext);
 	const { data: expenses } = useExpensesByProjectId(projectId);
+	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
+
+	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
+
+	const [showMyPayments, setShowMyPayments] = useState(false);
+	const [showMyDebts, setShowMyDebts] = useState(false);
+
+	const filteredExpenses = useMemo(() => {
+		if ((!showMyPayments && !showMyDebts) || !payments || storedUserId == null) {
+			return expenses ?? [];
+		}
+		const myExpenseIds = new Set(
+			payments.filter((p) => p.userId === storedUserId && ((showMyPayments && !p.isDebt) || (showMyDebts && p.isDebt))).map((p) => p.expenseId),
+		);
+		return (expenses ?? []).filter((e) => myExpenseIds.has(e.id));
+	}, [expenses, payments, showMyPayments, showMyDebts, storedUserId]);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
@@ -59,7 +77,6 @@ export const ProjectDetails = () => {
 	};
 
 	useEffect(() => {
-		const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 		if (storedUserId == null) {
 			openDialog(setIsUserselectionDialogOpen, userSelectionDialogRef, 400);
 		}
@@ -117,7 +134,22 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<ExpenseList expenses={expenses ?? []} />
+							<div className="dropdown dropdown-end self-end">
+								<div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-circle">
+									<SettingsIcon />
+								</div>
+								<div tabIndex={0} className="dropdown-content bg-base-200 rounded-box z-10 w-52 p-3 shadow flex flex-col gap-2">
+									<label className="label cursor-pointer justify-between gap-2">
+										<span className="text-sm">Mes paiements</span>
+										<input type="checkbox" className="toggle toggle-sm" checked={showMyPayments} onChange={(e) => setShowMyPayments(e.target.checked)} />
+									</label>
+									<label className="label cursor-pointer justify-between gap-2">
+										<span className="text-sm">Mes dettes</span>
+										<input type="checkbox" className="toggle toggle-sm" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
+									</label>
+								</div>
+							</div>
+							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && (
 								<>

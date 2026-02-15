@@ -1,6 +1,7 @@
 import { httpClient } from '../shared';
 import type { Expense } from '../types/expenses.model';
 import type { CreatableProject, EditableProject, ProjectDto } from '../types/projects.model';
+import type { Payment } from '../types/payments.model';
 import type { ProjectSummary } from '../types/summary.model';
 import type { User } from '../types/users.model';
 
@@ -25,6 +26,10 @@ export const projectsService = {
 
 	async getExpensesSummaryByProjectId(projectId: string): Promise<ProjectSummary> {
 		return httpClient.get(`${API_BASE}/${projectId}/expenses/summary`);
+	},
+
+	async getPaymentsByProjectId(projectId: string): Promise<Payment[]> {
+		return httpClient.get(`${API_BASE}/${projectId}/payments`);
 	},
 
 	async createProjectAsync(creatableProject: CreatableProject): Promise<ProjectDto> {

@@ -12,13 +12,13 @@ import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useProject } from '../../hooks/useProjects';
+import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import type { ProjectSummary } from '../../types/summary.model';
 import type { User } from '../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
 import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
 import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import { ReimbursementSuggestions } from './reimbursementSuggestions';
 
 interface ProjectDetailsProps {
@@ -116,7 +116,7 @@ export const ProjectDetails = () => {
 				<>
 					<ExpensesUserSection id={projectId} users={users ?? []} />
 
-					<SummaryCard users={users} projectId={projectId} globalTotal={globalTotal()} />
+					<SummaryCard projectId={projectId} globalTotal={globalTotal()} />
 
 					<div role="tablist" className="tabs tabs-box justify-center">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>

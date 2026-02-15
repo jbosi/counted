@@ -1,10 +1,9 @@
-import { useContext } from 'react';
-import type { User } from '../types/users.model';
+import { useContext, useMemo } from 'react';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
+import { usePaymentsByProjectId } from '../hooks/usePayments';
 import { getProjectUserIdFromLocalstorage } from '../utils/get-project-from-localstorage';
 
 interface SummaryCardProps {
-	users: User[];
 	globalTotal: number;
 	projectId: string;
 }
@@ -16,11 +15,24 @@ function formatCurrency(value: number): string {
 	}).format(value);
 }
 
-export const SummaryCard = ({ users, globalTotal, projectId }: SummaryCardProps) => {
+export const SummaryCard = ({ globalTotal, projectId }: SummaryCardProps) => {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { data: payments } = usePaymentsByProjectId(projectId);
+	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
-	const userId: number | undefined = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
-	const me: User | undefined = users.find((u) => u.id === userId);
+	// If calculated from the backend
+	// const userId: number | undefined = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
+	// const me: User | undefined = users.find((u) => u.id === userId);
+
+	const myPaymentsSum = useMemo(() => {
+		if (!payments || storedUserId == null) {
+			return null;
+		}
+		return payments
+			.filter((p) => p.userId === storedUserId)
+			.map((val) => val.amount)
+			.reduce((acc, val) => acc + val);
+	}, [payments, storedUserId]);
 
 	return (
 		<div>
@@ -29,10 +41,10 @@ export const SummaryCard = ({ users, globalTotal, projectId }: SummaryCardProps)
 					<span className="text-base-content/70">Total des dépenses</span>
 					<span className="font-semibold text-lg text-base-content/70">{formatCurrency(globalTotal ?? 0)}</span>
 				</div>
-				{me?.balance && (
+				{myPaymentsSum && (
 					<div className="flex justify-between items-center">
 						<span className="text-base-content/70">Mes dépenses</span>
-						<span className="font-semibold text-lg text-base-content/70">{formatCurrency(me.balance)}</span>
+						<span className="font-semibold text-lg text-base-content/70">{formatCurrency(myPaymentsSum)}</span>
 					</div>
 				)}
 			</div>

@@ -38,12 +38,12 @@ export const SummaryCard = ({ globalTotal, projectId }: SummaryCardProps) => {
 		<div>
 			<div className="card-body pt-4 pb-4 pl-0 pr-0">
 				<div className="flex justify-between items-center">
-					<span className="text-neutral-500">Total des dépenses</span>
-					<span className="font-semibold text-lg text-neutral-600">{formatCurrency(globalTotal ?? 0)}</span>
+					<span className="text-base-content">Total des dépenses</span>
+					<span className="font-semibold text-lg text-base-content">{formatCurrency(globalTotal ?? 0)}</span>
 				</div>
 				<div className="flex justify-between items-center">
-					<span className="text-neutral-500">Mes dépenses</span>
-					<span className="font-semibold text-lg text-neutral-600">{formatCurrency(myPaymentsSum)}</span>
+					<span className="text-base-content">Mes dépenses</span>
+					<span className="font-semibold text-lg text-base-content">{formatCurrency(myPaymentsSum)}</span>
 				</div>
 			</div>
 		</div>

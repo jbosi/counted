@@ -14,7 +14,7 @@ export function ReimbursementSuggestions({ reimbursementSuggestions, users }: Re
 	}
 
 	return (
-		<ul className="flex flex-col gap-1">
+		<ul className="counted-list">
 			{reimbursementSuggestions
 				.map((reimbursementSuggestions) => {
 					const debtor = users?.find((u) => u.id === reimbursementSuggestions.userIdDebtor);
@@ -46,7 +46,7 @@ interface ReimbursementSuggestionsItemProps {
 
 function ReimbursementSuggestionsItem({ debtor, payer, amount }: ReimbursementSuggestionsItemProps) {
 	return (
-		<li className="reimbursement-list grid items-center gap-3 p-2 bg-base-100 rounded-lg">
+		<li className="grid reimbursement-list counted-list-items">
 			<div className="flex flex-row gap-1.5 items-center">
 				<Avatar name={debtor.name} size="w-8" />
 				<RightArrowIcon />

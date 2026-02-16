@@ -1,5 +1,4 @@
 .expenseBarChart-row {
-	display: grid;
 	grid-template-columns: min-content 1fr 1fr 1fr;
 	gap: 0.25rem;
 }

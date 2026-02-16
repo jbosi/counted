@@ -20,7 +20,7 @@ export function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
 	const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
 
 	return (
-		<ul className="flex flex-col gap-1">
+		<ul className="counted-list">
 			{Object.entries(summary)
 				.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
 				.map(([userIdStr, amount]) => {

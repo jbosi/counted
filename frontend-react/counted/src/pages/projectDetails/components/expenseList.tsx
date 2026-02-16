@@ -7,7 +7,7 @@ export interface ExpenseListProps {
 
 export function ExpenseList(props: ExpenseListProps) {
 	return (
-		<ul className="flex flex-col gap-1">
+		<ul className="counted-list">
 			{props.expenses.map((e) => {
 				return <ExpenseItem key={e.id} expense={e} />;
 			})}

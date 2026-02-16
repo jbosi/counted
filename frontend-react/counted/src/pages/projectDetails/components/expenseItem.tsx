@@ -14,7 +14,7 @@ export function ExpenseItem({ expense }: ExpenseItemProps) {
 	const emoji = useCallback(() => getExpenseEmoji(expense.name), [expense.name]);
 
 	return (
-		<li className="flex items-center gap-3 p-2 bg-base-100 hover:bg-base-300 rounded-lg transition-colors" onClick={() => navigate(`./expenses/${expense.id}`)}>
+		<li className="flex counted-list-items hover:bg-base-300 transition-colors" onClick={() => navigate(`./expenses/${expense.id}`)}>
 			<Avatar name={emoji()} size="w-10" placeholderColor="transparent" />
 
 			<div className="flex-1 min-w-0">

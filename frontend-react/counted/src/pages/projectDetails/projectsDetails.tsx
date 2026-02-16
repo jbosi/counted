@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
-import { ExpenseList } from '../../components/expenseList';
 import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
@@ -12,14 +11,13 @@ import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useProject } from '../../hooks/useProjects';
-import type { ProjectSummary } from '../../types/summary.model';
-import type { User } from '../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
-import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
-import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { SettingsIcon } from '../../shared/icons/settingsIcon';
-import { ReimbursementSuggestions } from './reimbursementSuggestions';
+import { ExpensesUserSection } from './components/expensesUserSection';
+import { ExpenseDropdownSettings } from './components/expenseDropdownSettings';
+import { ExpenseList } from './components/expenseList';
+import { ProjectSummary } from './components/projectSummary';
+import { ReimbursementSuggestions } from './components/reimbursementSuggestions';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -89,7 +87,7 @@ export const ProjectDetails = () => {
 	);
 
 	return (
-		<div className="container overflow-auto app-container p-4 max-w-md">
+		<div className="overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
 					<AppHeader onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} title={project.data?.name ?? ''} backButtonRoute=".." />
@@ -114,11 +112,11 @@ export const ProjectDetails = () => {
 
 			{users && expenses ? (
 				<>
-					<ExpensesUserSection id={projectId} users={users ?? []} />
+					<ExpensesUserSection users={users ?? []} />
 
-					<SummaryCard users={users} projectId={projectId} globalTotal={globalTotal()} />
+					<SummaryCard projectId={projectId} globalTotal={globalTotal()} />
 
-					<div role="tablist" className="tabs tabs-box justify-center">
+					<div role="tablist" className="tabs tabs-box justify-between bg-base-300">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
 							Dépenses
 						</a>
@@ -134,21 +132,7 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<div className="dropdown dropdown-end self-end">
-								<div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-circle">
-									<SettingsIcon />
-								</div>
-								<div tabIndex={0} className="dropdown-content bg-base-200 rounded-box z-10 w-52 p-3 shadow flex flex-col gap-2">
-									<label className="label cursor-pointer justify-between gap-2">
-										<span className="text-sm">Mes paiements</span>
-										<input type="checkbox" className="toggle toggle-sm" checked={showMyPayments} onChange={(e) => setShowMyPayments(e.target.checked)} />
-									</label>
-									<label className="label cursor-pointer justify-between gap-2">
-										<span className="text-sm">Mes dettes</span>
-										<input type="checkbox" className="toggle toggle-sm" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
-									</label>
-								</div>
-							</div>
+							<ExpenseDropdownSettings showMyDebtsState={[showMyDebts, setShowMyDebts]} showMyPaymentsState={[showMyPayments, setShowMyPayments]} />
 							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && (
@@ -174,9 +158,7 @@ export const ProjectDetails = () => {
 							)}
 						</>
 					) : activeTab === 'ReimbursementSuggestions' ? (
-						<>
-							<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
-						</>
+						<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
 					) : (
 						<ProjectSummary projectSummary={projectSummary.data} users={users} />
 					)}
@@ -189,42 +171,3 @@ export const ProjectDetails = () => {
 		</div>
 	);
 };
-
-interface ProjectSummaryProps {
-	projectSummary: ProjectSummary | undefined;
-	users: User[];
-}
-
-function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
-	if (projectSummary === undefined) {
-		return <></>;
-	}
-
-	const summary = projectSummary.summary;
-
-	const usersWithoutExpense: User[] = users.filter((u) => !Object.entries(summary)?.some((s) => u.id === Number(s?.[0])));
-
-	return (() => {
-		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
-
-		return (
-			<>
-				<ul className="flex flex-col gap-3">
-					{Object.entries(summary)
-						.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
-						.map(([userIdStr, amount]) => {
-							const userId = Number(userIdStr);
-							const user = users?.find((u) => u.id === userId);
-							if (!user) {
-								return null;
-							}
-
-							return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-						})}
-					{usersWithoutExpense.length > 0 &&
-						usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)}
-				</ul>
-			</>
-		);
-	})();
-}

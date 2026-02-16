@@ -1,4 +1,4 @@
-import type { Expense } from '../types/expenses.model';
+import type { Expense } from '../../../types/expenses.model';
 import { ExpenseItem } from './expenseItem';
 
 export interface ExpenseListProps {
@@ -7,7 +7,7 @@ export interface ExpenseListProps {
 
 export function ExpenseList(props: ExpenseListProps) {
 	return (
-		<ul className="flex flex-col gap-2">
+		<ul className="counted-list">
 			{props.expenses.map((e) => {
 				return <ExpenseItem key={e.id} expense={e} />;
 			})}

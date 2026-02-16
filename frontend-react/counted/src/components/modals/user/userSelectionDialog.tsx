@@ -58,7 +58,7 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 						<fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
 							<legend className="fieldset-legend">Liste des utilisateurs</legend>
 
-							<ul className="flex flex-col gap-1">
+							<ul className="counted-list">
 								{users?.map((u, index) => {
 									return (
 										<li key={index} className="userSelectionDialog-userList">

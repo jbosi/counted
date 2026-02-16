@@ -87,7 +87,7 @@ function PaymentList({ expense, projectUsers, expenseDialogRef, isModalOpen, set
 				return 'Émetteur';
 			case 'Expense':
 			default:
-				return 'Payeurs';
+				return 'Payé par';
 		}
 	};
 

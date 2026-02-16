@@ -105,7 +105,7 @@ export function ProjectModalContent({
 								</button>
 							</div>
 
-							<ul className="flex flex-col gap-1">
+							<ul className="counted-list">
 								{fields.map((field, index) => {
 									return (
 										<li key={field.id} className="projectDialogContent-userList">

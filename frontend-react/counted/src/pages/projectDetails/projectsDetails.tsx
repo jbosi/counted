@@ -89,7 +89,7 @@ export const ProjectDetails = () => {
 	);
 
 	return (
-		<div className="container overflow-auto app-container p-4 max-w-md">
+		<div className="overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
 					<AppHeader onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} title={project.data?.name ?? ''} backButtonRoute=".." />
@@ -114,11 +114,11 @@ export const ProjectDetails = () => {
 
 			{users && expenses ? (
 				<>
-					<ExpensesUserSection id={projectId} users={users ?? []} />
+					<ExpensesUserSection users={users ?? []} />
 
 					<SummaryCard projectId={projectId} globalTotal={globalTotal()} />
 
-					<div role="tablist" className="tabs tabs-box justify-center">
+					<div role="tablist" className="tabs tabs-box justify-between bg-base-300">
 						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
 							Dépenses
 						</a>
@@ -134,7 +134,7 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<div className="dropdown dropdown-end self-end pr-4">
+							<div className="dropdown dropdown-end self-end">
 								<div className="dropdown dropdown-end self-end">
 									<button
 										role="button"

@@ -36,7 +36,7 @@ export const SummaryCard = ({ globalTotal, projectId }: SummaryCardProps) => {
 
 	return (
 		<div>
-			<div className="card-body p-4">
+			<div className="card-body pt-4 pb-4 pl-0 pr-0">
 				<div className="flex justify-between items-center">
 					<span className="text-neutral-500">Total des dépenses</span>
 					<span className="font-semibold text-lg text-neutral-600">{formatCurrency(globalTotal ?? 0)}</span>

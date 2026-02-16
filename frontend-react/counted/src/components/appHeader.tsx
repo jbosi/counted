@@ -11,11 +11,11 @@ export interface AppHeaderProps extends Pick<DropdownButtonProps, 'onDelete' | '
 export function AppHeader({ title, onEdit, onDelete, backButtonRoute, hideDropdown }: AppHeaderProps) {
 	return (
 		<div className="navbar px-0">
-			<div className="navbar-start pl-4">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
+			<div className="navbar-start">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
 			<div className="navbar-center">
 				<h1 className="text-xl font-bold truncate">{title ?? <Loading />}</h1>
 			</div>
-			<div className="navbar-end pr-4">
+			<div className="navbar-end">
 				{hideDropdown ? (
 					<></>
 				) : (

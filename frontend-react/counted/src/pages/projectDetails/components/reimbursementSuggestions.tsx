@@ -46,7 +46,7 @@ interface ReimbursementSuggestionsItemProps {
 
 function ReimbursementSuggestionsItem({ debtor, payer, amount }: ReimbursementSuggestionsItemProps) {
 	return (
-		<li className="grid reimbursement-list counted-listItems">
+		<li className="grid reimbursement-list counted-listItems shadow-sm">
 			<div className="flex flex-row gap-1.5 items-center">
 				<Avatar name={debtor.name} size="w-8" />
 				<RightArrowIcon />

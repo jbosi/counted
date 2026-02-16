@@ -2,6 +2,7 @@ import { useContext, useRef, useState } from 'react';
 import { AppHeader } from '../../components/appHeader';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
+import { useTotalDebts } from '../../hooks/useExpenses';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
 
@@ -9,6 +10,7 @@ export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
+	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const openModal = () => {
@@ -40,8 +42,8 @@ export function Projects() {
 					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>
 				</div>
 				<div className="stat">
-					<div className="stat-title">Dépenses Totales</div>
-					<div className="stat-value">? €</div>
+					<div className="stat-title">Total de mes dettes</div>
+					<div className="stat-value">{totalDebts != null ? `${totalDebts.toFixed(2)} €` : '...'}</div>
 				</div>
 			</div>
 			<div className="space-y-4">

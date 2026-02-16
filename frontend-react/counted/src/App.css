@@ -59,10 +59,21 @@ dialog {
 	gap: calc(var(--spacing) * 1); /* gap-1 */
 }
 
-.counted-list-items {
+.counted-listItems {
 	align-items: center;
 	gap: calc(var(--spacing) * 3); /* gap-3 */
 	padding: calc(var(--spacing) * 2); /* p-2 */
 	background-color: var(--color-base-100); /* bg-base-100 */
 	border-radius: var(--radius-lg); /* rounded-lg */
+}
+
+.counted-listItems-hover {
+	&:hover {
+		background-color: var(--color-base-300); /* bg-base-300 */
+		/* transition-colors */
+		transition-property:
+			color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+		transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+		transition-duration: var(--tw-duration, var(--default-transition-duration));
+	}
 }

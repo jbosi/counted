@@ -11,16 +11,16 @@ export interface AppHeaderProps extends Pick<DropdownButtonProps, 'onDelete' | '
 export function AppHeader({ title, onEdit, onDelete, backButtonRoute, hideDropdown }: AppHeaderProps) {
 	return (
 		<div className="navbar px-0">
-			<div className="navbar-start">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
+			<div className="navbar-start pl-4">{backButtonRoute !== undefined ? <BackButtonArrow backButtonRoute={backButtonRoute} /> : <></>}</div>
 			<div className="navbar-center">
 				<h1 className="text-xl font-bold truncate">{title ?? <Loading />}</h1>
 			</div>
-			<div className="navbar-end">
+			<div className="navbar-end pr-4">
 				{hideDropdown ? (
 					<></>
 				) : (
 					<DropdownButton id="AppHeaderId" onEdit={onEdit} onDelete={onDelete}>
-						<svg className={'w-6 h-6'} fill={'none'} stroke={'currentColor'} strokeWidth={'2'} strokeLinecap={'round'} strokeLinejoin={'round'} viewBox={'0 0 24 24'}>
+						<svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
 							<path d="M3 12h18M3 6h18M3 18h18"></path>
 						</svg>
 					</DropdownButton>

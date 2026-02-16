@@ -134,19 +134,41 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<div className="dropdown dropdown-end self-end">
-								<div tabIndex={0} role="button" className="btn btn-ghost btn-sm btn-circle">
-									<SettingsIcon />
-								</div>
-								<div tabIndex={0} className="dropdown-content bg-base-200 rounded-box z-10 w-52 p-3 shadow flex flex-col gap-2">
-									<label className="label cursor-pointer justify-between gap-2">
-										<span className="text-sm">Mes paiements</span>
-										<input type="checkbox" className="toggle toggle-sm" checked={showMyPayments} onChange={(e) => setShowMyPayments(e.target.checked)} />
-									</label>
-									<label className="label cursor-pointer justify-between gap-2">
-										<span className="text-sm">Mes dettes</span>
-										<input type="checkbox" className="toggle toggle-sm" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
-									</label>
+							<div className="dropdown dropdown-end self-end pr-4">
+								<div className="dropdown dropdown-end self-end">
+									<button
+										role="button"
+										className="btn btn-ghost btn-circle"
+										popoverTarget="popover-settings"
+										style={{ anchorName: '--anchor-settings' }}
+										onClick={(e) => e.stopPropagation()}
+									>
+										<SettingsIcon />
+									</button>
+									<ul
+										className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
+										popover="auto"
+										id="popover-settings"
+										style={{ positionAnchor: '--anchor-settings' }}
+									>
+										<li>
+											<label className="label cursor-pointer justify-between gap-2">
+												<span className="text-sm">Mes paiements</span>
+												<input
+													type="checkbox"
+													className="toggle toggle-sm toggle-primary"
+													checked={showMyPayments}
+													onChange={(e) => setShowMyPayments(e.target.checked)}
+												/>
+											</label>
+										</li>
+										<li>
+											<label className="label cursor-pointer justify-between gap-2">
+												<span className="text-sm">Mes dettes</span>
+												<input type="checkbox" className="toggle toggle-sm toggle-primary" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
+											</label>
+										</li>
+									</ul>
 								</div>
 							</div>
 							<ExpenseList expenses={filteredExpenses} />

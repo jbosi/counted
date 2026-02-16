@@ -14,29 +14,27 @@ export function ReimbursementSuggestions({ reimbursementSuggestions, users }: Re
 	}
 
 	return (
-		<>
-			<ul className="list bg-base-100 rounded-box shadow-md">
-				{reimbursementSuggestions
-					.map((reimbursementSuggestions) => {
-						const debtor = users?.find((u) => u.id === reimbursementSuggestions.userIdDebtor);
-						const payer = users?.find((u) => u.id === reimbursementSuggestions.userIdPayer);
+		<ul className="flex flex-col gap-1">
+			{reimbursementSuggestions
+				.map((reimbursementSuggestions) => {
+					const debtor = users?.find((u) => u.id === reimbursementSuggestions.userIdDebtor);
+					const payer = users?.find((u) => u.id === reimbursementSuggestions.userIdPayer);
 
-						return {
-							debtor,
-							payer,
-							reimbursementSuggestions,
-						};
-					})
-					.sort((a, b) => (a.debtor?.name ?? '').localeCompare(b.debtor?.name ?? ''))
-					.map((result, index) => {
-						if (!result.debtor || !result.payer) {
-							return null;
-						}
+					return {
+						debtor,
+						payer,
+						reimbursementSuggestions,
+					};
+				})
+				.sort((a, b) => (a.debtor?.name ?? '').localeCompare(b.debtor?.name ?? ''))
+				.map((result, index) => {
+					if (!result.debtor || !result.payer) {
+						return null;
+					}
 
-						return <ReimbursementSuggestionsItem amount={result.reimbursementSuggestions.amount} debtor={result.debtor} payer={result.payer} key={index} />;
-					})}
-			</ul>
-		</>
+					return <ReimbursementSuggestionsItem amount={result.reimbursementSuggestions.amount} debtor={result.debtor} payer={result.payer} key={index} />;
+				})}
+		</ul>
 	);
 }
 
@@ -48,27 +46,18 @@ interface ReimbursementSuggestionsItemProps {
 
 function ReimbursementSuggestionsItem({ debtor, payer, amount }: ReimbursementSuggestionsItemProps) {
 	return (
-		<>
-			<li className="list-row reimbursement-list">
-				<div className="flex flex-row gap-1.5 items-center">
-					<div>
-						<Avatar name={debtor.name} size={'w-8'} />
-					</div>
-					<div>
-						{' '}
-						<RightArrowIcon />
-					</div>
-					<div>
-						<Avatar name={payer.name} size={'w-8'} />
-					</div>
-				</div>
+		<li className="reimbursement-list grid items-center gap-3 p-2 bg-base-100 rounded-lg">
+			<div className="flex flex-row gap-1.5 items-center">
+				<Avatar name={debtor.name} size="w-8" />
+				<RightArrowIcon />
+				<Avatar name={payer.name} size="w-8" />
+			</div>
+			<div>
 				<div>
-					<div>
-						{debtor.name} doit à {payer.name}
-					</div>
-					<div className="text-xs uppercase font-semibold opacity-60">{amount} €</div>
+					{debtor.name} doit à {payer.name}
 				</div>
-			</li>
-		</>
+				<div className="text-xs uppercase font-semibold opacity-60">{amount} €</div>
+			</div>
+		</li>
 	);
 }

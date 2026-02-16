@@ -230,23 +230,21 @@ function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
 		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
 
 		return (
-			<>
-				<ul className="flex flex-col gap-3">
-					{Object.entries(summary)
-						.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
-						.map(([userIdStr, amount]) => {
-							const userId = Number(userIdStr);
-							const user = users?.find((u) => u.id === userId);
-							if (!user) {
-								return null;
-							}
+			<ul className="flex flex-col gap-1">
+				{Object.entries(summary)
+					.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
+					.map(([userIdStr, amount]) => {
+						const userId = Number(userIdStr);
+						const user = users?.find((u) => u.id === userId);
+						if (!user) {
+							return null;
+						}
 
-							return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-						})}
-					{usersWithoutExpense.length > 0 &&
-						usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)}
-				</ul>
-			</>
+						return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
+					})}
+				{usersWithoutExpense.length > 0 &&
+					usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)}
+			</ul>
 		);
 	})();
 }

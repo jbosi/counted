@@ -16,7 +16,7 @@ export function ExpenseBarChartComponent(props: ExpenseBarChartProps) {
 	const width: number = Math.max((Math.abs(summaryAmount) * 100.0) / maxAmount, 2);
 
 	return (
-		<li className="grid expenseBarChart-row">
+		<li className="grid expenseBarChart-row items-center gap-3 p-2 bg-base-100 rounded-lg">
 			<Avatar name={props.user.name} size="w-8" />
 			<span className="self-center text-sm ml-1 text-left">{props.user.name}</span>
 			<div className="self-center w-20 text-left ml-1">

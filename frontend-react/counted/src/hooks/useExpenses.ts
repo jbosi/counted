@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { expensesService } from '../services/expensesService';
 import { projectsService } from '../services/projectsService';
 import type { CreatableExpense, EditableExpense, Expense } from '../types/expenses.model';
-import { expensesService } from '../services/expensesService';
+import type { CountedLocalStorageProject } from '../types/localStorage.model';
 
 export function useExpensesByProjectId(projectId: string) {
 	return useQuery({
@@ -25,6 +26,37 @@ export function useExpenseSummary(projectId: string) {
 		queryKey: ['expenses', 'summary', projectId],
 		queryFn: () => projectsService.getExpensesSummaryByProjectId(projectId),
 	});
+}
+
+export function useTotalDebts(projects: CountedLocalStorageProject[]) {
+	const summaryQueries = useQueries({
+		queries: projects.map((p) => ({
+			queryKey: ['expenses', 'summary', p.projectId],
+			queryFn: () => projectsService.getExpensesSummaryByProjectId(p.projectId),
+			refetchOnWindowFocus: false,
+			enabled: projects.length > 0,
+		})),
+	});
+
+	const isLoading = summaryQueries.some((q) => q.isLoading);
+
+	if (isLoading) {
+		return { totalDebts: null, isLoading };
+	}
+
+	const totalDebts = projects.reduce((total, project, index) => {
+		const summary = summaryQueries[index]?.data?.summary;
+
+		if (!summary || project.userId == null) {
+			return total;
+		}
+
+		const balance = summary[project.userId] ?? 0;
+
+		return balance < 0 ? total + balance : total;
+	}, 0);
+
+	return { totalDebts: Math.abs(totalDebts), isLoading };
 }
 
 export function useAddExpense() {

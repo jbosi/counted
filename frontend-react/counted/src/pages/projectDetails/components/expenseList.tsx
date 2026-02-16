@@ -1,4 +1,4 @@
-import type { Expense } from '../types/expenses.model';
+import type { Expense } from '../../../types/expenses.model';
 import { ExpenseItem } from './expenseItem';
 
 export interface ExpenseListProps {

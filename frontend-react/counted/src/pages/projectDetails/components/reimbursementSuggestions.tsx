@@ -1,7 +1,7 @@
-import { Avatar } from '../../components/avatar';
-import { RightArrowIcon } from '../../shared/icons/righArrowIcon';
-import type { ReimbursementSuggestion } from '../../types/summary.model';
-import type { User } from '../../types/users.model';
+import { Avatar } from '../../../components/avatar';
+import { RightArrowIcon } from '../../../shared/icons/righArrowIcon';
+import type { ReimbursementSuggestion } from '../../../types/summary.model';
+import type { User } from '../../../types/users.model';
 
 interface ReimbursementSuggestionsProps {
 	reimbursementSuggestions: ReimbursementSuggestion[] | undefined;

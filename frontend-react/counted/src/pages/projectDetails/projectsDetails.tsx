@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
-import { ExpenseList } from '../../components/expenseList';
 import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
@@ -12,14 +11,13 @@ import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useProject } from '../../hooks/useProjects';
-import { SettingsIcon } from '../../shared/icons/settingsIcon';
-import type { ProjectSummary } from '../../types/summary.model';
-import type { User } from '../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
-import { ExpenseBarChartComponent } from '../expenses/expensesBarChart';
-import { ExpensesUserSection } from '../expenses/expensesUserSection';
-import { ReimbursementSuggestions } from './reimbursementSuggestions';
+import { ExpensesUserSection } from './components/expensesUserSection';
+import { ExpenseDropdownSettings } from './components/expenseDropdownSettings';
+import { ExpenseList } from './components/expenseList';
+import { ProjectSummary } from './components/projectSummary';
+import { ReimbursementSuggestions } from './components/reimbursementSuggestions';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -134,43 +132,7 @@ export const ProjectDetails = () => {
 
 					{activeTab === 'ExpensesList' ? (
 						<>
-							<div className="dropdown dropdown-end self-end">
-								<div className="dropdown dropdown-end self-end">
-									<button
-										role="button"
-										className="btn btn-ghost btn-circle"
-										popoverTarget="popover-settings"
-										style={{ anchorName: '--anchor-settings' }}
-										onClick={(e) => e.stopPropagation()}
-									>
-										<SettingsIcon />
-									</button>
-									<ul
-										className="dropdown menu w-52 rounded-box bg-base-100 shadow-sm"
-										popover="auto"
-										id="popover-settings"
-										style={{ positionAnchor: '--anchor-settings' }}
-									>
-										<li>
-											<label className="label cursor-pointer justify-between gap-2">
-												<span className="text-sm">Mes paiements</span>
-												<input
-													type="checkbox"
-													className="toggle toggle-sm toggle-primary"
-													checked={showMyPayments}
-													onChange={(e) => setShowMyPayments(e.target.checked)}
-												/>
-											</label>
-										</li>
-										<li>
-											<label className="label cursor-pointer justify-between gap-2">
-												<span className="text-sm">Mes dettes</span>
-												<input type="checkbox" className="toggle toggle-sm toggle-primary" checked={showMyDebts} onChange={(e) => setShowMyDebts(e.target.checked)} />
-											</label>
-										</li>
-									</ul>
-								</div>
-							</div>
+							<ExpenseDropdownSettings showMyDebtsState={[showMyDebts, setShowMyDebts]} showMyPaymentsState={[showMyPayments, setShowMyPayments]} />
 							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && (
@@ -196,9 +158,7 @@ export const ProjectDetails = () => {
 							)}
 						</>
 					) : activeTab === 'ReimbursementSuggestions' ? (
-						<>
-							<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
-						</>
+						<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
 					) : (
 						<ProjectSummary projectSummary={projectSummary.data} users={users} />
 					)}
@@ -211,40 +171,3 @@ export const ProjectDetails = () => {
 		</div>
 	);
 };
-
-interface ProjectSummaryProps {
-	projectSummary: ProjectSummary | undefined;
-	users: User[];
-}
-
-function ProjectSummary({ projectSummary, users }: ProjectSummaryProps) {
-	if (projectSummary === undefined) {
-		return <></>;
-	}
-
-	const summary = projectSummary.summary;
-
-	const usersWithoutExpense: User[] = users.filter((u) => !Object.entries(summary)?.some((s) => u.id === Number(s?.[0])));
-
-	return (() => {
-		const maxAmount = Math.max(...Object.values(summary).map((v) => Math.abs(v)), 1);
-
-		return (
-			<ul className="flex flex-col gap-1">
-				{Object.entries(summary)
-					.sort(([_, amount1], [__, amount2]) => amount1 - amount2)
-					.map(([userIdStr, amount]) => {
-						const userId = Number(userIdStr);
-						const user = users?.find((u) => u.id === userId);
-						if (!user) {
-							return null;
-						}
-
-						return <ExpenseBarChartComponent key={userId} user={user} summaryAmount={amount} maxAmount={maxAmount} />;
-					})}
-				{usersWithoutExpense.length > 0 &&
-					usersWithoutExpense.map((user) => <ExpenseBarChartComponent key={user.id} user={user} summaryAmount={0} maxAmount={maxAmount} />)}
-			</ul>
-		);
-	})();
-}

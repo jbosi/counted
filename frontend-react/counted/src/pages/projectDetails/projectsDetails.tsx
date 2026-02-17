@@ -10,7 +10,7 @@ import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
-import { useProject } from '../../hooks/useProjects';
+import { useDeleteProject, useProject } from '../../hooks/useProjects';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
 import { ExpensesUserSection } from './components/expensesUserSection';
@@ -32,6 +32,7 @@ export const ProjectDetails = () => {
 	const { data: expenses } = useExpensesByProjectId(projectId);
 	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
+	const { mutate: deleteProject } = useDeleteProject();
 
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
@@ -90,7 +91,12 @@ export const ProjectDetails = () => {
 		<div className="overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
-					<AppHeader onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} title={project.data?.name ?? ''} backButtonRoute=".." />
+					<AppHeader
+						onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)}
+						title={project.data?.name ?? ''}
+						backButtonRoute=".."
+						onDelete={() => deleteProject(projectId)}
+					/>
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
 					)}

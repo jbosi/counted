@@ -47,11 +47,7 @@ export function Projects() {
 				</div>
 			</div>
 			<div className="space-y-4">
-				{!projects ? (
-					<div className="m-2">Vous n'avez aucun projet</div>
-				) : (
-					projects.map((project) => <ProjectItem key={project.id} project={project} currentReimbursements={0} totalReimbursements={0} />)
-				)}
+				{!projects ? <div className="m-2">Vous n'avez aucun projet</div> : projects.map((project) => <ProjectItem key={project.id} project={project} />)}
 			</div>
 
 			<button type="button" className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary" onClick={() => openModal()}>

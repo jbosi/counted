@@ -9,11 +9,9 @@ import { DropdownButton } from './components/dropdown';
 
 export interface ProjectProps {
 	project: ProjectDto;
-	currentReimbursements: number;
-	totalReimbursements: number;
 }
 
-export function ProjectItem({ currentReimbursements: currentReimbursements, totalReimbursements: totalReimbursements, project }: ProjectProps) {
+export function ProjectItem({ project }: ProjectProps) {
 	const { data: users, error, isLoading } = useUsersByProjectId(project.id);
 	const { mutate } = useDeleteProject();
 

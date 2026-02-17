@@ -1,5 +1,6 @@
 import { useContext, useRef, useState } from 'react';
 import { AppHeader } from '../../components/appHeader';
+import { ImportTricountModal } from '../../components/modals/import/importTricountModal';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useTotalDebts } from '../../hooks/useExpenses';
@@ -8,10 +9,12 @@ import { ProjectItem } from './projectItem';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
+	const importDialogRef = useRef<HTMLDialogElement>(null);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
 	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
 	const openModal = () => {
 		setIsModalOpen(true);
@@ -23,6 +26,18 @@ export function Projects() {
 	const closeModal = () => {
 		setIsModalOpen(false);
 		dialogRef.current?.close();
+	};
+
+	const openImportModal = () => {
+		setIsImportModalOpen(true);
+		setTimeout(() => {
+			importDialogRef.current?.showModal();
+		}, 100);
+	};
+
+	const closeImportModal = () => {
+		setIsImportModalOpen(false);
+		importDialogRef.current?.close();
 	};
 
 	if (isLoading) {
@@ -54,11 +69,17 @@ export function Projects() {
 				)}
 			</div>
 
-			<button type="button" className="btn btn-circle btn-lg self-center sticky mt-3 bottom-5 btn-primary" onClick={() => openModal()}>
-				+
-			</button>
+			<div className="flex gap-2 sticky mt-3 bottom-5 self-center">
+				<button type="button" className="btn btn-circle btn-lg btn-primary" onClick={() => openModal()}>
+					+
+				</button>
+				<button type="button" className="btn btn-lg btn-secondary" onClick={() => openImportModal()}>
+					Importer Tricount
+				</button>
+			</div>
 
 			{isModalOpen && <AddProjectModal dialogRef={dialogRef} modalId={'AddProjectModal'} closeDialogFn={closeModal} />}
+			{isImportModalOpen && <ImportTricountModal dialogRef={importDialogRef} modalId={'ImportTricountModal'} closeDialogFn={closeImportModal} />}
 		</div>
 	);
 }

@@ -4,5 +4,6 @@ pub mod expenses;
 pub mod payments;
 pub mod projects;
 pub mod sse;
+pub mod tricount;
 pub mod users;
 mod utils;

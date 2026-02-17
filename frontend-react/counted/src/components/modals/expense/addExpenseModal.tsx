@@ -1,14 +1,14 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAddExpense } from '../../../hooks/useExpenses';
-import { ExpenseTypeConst, type CreatableExpense, type ExpenseType } from '../../../types/expenses.model';
-import type { User } from '../../../types/users.model';
-import { ErrorValidationCallout } from '../../errorCallout';
-import { getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
-import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { useAddExpense } from '../../../hooks/useExpenses';
+import { type CreatableExpense, type ExpenseType } from '../../../types/expenses.model';
+import type { User } from '../../../types/users.model';
+import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
+import { ErrorValidationCallout } from '../../errorCallout';
+import { expenseFormSchema, getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -18,30 +18,7 @@ export interface AddExpenseModalProps {
 	closeDialogFn: () => void;
 }
 
-const userSchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	balance: z.number().nullish(),
-	created_at: z.string().nullish(),
-});
-
-const CheckboxFormSchema = z.object({
-	amount: z.number().min(0),
-	isChecked: z.boolean(),
-	user: userSchema,
-});
-
-const formSchema = z.object({
-	name: z.string().min(2).max(100),
-	description: z.string().max(200).optional(),
-	totalAmount: z.number().min(0.01).max(100000),
-	type: z.enum(ExpenseTypeConst),
-	date: z.string().min(1, 'La date est requise'),
-	payers: z.array(CheckboxFormSchema).min(1),
-	debtors: z.array(CheckboxFormSchema).min(1),
-});
-
-export type AddExpenseModalForm = z.infer<typeof formSchema>;
+export type AddExpenseModalForm = z.infer<typeof expenseFormSchema>;
 type FormCheckbox = AddExpenseModalForm['payers'][number];
 
 interface FormCheckboxProps {
@@ -91,7 +68,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 		control,
 	} = useForm<AddExpenseModalForm>({
 		defaultValues: defaultValues,
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(expenseFormSchema),
 	});
 
 	const expenseType = useWatch({

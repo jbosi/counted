@@ -94,7 +94,12 @@ export const ProjectDetails = () => {
 			{project.data ? (
 				<>
 					<AppHeader title={project.data?.name ?? ''} backButtonRoute="..">
-						<DropdownAction id="AppHeaderId" onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} icon={<BurgerIcon />} onDelete={() => deleteProject(projectId)} />
+						<DropdownAction
+							id="AppHeaderId"
+							onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)}
+							icon={<BurgerIcon />}
+							onDelete={() => deleteProject(projectId)}
+						/>
 					</AppHeader>
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
@@ -122,15 +127,19 @@ export const ProjectDetails = () => {
 					<SummaryCard projectId={projectId} globalTotal={globalTotal()} />
 
 					<div role="tablist" className="tabs tabs-box justify-between bg-base-300">
-						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
+						<a role="tab" className={`tab text-xs ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
 							Dépenses
 						</a>
 
-						<a role="tab" className={`tab ${activeTab === 'Summary' ? 'tab-active' : ''}`} onClick={() => setActiveTab('Summary')}>
+						<a role="tab" className={`tab text-xs ${activeTab === 'Summary' ? 'tab-active' : ''}`} onClick={() => setActiveTab('Summary')}>
 							Equilibre
 						</a>
 
-						<a role="tab" className={`tab ${activeTab === 'ReimbursementSuggestions' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ReimbursementSuggestions')}>
+						<a
+							role="tab"
+							className={`tab text-xs ${activeTab === 'ReimbursementSuggestions' ? 'tab-active' : ''}`}
+							onClick={() => setActiveTab('ReimbursementSuggestions')}
+						>
 							Remboursements
 						</a>
 					</div>

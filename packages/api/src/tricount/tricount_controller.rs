@@ -7,7 +7,9 @@ use shared::{ProjectDto, User};
 use std::collections::HashMap;
 
 #[cfg(feature = "server")]
-use shared::{CreatableExpense, CreatableProject, CreatableUser, ExpenseType, NewPayment, UserAmount};
+use shared::{
+    CreatableExpense, CreatableProject, CreatableUser, ExpenseType, NewPayment, UserAmount,
+};
 
 #[cfg(feature = "server")]
 use super::tricount_client;
@@ -40,10 +42,10 @@ pub async fn import_tricount(
 ) -> Result<TricountImportResponse, ServerFnError> {
     let key = tricount_client::extract_tricount_key(&payload.tricount_key);
 
-    // 1. Fetch from Tricount API
+    // Fetch from Tricount API
     let registry = tricount_client::fetch_tricount(&key).await?;
 
-    // 2. Create project
+    // Create project
     let project_id = projects_repository::add_project(CreatableProject {
         name: registry.title.clone(),
         description: Some("Imported from Tricount".to_string()),
@@ -51,31 +53,24 @@ pub async fn import_tricount(
     })
     .await?;
 
-    // 3. Extract members and create users
-    let members: Vec<_> = registry
-        .memberships
-        .iter()
-        .filter_map(|m| m.non_user.as_ref())
-        .collect();
+    // Extract members and create users
+    let members: Vec<_> = registry.memberships.iter().filter_map(|m| m.non_user.as_ref()).collect();
 
     let creatable_users: Vec<CreatableUser> = members
         .iter()
-        .map(|m| CreatableUser {
-            name: m.alias.display_name.clone(),
-            project_id,
-        })
+        .map(|m| CreatableUser { name: m.alias.display_name.clone(), project_id })
         .collect();
 
     let created_users = users_repository::add_users(creatable_users).await?;
 
-    // 4. Build UUID -> user_id mapping
+    // Build UUID -> user_id mapping
     let uuid_to_user_id: HashMap<String, i32> = members
         .iter()
         .zip(created_users.iter())
         .map(|(membership, user)| (membership.uuid.clone(), user.id))
         .collect();
 
-    // 5. Create expenses and payments
+    // Create expenses and payments
     let mut expenses_count = 0;
 
     for entry_wrapper in &registry.all_registry_entry {
@@ -111,10 +106,7 @@ pub async fn import_tricount(
                 let uuid = alloc["membership"]["RegistryMembershipNonUser"]["uuid"].as_str()?;
                 let uid = uuid_to_user_id.get(uuid)?;
                 let amt: f64 = alloc["amount"]["value"].as_str()?.parse().ok()?;
-                Some(UserAmount {
-                    user_id: *uid,
-                    amount: amt.abs(),
-                })
+                Some(UserAmount { user_id: *uid, amount: amt.abs() })
             })
             .collect();
 
@@ -176,14 +168,9 @@ pub async fn import_tricount(
         expenses_count += 1;
     }
 
-    // 6. Return response
     let project = projects_repository::get_project(project_id).await?;
 
-    Ok(TricountImportResponse {
-        project,
-        users: created_users,
-        expenses_count,
-    })
+    Ok(TricountImportResponse { project, users: created_users, expenses_count })
 }
 
 fn parse_tricount_date(s: &str) -> Option<chrono::NaiveDate> {

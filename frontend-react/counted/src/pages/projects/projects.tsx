@@ -1,46 +1,29 @@
 import { useContext, useRef, useState } from 'react';
 import { AppHeader } from '../../components/appHeader';
+import { Dropdown } from '../../components/dropdowns/dropdown';
 import { ImportTricountModal } from '../../components/modals/import/importTricountModal';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useTotalDebts } from '../../hooks/useExpenses';
 import { useProjects } from '../../hooks/useProjects';
-import { ProjectItem } from './projectItem';
 import { SettingsIcon } from '../../shared/icons/settingsIcon';
-import { Dropdown } from '../../components/dropdowns/dropdown';
+import { closeDialog, openDialog } from '../../utils/open-dialog';
+import { ProjectItem } from './projectItem';
 
 export function Projects() {
-	const dialogRef = useRef<HTMLDialogElement>(null);
+	const projectDialogRef = useRef<HTMLDialogElement>(null);
 	const importDialogRef = useRef<HTMLDialogElement>(null);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
 	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isModalOpen, setIsProjectDialogOpen] = useState(false);
 	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-	const openModal = () => {
-		setIsModalOpen(true);
-		setTimeout(() => {
-			dialogRef.current?.showModal();
-		}, 100);
-	};
+	const openProjectModal = () => openDialog(setIsProjectDialogOpen, projectDialogRef);
+	const closeProjectModal = () => closeDialog(setIsProjectDialogOpen, projectDialogRef);
 
-	const closeModal = () => {
-		setIsModalOpen(false);
-		dialogRef.current?.close();
-	};
-
-	const openImportModal = () => {
-		setIsImportModalOpen(true);
-		setTimeout(() => {
-			importDialogRef.current?.showModal();
-		}, 100);
-	};
-
-	const closeImportModal = () => {
-		setIsImportModalOpen(false);
-		importDialogRef.current?.close();
-	};
+	const openImportModal = () => openDialog(setIsImportModalOpen, importDialogRef);
+	const closeImportModal = () => closeDialog(setIsImportModalOpen, importDialogRef);
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -80,12 +63,12 @@ export function Projects() {
 			</div>
 
 			<div className="flex gap-2 sticky mt-3 bottom-5 self-center">
-				<button type="button" className="btn btn-circle btn-lg btn-primary" onClick={() => openModal()}>
+				<button type="button" className="btn btn-circle btn-lg btn-primary" onClick={() => openProjectModal()}>
 					+
 				</button>
 			</div>
 
-			{isModalOpen && <AddProjectModal dialogRef={dialogRef} modalId={'AddProjectModal'} closeDialogFn={closeModal} />}
+			{isModalOpen && <AddProjectModal dialogRef={projectDialogRef} modalId={'AddProjectModal'} closeDialogFn={closeProjectModal} />}
 			{isImportModalOpen && <ImportTricountModal dialogRef={importDialogRef} modalId={'ImportTricountModal'} closeDialogFn={closeImportModal} />}
 		</div>
 	);

@@ -5,15 +5,13 @@ import { EditProjectModal } from '../../components/modals/project/editProjectMod
 import { useDeleteProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import type { ProjectDto } from '../../types/projects.model';
-import { DropdownButton } from './components/dropdown';
+import { DropdownAction } from '../../components/dropdowns/dropdownAction';
 
 export interface ProjectProps {
 	project: ProjectDto;
-	currentReimbursements: number;
-	totalReimbursements: number;
 }
 
-export function ProjectItem({ currentReimbursements: currentReimbursements, totalReimbursements: totalReimbursements, project }: ProjectProps) {
+export function ProjectItem({ project }: ProjectProps) {
 	const { data: users, error, isLoading } = useUsersByProjectId(project.id);
 	const { mutate } = useDeleteProject();
 
@@ -52,9 +50,7 @@ export function ProjectItem({ currentReimbursements: currentReimbursements, tota
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{project.name}</h2>
-						<DropdownButton id={project.id} onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()}>
-							...
-						</DropdownButton>
+						<DropdownAction id={project.id} onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()} icon={<>...</>} />
 						{isProjectDialogOpen && (
 							<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project} users={users ?? []} closeDialogFn={closeProjectDialog} />
 						)}

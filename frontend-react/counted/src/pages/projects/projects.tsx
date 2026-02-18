@@ -6,6 +6,8 @@ import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useTotalDebts } from '../../hooks/useExpenses';
 import { useProjects } from '../../hooks/useProjects';
 import { ProjectItem } from './projectItem';
+import { SettingsIcon } from '../../shared/icons/settingsIcon';
+import { Dropdown } from '../../components/dropdowns/dropdown';
 
 export function Projects() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
@@ -50,7 +52,15 @@ export function Projects() {
 
 	return (
 		<div className="container overflow-auto app-container p-4">
-			<AppHeader title="Counted" hideDropdown={true} />
+			<AppHeader title="Counted">
+				<Dropdown id="AppHeaderId" icon={<SettingsIcon />}>
+					<li>
+						<button type="button" className="btn btn-ghost" onClick={() => openImportModal()}>
+							Importer depuis Tricount
+						</button>
+					</li>
+				</Dropdown>
+			</AppHeader>
 			<div className="stats shadow overflow-visible">
 				<div className="stat">
 					<div className="stat-title">Nombre de Projets</div>
@@ -63,18 +73,15 @@ export function Projects() {
 			</div>
 			<div className="space-y-4">
 				{!projects ? (
-					<div className="m-2">Vous n'avez aucun projet</div>
+					<div className="m-2">Ajoutez un projet en cliquant sur le bouton ci dessous</div>
 				) : (
-					projects.map((project) => <ProjectItem key={project.id} project={project} currentReimbursements={0} totalReimbursements={0} />)
+					projects.map((project) => <ProjectItem key={project.id} project={project} />)
 				)}
 			</div>
 
 			<div className="flex gap-2 sticky mt-3 bottom-5 self-center">
 				<button type="button" className="btn btn-circle btn-lg btn-primary" onClick={() => openModal()}>
 					+
-				</button>
-				<button type="button" className="btn btn-lg btn-secondary" onClick={() => openImportModal()}>
-					Importer Tricount
 				</button>
 			</div>
 

@@ -10,6 +10,8 @@ import { usePaymentsByExpenseId } from '../../hooks/usePayments';
 import type { Expense, ExpenseType } from '../../types/expenses.model';
 import type { PaymentViewModel } from '../../types/payments.model';
 import type { User } from '../../types/users.model';
+import { DropdownAction } from '../../components/dropdowns/dropdownAction';
+import { BurgerIcon } from '../../shared/icons/burgerIcon';
 
 export function PaymentPage() {
 	const { expenseId, projectId } = useParams<string>();
@@ -40,7 +42,9 @@ export function PaymentPage() {
 
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">
-			<AppHeader title={expense?.name} backButtonRoute=".." onDelete={onDeleteExpense} onEdit={() => openModal()} />
+			<AppHeader title={expense?.name} backButtonRoute="..">
+				<DropdownAction id="AppHeaderId" onEdit={() => openModal()} onDelete={onDeleteExpense} icon={<BurgerIcon />} />
+			</AppHeader>
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">
 				{expense == null || projectUsers == null ? (
 					<Loading />

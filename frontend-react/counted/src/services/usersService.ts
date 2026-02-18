@@ -1,7 +1,7 @@
 import { httpClient } from '../shared';
 import type { CreatableUser, User } from '../types/users.model';
 
-const API_BASE = '/api/users';
+const API_BASE = '/api/v1/users';
 
 export const usersService = {
 	async createUsersAsync(creatableUsers: CreatableUser[]): Promise<User[]> {

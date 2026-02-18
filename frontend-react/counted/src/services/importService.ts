@@ -14,6 +14,6 @@ export interface TricountImportResponse {
 
 export const importService = {
 	async importTricount(request: TricountImportRequest): Promise<TricountImportResponse> {
-		return httpClient.post('/api/import/tricount', request);
+		return httpClient.post('/api/v1/import/tricount', request);
 	},
 };

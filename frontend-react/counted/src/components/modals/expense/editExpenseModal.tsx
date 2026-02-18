@@ -60,7 +60,6 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 		debtors: initialDebtorsFormCheckBoxValues,
 		totalAmount: expense.amount,
 		name: expense.name,
-		description: expense.description ?? '',
 		type: expense.expenseType,
 		date: expense.date,
 	};
@@ -125,9 +124,6 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							<label className="label">Nom</label>
 							<input className="input w-full" {...register('name')} />
 							{errors.name && <span>Ce champ est requis</span>}
-
-							<label className="label">Description</label>
-							<input className="input w-full" {...register('description')} />
 
 							<label className="label">Date</label>
 							<input className="input w-full" type="date" {...register('date')} />

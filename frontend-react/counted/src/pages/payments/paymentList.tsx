@@ -42,7 +42,7 @@ export function PaymentPage() {
 
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">
-			<AppHeader title={expense?.name} backButtonRoute="..">
+			<AppHeader title={expense?.name} date={expense?.date} backButtonRoute="..">
 				<DropdownAction id="AppHeaderId" onEdit={() => openModal()} onDelete={onDeleteExpense} icon={<BurgerIcon />} />
 			</AppHeader>
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">

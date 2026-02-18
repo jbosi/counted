@@ -21,7 +21,7 @@ export const getDebtorsFieldLabel = (expenseType: ExpenseType) => {
 			return 'Vers qui ?';
 		case 'Expense':
 		default:
-			return 'Qui doit rembourser ?';
+			return 'Pour qui ?';
 	}
 };
 

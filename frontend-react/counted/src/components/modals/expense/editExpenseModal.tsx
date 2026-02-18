@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useMemo, type RefObject } from 'react';
-import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import * as z from 'zod';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { useEditExpense } from '../../../hooks/useExpenses';
@@ -9,7 +9,7 @@ import type { Payment } from '../../../types/payments.model';
 import type { User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
-import { expenseFormSchema } from './helpers/expenseModal.helper';
+import { expenseFormSchema, getDebtorsFieldLabel, getPayersFieldLabel } from './helpers/expenseModal.helper';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -85,6 +85,12 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 
 	const { mutate, isPending, isError, error } = useEditExpense();
 
+	const expenseType = useWatch({
+		control,
+		name: 'type',
+		defaultValue: defaultValues.type,
+	});
+
 	const onSubmit = useCallback(
 		(formValues: EditExpenseModalForm) => {
 			const editableExpense: EditableExpense = {
@@ -149,7 +155,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							</select>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">Qui a payé ?</legend>
+								<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
 								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
 								{payersFields.map((field, index) => (
 									<FormCheckbox
@@ -168,7 +174,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							</fieldset>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">Qui doit rembourser ?</legend>
+								<legend className="fieldset-legend">{getDebtorsFieldLabel(expenseType)}</legend>
 								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox

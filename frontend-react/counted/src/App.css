@@ -3,7 +3,7 @@
 
 #root {
 	height: calc(100vh - 3rem);
-	padding: 2rem;
+	padding: 1rem;
 	text-align: center;
 	max-width: calc(100vw);
 	width: 26rem;
@@ -30,7 +30,7 @@ dialog {
 }
 
 .modal-box {
-	max-height: 95vh;
+	max-height: calc(100vh - 5rem);
 }
 
 .reimbursement-list {

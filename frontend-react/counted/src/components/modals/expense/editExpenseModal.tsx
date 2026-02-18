@@ -1,14 +1,15 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useMemo, type RefObject } from 'react';
 import { useFieldArray, useForm, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useEditExpense } from '../../../hooks/useExpenses';
-import { ExpenseTypeConst, type EditableExpense, type Expense, type ExpenseType } from '../../../types/expenses.model';
-import type { User } from '../../../types/users.model';
-import { ErrorValidationCallout } from '../../errorCallout';
-import type { Payment } from '../../../types/payments.model';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { useEditExpense } from '../../../hooks/useExpenses';
+import { type EditableExpense, type Expense, type ExpenseType } from '../../../types/expenses.model';
+import type { Payment } from '../../../types/payments.model';
+import type { User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
+import { ErrorValidationCallout } from '../../errorCallout';
+import { expenseFormSchema } from './helpers/expenseModal.helper';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -20,30 +21,7 @@ export interface EditExpenseModalProps {
 	closeDialogFn: () => void;
 }
 
-const userSchema = z.object({
-	id: z.number(),
-	name: z.string(),
-	balance: z.number().nullish(),
-	created_at: z.string().nullish(),
-});
-
-const payersAndDebtorsForm = z.object({
-	amount: z.number().min(0),
-	isChecked: z.boolean(),
-	user: userSchema,
-});
-
-const formSchema = z.object({
-	name: z.string().min(2).max(100),
-	description: z.string().max(200).optional(),
-	totalAmount: z.number().min(0.01).max(100000),
-	type: z.enum(ExpenseTypeConst),
-	date: z.string().min(1, 'La date est requise'),
-	payers: z.array(payersAndDebtorsForm).min(1),
-	debtors: z.array(payersAndDebtorsForm).min(1),
-});
-
-export type EditExpenseModalForm = z.infer<typeof formSchema>;
+export type EditExpenseModalForm = z.infer<typeof expenseFormSchema>;
 type FormCheckbox = EditExpenseModalForm['payers'][number];
 
 interface FormCheckboxProps {
@@ -99,7 +77,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 		control,
 	} = useForm<EditExpenseModalForm>({
 		defaultValues: defaultValues,
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(expenseFormSchema),
 	});
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });

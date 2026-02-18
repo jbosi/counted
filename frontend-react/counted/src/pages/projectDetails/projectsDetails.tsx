@@ -10,7 +10,7 @@ import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
-import { useProject } from '../../hooks/useProjects';
+import { useDeleteProject, useProject } from '../../hooks/useProjects';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
 import { ExpensesUserSection } from './components/expensesUserSection';
@@ -34,6 +34,7 @@ export const ProjectDetails = () => {
 	const { data: expenses } = useExpensesByProjectId(projectId);
 	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
+	const { mutate: deleteProject } = useDeleteProject();
 
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
@@ -93,7 +94,7 @@ export const ProjectDetails = () => {
 			{project.data ? (
 				<>
 					<AppHeader title={project.data?.name ?? ''} backButtonRoute="..">
-						<DropdownAction id="AppHeaderId" onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} icon={<BurgerIcon />} />
+						<DropdownAction id="AppHeaderId" onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} icon={<BurgerIcon />} onDelete={() => deleteProject(projectId)} />
 					</AppHeader>
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />

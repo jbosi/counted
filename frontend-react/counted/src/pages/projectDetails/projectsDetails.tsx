@@ -18,6 +18,8 @@ import { ExpenseDropdownSettings } from './components/expenseDropdownSettings';
 import { ExpenseList } from './components/expenseList';
 import { ProjectSummary } from './components/projectSummary';
 import { ReimbursementSuggestions } from './components/reimbursementSuggestions';
+import { DropdownAction } from '../../components/dropdowns/dropdownAction';
+import { BurgerIcon } from '../../shared/icons/burgerIcon';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -91,12 +93,9 @@ export const ProjectDetails = () => {
 		<div className="overflow-auto app-container p-4 max-w-md">
 			{project.data ? (
 				<>
-					<AppHeader
-						onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)}
-						title={project.data?.name ?? ''}
-						backButtonRoute=".."
-						onDelete={() => deleteProject(projectId)}
-					/>
+					<AppHeader title={project.data?.name ?? ''} backButtonRoute="..">
+						<DropdownAction id="AppHeaderId" onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} icon={<BurgerIcon />} onDelete={() => deleteProject(projectId)} />
+					</AppHeader>
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
 					)}

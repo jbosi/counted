@@ -2,7 +2,7 @@ import { httpClient } from '../shared';
 import type { CreatableExpense, EditableExpense, Expense } from '../types/expenses.model';
 import type { Payment } from '../types/payments.model';
 
-const API_BASE = '/api/expenses';
+const API_BASE = '/api/v1/expenses';
 
 export const expensesService = {
 	async createExpenseAsync(creatableExpense: CreatableExpense): Promise<Expense> {

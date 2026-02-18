@@ -5,7 +5,7 @@ import type { Payment } from '../types/payments.model';
 import type { ProjectSummary } from '../types/summary.model';
 import type { User } from '../types/users.model';
 
-const API_BASE = '/api/projects';
+const API_BASE = '/api/v1/projects';
 
 export const projectsService = {
 	async getUsersByProjectIdAsync(project_id: string | undefined): Promise<User[]> {

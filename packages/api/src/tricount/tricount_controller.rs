@@ -36,7 +36,7 @@ pub struct TricountImportResponse {
     pub expenses_count: usize,
 }
 
-#[post("/api/import/tricount")]
+#[post("/api/v1/import/tricount")]
 pub async fn import_tricount(
     Json(payload): Json<TricountImportRequest>,
 ) -> Result<TricountImportResponse, ServerFnError> {

@@ -8,7 +8,7 @@ use crate::expenses::expenses_repository;
 use crate::payments::payments_repository;
 use shared::{CreatableExpense, EditableExpense, Expense, NewPayment, UserAmount};
 
-#[post("/api/expenses")]
+#[post("/api/v1/expenses")]
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
     let created_expense_id = expenses_repository::add_expense(expense.clone()).await?;
 
@@ -35,7 +35,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
     Ok(created_expense)
 }
 
-#[put("/api/expenses")]
+#[put("/api/v1/expenses")]
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
     expenses_repository::edit_expense(expense.clone()).await?;
 
@@ -64,21 +64,21 @@ pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expens
     Ok(updated_expense)
 }
 
-#[get("/api/projects/{project_id}/expenses")]
+#[get("/api/v1/projects/{project_id}/expenses")]
 pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
     let expenses = expenses_repository::get_expenses_by_project_id(project_id).await?;
 
     Ok(expenses)
 }
 
-#[get("/api/expenses/{expense_id}")]
+#[get("/api/v1/expenses/{expense_id}")]
 pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
     let expense = expenses_repository::get_expense_by_id(expense_id).await?;
 
     Ok(expense)
 }
 
-#[delete("/api/expenses/{expense_id}")]
+#[delete("/api/v1/expenses/{expense_id}")]
 pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
     payments_repository::delete_payments_by_expense_id(expense_id).await?;
 

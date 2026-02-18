@@ -11,21 +11,21 @@ use crate::users::users_repository::{delete_users, get_users_by_project_id};
 #[cfg(feature = "server")]
 use crate::projects::projects_repository;
 
-#[get("/api/projects/{project_id}")]
+#[get("/api/v1/projects/{project_id}")]
 pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let projects: ProjectDto = projects_repository::get_project(project_id).await?;
 
     Ok(projects)
 }
 
-#[get("/api/projects")]
+#[get("/api/v1/projects")]
 pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let projects: Vec<ProjectDto> = projects_repository::get_projects().await?;
 
     Ok(projects)
 }
 
-#[post("/api/projects/batch")]
+#[post("/api/v1/projects/batch")]
 pub async fn get_projects_by_ids(
     Json(payload): Json<BatchProject>,
 ) -> Result<Vec<ProjectDto>, ServerFnError> {
@@ -34,7 +34,7 @@ pub async fn get_projects_by_ids(
     Ok(projects)
 }
 
-#[post("/api/projects")]
+#[post("/api/v1/projects")]
 pub async fn add_project(
     Json(creatable_project): Json<CreatableProject>,
 ) -> Result<ProjectDto, ServerFnError> {
@@ -51,7 +51,7 @@ pub async fn add_project(
     Ok(new_project)
 }
 
-#[put("/api/projects")]
+#[put("/api/v1/projects")]
 pub async fn update_project_by_id(
     Json(editable_project): Json<EditableProject>,
 ) -> Result<ProjectDto, ServerFnError> {
@@ -61,7 +61,7 @@ pub async fn update_project_by_id(
     Ok(updated_project)
 }
 
-#[delete("/api/projects/{project_id}")]
+#[delete("/api/v1/projects/{project_id}")]
 pub async fn delete_project_by_id(project_id: Uuid) -> Result<(), ServerFnError> {
     let users_bound_to_project = get_users_by_project_id(project_id)
         .await

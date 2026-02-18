@@ -1,19 +1,14 @@
-import type { ReactNode } from 'react';
-import { Dropdown } from './dropdown';
-
 export interface DropdownActionProps {
-	id: string;
 	onDelete?: () => void;
 	onEdit?: () => void;
-	icon: ReactNode;
 }
 
-export const DropdownAction = ({ id, onDelete, onEdit, icon }: DropdownActionProps) => {
+export const DropdownAction = ({ onDelete, onEdit }: DropdownActionProps) => {
 	return (
-		<Dropdown icon={icon} id={id}>
+		<>
 			<li>
 				<button
-					className="btn btn-ghost"
+					className="btn btn-primary btn-soft"
 					onClick={(e) => {
 						e.stopPropagation();
 						onEdit?.();
@@ -24,7 +19,7 @@ export const DropdownAction = ({ id, onDelete, onEdit, icon }: DropdownActionPro
 			</li>
 			<li>
 				<button
-					className="btn btn-ghost"
+					className="btn btn-error btn-soft"
 					onClick={(e) => {
 						e.stopPropagation();
 						onDelete?.();
@@ -33,6 +28,6 @@ export const DropdownAction = ({ id, onDelete, onEdit, icon }: DropdownActionPro
 					Supprimer
 				</button>
 			</li>
-		</Dropdown>
+		</>
 	);
 };

@@ -6,6 +6,7 @@ import { useDeleteProject } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
 import type { ProjectDto } from '../../types/projects.model';
 import { DropdownAction } from '../../components/dropdowns/dropdownAction';
+import { Dropdown } from '../../components/dropdowns/dropdown';
 
 export interface ProjectProps {
 	project: ProjectDto;
@@ -50,7 +51,9 @@ export function ProjectItem({ project }: ProjectProps) {
 				<div className="card-body">
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{project.name}</h2>
-						<DropdownAction id={project.id} onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()} icon={<>...</>} />
+						<Dropdown id={project.id} icon={<>...</>}>
+							<DropdownAction onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()} />
+						</Dropdown>
 						{isProjectDialogOpen && (
 							<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project} users={users ?? []} closeDialogFn={closeProjectDialog} />
 						)}

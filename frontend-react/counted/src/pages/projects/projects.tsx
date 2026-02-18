@@ -11,17 +11,17 @@ import { closeDialog, openDialog } from '../../utils/open-dialog';
 import { ProjectItem } from './projectItem';
 
 export function Projects() {
-	const projectDialogRef = useRef<HTMLDialogElement>(null);
-	const importDialogRef = useRef<HTMLDialogElement>(null);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
 	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
 	const [isModalOpen, setIsProjectDialogOpen] = useState(false);
 	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
+	const projectDialogRef = useRef<HTMLDialogElement>(null);
 	const openProjectModal = () => openDialog(setIsProjectDialogOpen, projectDialogRef);
 	const closeProjectModal = () => closeDialog(setIsProjectDialogOpen, projectDialogRef);
 
+	const importDialogRef = useRef<HTMLDialogElement>(null);
 	const openImportModal = () => openDialog(setIsImportModalOpen, importDialogRef);
 	const closeImportModal = () => closeDialog(setIsImportModalOpen, importDialogRef);
 

@@ -84,34 +84,33 @@ pub async fn import_tricount(
             None => continue,
         };
 
-        let amount: f64 = entry.amount.value.parse().unwrap_or(0.0);
+        // --- Amount ---
+        // Tricount stores amounts as negative values (debtor perspective) — take abs
+        let amount: f64 = entry["amount"]["value"]
+            .as_str()
+            .and_then(|s| s.parse::<f64>().ok())
+            .unwrap_or(0.0)
+            .abs();
         if amount == 0.0 {
             continue;
         }
 
-        // Find payer UUID from membership_owned
-        let payer_uuid = entry
-            .membership_owned
-            .non_user
-            .as_ref()
-            .map(|m| &m.uuid);
-
-        let payer_id = match payer_uuid {
-            Some(uuid) => match uuid_to_user_id.get(uuid) {
-                Some(id) => *id,
-                None => continue,
-            },
+        // --- Payer ---
+        let payer_uuid = entry["membership_owned"]["RegistryMembershipNonUser"]["uuid"].as_str();
+        let payer_id = match payer_uuid.and_then(|u| uuid_to_user_id.get(u)) {
+            Some(id) => *id,
             None => continue,
         };
 
-        // Build debtors from allocations
-        let debtors: Vec<UserAmount> = entry
-            .allocations
+        // --- Debtors from allocations ---
+        let debtors: Vec<UserAmount> = entry["allocations"]
+            .as_array()
+            .unwrap_or(&vec![])
             .iter()
             .filter_map(|alloc| {
-                let uuid = alloc.membership.non_user.as_ref()?.uuid.as_str();
+                let uuid = alloc["membership"]["RegistryMembershipNonUser"]["uuid"].as_str()?;
                 let uid = uuid_to_user_id.get(uuid)?;
-                let amt: f64 = alloc.amount.value.parse().ok()?;
+                let amt: f64 = alloc["amount"]["value"].as_str()?.parse().ok()?;
                 Some(UserAmount {
                     user_id: *uid,
                     amount: amt.abs(),
@@ -119,31 +118,27 @@ pub async fn import_tricount(
             })
             .collect();
 
-        // Parse date from Tricount's created field
-        let date = entry
-            .created
-            .as_deref()
-            .and_then(|s| {
-                // Try common formats: "2024-01-15 12:00:00" or "2024-01-15"
-                chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
-                    .ok()
-                    .or_else(|| {
-                        chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
-                            .ok()
-                            .map(|dt| dt.date())
-                    })
-            })
+        // --- Date ---
+        // "date" is the user-visible field; fall back to "created".
+        // Format varies — slice first 10 chars ("YYYY-MM-DD") to handle any suffix.
+        let date = ["date", "object_date", "updated", "created"]
+            .iter()
+            .find_map(|field| entry[field].as_str().and_then(parse_tricount_date))
             .unwrap_or_else(|| chrono::Local::now().date_naive());
 
+        // --- Expense type ---
+        // type_transaction="BALANCE" means a reimbursement/transfer between members
+        let expense_type = match entry["type_transaction"].as_str() {
+            Some("BALANCE") => ExpenseType::Transfer,
+            _ => ExpenseType::Expense,
+        };
+
         let creatable_expense = CreatableExpense {
-            name: entry.description.clone(),
+            name: entry["description"].as_str().unwrap_or("").to_string(),
             amount,
-            expense_type: ExpenseType::Expense,
+            expense_type,
             project_id,
-            payers: vec![UserAmount {
-                user_id: payer_id,
-                amount,
-            }],
+            payers: vec![UserAmount { user_id: payer_id, amount }],
             debtors,
             author_id: payer_id,
             description: None,
@@ -153,7 +148,7 @@ pub async fn import_tricount(
         // Create expense in DB
         let expense_id = expenses_repository::add_expense(creatable_expense.clone()).await?;
 
-        // Create payments (same logic as expenses_controller::add_expense)
+        // Create payments (mirrors expenses_controller::add_expense logic)
         let mut payments: Vec<NewPayment> = Vec::new();
 
         for debtor in &creatable_expense.debtors {
@@ -166,7 +161,6 @@ pub async fn import_tricount(
                 });
             }
         }
-
         for payer in &creatable_expense.payers {
             if payer.amount != 0.0 {
                 payments.push(NewPayment {
@@ -190,4 +184,13 @@ pub async fn import_tricount(
         users: created_users,
         expenses_count,
     })
+}
+
+fn parse_tricount_date(s: &str) -> Option<chrono::NaiveDate> {
+    // All bunq/Tricount date strings start with "YYYY-MM-DD".
+    // Slicing the first 10 chars handles every suffix variant:
+    //   "2024-01-15", "2024-01-15 00:00:00", "2024-01-15 00:00:00.000000",
+    //   "2024-01-15T00:00:00+00:00", etc.
+    let prefix = s.get(..10)?;
+    chrono::NaiveDate::parse_from_str(prefix, "%Y-%m-%d").ok()
 }

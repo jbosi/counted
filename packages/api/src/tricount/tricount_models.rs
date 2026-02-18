@@ -41,19 +41,12 @@ pub struct TricountAlias {
     pub display_name: String,
 }
 
+/// Raw entry wrapper — captures RegistryEntry as an untyped Value so we can
+/// inspect every field name without guessing.
 #[derive(Deserialize, Debug)]
 pub struct TricountEntryWrapper {
     #[serde(rename = "RegistryEntry")]
-    pub entry: Option<TricountEntry>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct TricountEntry {
-    pub description: String,
-    pub amount: TricountAmount,
-    pub membership_owned: TricountMembershipOwned,
-    pub allocations: Vec<TricountAllocation>,
-    pub created: Option<String>,
+    pub entry: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize, Debug)]

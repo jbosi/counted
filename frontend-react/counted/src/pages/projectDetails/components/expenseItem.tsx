@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import type { Expense } from '../../../types/expenses.model';
+import type { Expense, ExpenseType } from '../../../types/expenses.model';
 import { Avatar } from '../../../components/avatar';
 import { getExpenseEmoji } from '../../../utils/get-expense-emojis';
 import { useCallback } from 'react';
@@ -18,12 +18,25 @@ export function ExpenseItem({ expense }: ExpenseItemProps) {
 			<Avatar name={emoji()} size="w-10" placeholderColor="transparent" />
 
 			<div className="flex-1 min-w-0">
-				<p className="text-base-content text-left truncate">{expense.name}</p>
+				<p className="text-left truncate">{expense.name}</p>
+				<p className="text-left truncate text-xs font-light">{formattedExpenseType(expense.expenseType)}</p>
 			</div>
 
 			<div className="text-right">
-				<p className="text-sm text-base-content">{formattedAmount} €</p>
+				<p className="text-sm">{formattedAmount} €</p>
 			</div>
 		</li>
 	);
+}
+
+function formattedExpenseType(expenseType: ExpenseType) {
+	switch (expenseType) {
+		case 'Gain':
+			return 'Gain';
+		case 'Transfer':
+			return 'Transfert';
+		case 'Expense':
+		default:
+			return 'Dépense';
+	}
 }

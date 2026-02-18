@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useLocation } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
@@ -20,6 +20,7 @@ import { ProjectSummary } from './components/projectSummary';
 import { ReimbursementSuggestions } from './components/reimbursementSuggestions';
 import { DropdownAction } from '../../components/dropdowns/dropdownAction';
 import { BurgerIcon } from '../../shared/icons/burgerIcon';
+import { Dropdown } from '../../components/dropdowns/dropdown';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -35,6 +36,7 @@ export const ProjectDetails = () => {
 	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
 	const { mutate: deleteProject } = useDeleteProject();
+	const location = useLocation();
 
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
@@ -94,7 +96,21 @@ export const ProjectDetails = () => {
 			{project.data ? (
 				<>
 					<AppHeader title={project.data?.name ?? ''} backButtonRoute="..">
-						<DropdownAction id="AppHeaderId" onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} icon={<BurgerIcon />} onDelete={() => deleteProject(projectId)} />
+						<Dropdown id="AppHeaderId" icon={<BurgerIcon />}>
+							<DropdownAction onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} onDelete={() => deleteProject(projectId)} />
+							<li>
+								<button
+									type="button"
+									className="btn btn-ghost"
+									onClick={async () => {
+										const clipboardItem = new ClipboardItem({ 'text/plain': `https://counted.fr${location.pathname}` });
+										await navigator.clipboard.write([clipboardItem]);
+									}}
+								>
+									Copier le lien
+								</button>
+							</li>
+						</Dropdown>
 					</AppHeader>
 					{isProjectDialogOpen && (
 						<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project.data} users={users ?? []} closeDialogFn={closeProjectDialog} />
@@ -122,15 +138,19 @@ export const ProjectDetails = () => {
 					<SummaryCard projectId={projectId} globalTotal={globalTotal()} />
 
 					<div role="tablist" className="tabs tabs-box justify-between bg-base-300">
-						<a role="tab" className={`tab ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
+						<a role="tab" className={`tab text-xs ${activeTab === 'ExpensesList' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ExpensesList')}>
 							Dépenses
 						</a>
 
-						<a role="tab" className={`tab ${activeTab === 'Summary' ? 'tab-active' : ''}`} onClick={() => setActiveTab('Summary')}>
+						<a role="tab" className={`tab text-xs ${activeTab === 'Summary' ? 'tab-active' : ''}`} onClick={() => setActiveTab('Summary')}>
 							Equilibre
 						</a>
 
-						<a role="tab" className={`tab ${activeTab === 'ReimbursementSuggestions' ? 'tab-active' : ''}`} onClick={() => setActiveTab('ReimbursementSuggestions')}>
+						<a
+							role="tab"
+							className={`tab text-xs ${activeTab === 'ReimbursementSuggestions' ? 'tab-active' : ''}`}
+							onClick={() => setActiveTab('ReimbursementSuggestions')}
+						>
 							Remboursements
 						</a>
 					</div>

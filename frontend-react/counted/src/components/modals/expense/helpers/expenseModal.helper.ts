@@ -21,7 +21,7 @@ export const getDebtorsFieldLabel = (expenseType: ExpenseType) => {
 			return 'Vers qui ?';
 		case 'Expense':
 		default:
-			return 'Qui doit rembourser ?';
+			return 'Pour qui ?';
 	}
 };
 
@@ -40,7 +40,6 @@ export const expenseCheckboxFormSchema = z.object({
 
 export const expenseFormSchema = z.object({
 	name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100, 'Le nom ne doit pas dépasser 100 caractères'),
-	description: z.string().max(200, 'La description ne doit pas dépasser 200 caractères').optional(),
 	totalAmount: z
 		.number({ error: 'Le montant doit être un nombre' })
 		.min(0.01, 'Le montant doit être supérieur à 0')

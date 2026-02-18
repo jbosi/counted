@@ -51,7 +51,6 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 		debtors: initialDebtorsFormCheckBoxValues,
 		totalAmount: 0,
 		name: '',
-		description: '',
 		date: new Date().toLocaleDateString('en-CA'),
 	};
 }
@@ -115,9 +114,6 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							<label className="label">Nom</label>
 							<input className="input w-full" {...register('name')} />
 							{errors.name && <span>Ce champ est requis</span>}
-
-							<label className="label">Description</label>
-							<input className="input w-full" {...register('description')} />
 
 							<label className="label">Date</label>
 							<input className="input w-full" type="date" {...register('date')} />

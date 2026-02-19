@@ -1,6 +1,5 @@
 use crate::utils::round_currency;
 use dioxus::logger::tracing::info;
-use itertools::Itertools;
 use shared::{ReimbursementSuggestion, UserBalance, UserBalanceComputation};
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -36,6 +35,7 @@ pub fn get_reimbursement_suggestions(
 
     // TODO handle small differences / computation errors
 
+    result.retain(|s| s.amount != 0.0);
     result
 }
 
@@ -63,29 +63,10 @@ fn resolve_remaining_balances(
         let previous_lengths =
             unsolved_positive_balances_by_user.len() + unsolved_negative_balances_by_user.len();
 
-        // Create sorted versions for processing
-        let sorted_unsolved_positive_balances_by_user: HashMap<i32, UserBalanceComputation> =
-            unsolved_positive_balances_by_user
-                .iter()
-                .sorted_by(|(_u1, b1), (_u2, b2)| {
-                    f64::total_cmp(&b2.remaining_amount.abs(), &b1.remaining_amount.abs())
-                })
-                .map(|(a, b)| (*a, b.clone()))
-                .collect();
-
-        let sorted_unsolved_negative_balances_by_user: HashMap<i32, UserBalanceComputation> =
-            unsolved_negative_balances_by_user
-                .iter()
-                .sorted_by(|(_u1, b1), (_u2, b2)| {
-                    f64::total_cmp(&b2.remaining_amount.abs(), &b1.remaining_amount.abs())
-                })
-                .map(|(a, b)| (*a, b.clone()))
-                .collect();
-
         // Find max & min among balances
         let MaxBalance { is_debt, max_balance, opposite_balances: min_balances } = get_max_balance(
-            sorted_unsolved_positive_balances_by_user,
-            sorted_unsolved_negative_balances_by_user,
+            unsolved_positive_balances_by_user.clone(),
+            unsolved_negative_balances_by_user.clone(),
         );
         let (opposite_balances_used, remainder) =
             solve_max_balance(max_balance.clone(), min_balances);
@@ -184,7 +165,11 @@ fn solve_max_balance(
         (0, UserBalanceComputation { remaining_amount: 0.0, amount: 0.0 });
 
     let mut max_balance_amount = max_balance.1.remaining_amount.abs();
-    for min_balance in min_balances {
+    let mut sorted_min_balances: Vec<_> = min_balances.into_iter().collect();
+    sorted_min_balances.sort_by(|(u1, b1), (u2, b2)| {
+        f64::total_cmp(&b2.remaining_amount.abs(), &b1.remaining_amount.abs()).then(u1.cmp(u2))
+    });
+    for min_balance in sorted_min_balances {
         if max_balance_amount.total_cmp(&0.0) != Ordering::Greater {
             break;
         }
@@ -235,16 +220,18 @@ fn get_max_balance(
     let positive_max: Option<(i32, UserBalanceComputation)> =
         sorted_unsolved_positive_balances_by_user
             .iter()
-            .max_by(|(_u1, b1), (_u2, b2)| {
+            .max_by(|(u1, b1), (u2, b2)| {
                 f64::total_cmp(&b2.remaining_amount.abs(), &b1.remaining_amount.abs())
+                    .then(u2.cmp(u1))
             })
             .map(|(a, b)| (*a, b.clone()));
 
     let negative_max: Option<(i32, UserBalanceComputation)> =
         sorted_unsolved_negative_balances_by_user
             .iter()
-            .max_by(|(_u1, b1), (_u2, b2)| {
+            .max_by(|(u1, b1), (u2, b2)| {
                 f64::total_cmp(&b2.remaining_amount.abs(), &b1.remaining_amount.abs())
+                    .then(u2.cmp(u1))
             })
             .map(|(a, b)| (*a, b.clone()));
 
@@ -282,32 +269,50 @@ fn resolve_equally_opposed_balances(
     let mut resolved_users: Vec<(i32, i32)> = Vec::new();
     let mut result: Vec<ReimbursementSuggestion> = Vec::new();
 
-    for (positive_user_id, balance_amount) in &mut *unsolved_positive_balances_by_user {
-        let matching_equal_negative_balance = unsolved_negative_balances_by_user
-            .iter_mut()
+    let sorted_positive_ids: Vec<i32> = {
+        let mut entries: Vec<(i32, f64)> = unsolved_positive_balances_by_user
+            .iter()
+            .map(|(id, b)| (*id, b.remaining_amount))
+            .collect();
+        entries.sort_by(|(u1, a1), (u2, a2)| {
+            f64::total_cmp(&a2.abs(), &a1.abs()).then(u1.cmp(u2))
+        });
+        entries.into_iter().map(|(id, _)| id).collect()
+    };
+
+    for positive_user_id in sorted_positive_ids {
+        let balance_amount_val =
+            unsolved_positive_balances_by_user[&positive_user_id].remaining_amount;
+
+        let matching_debtor_id = unsolved_negative_balances_by_user
+            .iter()
             .filter(|(debtor_id, _)| {
                 !resolved_users
                     .iter()
                     .any(|(_, resolved_debtor_id)| resolved_debtor_id == *debtor_id)
             })
             .find(|(_, b_amount)| {
-                b_amount.remaining_amount.abs().total_cmp(&balance_amount.remaining_amount)
-                    == Ordering::Equal
-            });
+                b_amount.remaining_amount.abs().total_cmp(&balance_amount_val) == Ordering::Equal
+            })
+            .map(|(id, _)| *id);
 
-        if let Some((resolved_user_id_debtor, negative_user_balance)) =
-            matching_equal_negative_balance
-        {
+        if let Some(resolved_user_id_debtor) = matching_debtor_id {
             result.push(ReimbursementSuggestion {
-                amount: round_currency(balance_amount.remaining_amount),
-                user_id_debtor: *resolved_user_id_debtor,
-                user_id_payer: *positive_user_id,
+                amount: round_currency(balance_amount_val),
+                user_id_debtor: resolved_user_id_debtor,
+                user_id_payer: positive_user_id,
             });
 
-            balance_amount.remaining_amount = 0.0;
-            negative_user_balance.remaining_amount = 0.0;
+            unsolved_positive_balances_by_user
+                .get_mut(&positive_user_id)
+                .unwrap()
+                .remaining_amount = 0.0;
+            unsolved_negative_balances_by_user
+                .get_mut(&resolved_user_id_debtor)
+                .unwrap()
+                .remaining_amount = 0.0;
 
-            resolved_users.push((*positive_user_id, *resolved_user_id_debtor));
+            resolved_users.push((positive_user_id, resolved_user_id_debtor));
         }
     }
 

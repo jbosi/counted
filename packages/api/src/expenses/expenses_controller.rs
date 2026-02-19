@@ -10,13 +10,23 @@ use shared::{CreatableExpense, EditableExpense, Expense, NewPayment, UserAmount}
 
 #[post("/api/v1/expenses")]
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
+    if expense.name.is_empty() {
+        return Err(ServerFnError::new("name cannot be empty"));
+    }
+    if expense.payers.is_empty() {
+        return Err(ServerFnError::new("payers cannot be empty"));
+    }
+    if expense.debtors.is_empty() {
+        return Err(ServerFnError::new("debtors cannot be empty"));
+    }
+
     let created_expense_id = expenses_repository::add_expense(expense.clone()).await?;
 
-    let payers = Some(expense.clone().payers);
-    let debtors = Some(expense.clone().debtors);
-
-    let creatable_payments: Vec<NewPayment> =
-        forge_creatable_payments_from_expense(payers, debtors, created_expense_id);
+    let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(
+        expense.payers.clone(),
+        expense.debtors.clone(),
+        created_expense_id,
+    );
 
     payments_repository::add_payments(creatable_payments).await?;
 
@@ -37,15 +47,25 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
 
 #[put("/api/v1/expenses")]
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
+    if expense.name.is_empty() {
+        return Err(ServerFnError::new("name cannot be empty"));
+    }
+    if expense.payers.is_empty() {
+        return Err(ServerFnError::new("payers cannot be empty"));
+    }
+    if expense.debtors.is_empty() {
+        return Err(ServerFnError::new("debtors cannot be empty"));
+    }
+
     expenses_repository::edit_expense(expense.clone()).await?;
 
     payments_repository::delete_payments_by_expense_id(expense.id).await?;
 
-    let payers = Some(expense.payers.clone());
-    let debtors = Some(expense.debtors.clone());
-
-    let creatable_payments: Vec<NewPayment> =
-        forge_creatable_payments_from_expense(payers, debtors, expense.id);
+    let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(
+        expense.payers.clone(),
+        expense.debtors.clone(),
+        expense.id,
+    );
 
     payments_repository::add_payments(creatable_payments).await?;
 
@@ -88,21 +108,11 @@ pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
 }
 
 fn forge_creatable_payments_from_expense(
-    payers: Option<Vec<UserAmount>>,
-    debtors: Option<Vec<UserAmount>>,
+    payers: Vec<UserAmount>,
+    debtors: Vec<UserAmount>,
     created_expense_id: i32,
 ) -> Vec<NewPayment> {
-    let mut debtors_result: Vec<UserAmount> = vec![];
-    if let Some(debtors_unwrapped) = debtors {
-        debtors_result = debtors_unwrapped;
-    }
-
-    let mut payers_result: Vec<UserAmount> = vec![];
-    if let Some(payers_unwrapped) = payers {
-        payers_result = payers_unwrapped;
-    }
-
-    let creatable_debtors: Vec<NewPayment> = debtors_result
+    let creatable_debtors: Vec<NewPayment> = debtors
         .into_iter()
         .filter(|d| d.amount != 0.0)
         .map(|d| NewPayment {
@@ -113,7 +123,7 @@ fn forge_creatable_payments_from_expense(
         })
         .collect();
 
-    let creatable_payers: Vec<NewPayment> = payers_result
+    let creatable_payers: Vec<NewPayment> = payers
         .into_iter()
         .filter(|d| d.amount != 0.0)
         .map(|p| NewPayment {

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useContext, useMemo, type RefObject } from 'react';
+import { useCallback, useContext, useMemo, useState, type RefObject } from 'react';
 import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
 import * as z from 'zod';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
@@ -34,6 +34,9 @@ interface FormCheckboxProps {
 	amount: number;
 	isChecked: boolean;
 	index: number;
+	shareMode?: boolean;
+	shares?: number;
+	onSharesChange?: (userId: number, shares: number) => void;
 }
 
 function getInitialValues(users: User[], expense: Expense, payments: Payment[]): Partial<EditExpenseModalForm> {
@@ -81,6 +84,45 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 
 	const { fields: payersFields, update: updatePayer } = useFieldArray({ control, name: 'payers' });
 	const { fields: debtorsfields, update: updateDebtor } = useFieldArray({ control, name: 'debtors' });
+
+	const [payersShareMode, setPayersShareMode] = useState(false);
+	const [debtorsShareMode, setDebtorsShareMode] = useState(false);
+	const [payersShares, setPayersShares] = useState<Record<number, number>>(() =>
+		Object.fromEntries(users.map((u) => [u.id, payments.some((p) => !p.isDebt && p.userId === u.id) ? 1 : 0])),
+	);
+	const [debtorsShares, setDebtorsShares] = useState<Record<number, number>>(() =>
+		Object.fromEntries(users.map((u) => [u.id, payments.some((p) => p.isDebt && p.userId === u.id) ? 1 : 0])),
+	);
+
+	const handlePayerSharesChange = useCallback(
+		(userId: number, newShares: number) => {
+			const next = { ...payersShares, [userId]: newShares };
+			setPayersShares(next);
+			updateAmounts('payers', getValues(), updatePayer, payersFields, next);
+		},
+		[payersShares, getValues, updatePayer, payersFields],
+	);
+
+	const handleDebtorSharesChange = useCallback(
+		(userId: number, newShares: number) => {
+			const next = { ...debtorsShares, [userId]: newShares };
+			setDebtorsShares(next);
+			updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, next);
+		},
+		[debtorsShares, getValues, updateDebtor, debtorsfields],
+	);
+
+	const togglePayersShareMode = useCallback(() => {
+		const newMode = !payersShareMode;
+		setPayersShareMode(newMode);
+		updateAmounts('payers', getValues(), updatePayer, payersFields, newMode ? payersShares : undefined);
+	}, [payersShareMode, payersShares, getValues, updatePayer, payersFields]);
+
+	const toggleDebtorsShareMode = useCallback(() => {
+		const newMode = !debtorsShareMode;
+		setDebtorsShareMode(newMode);
+		updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, newMode ? debtorsShares : undefined);
+	}, [debtorsShareMode, debtorsShares, getValues, updateDebtor, debtorsfields]);
 
 	const { mutate, isPending, isError, error } = useEditExpense();
 
@@ -137,8 +179,8 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 								{...register('totalAmount', {
 									valueAsNumber: true,
 									onBlur() {
-										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields);
-										updateAmounts('payers', getValues(), updatePayer, payersFields);
+										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, debtorsShareMode ? debtorsShares : undefined);
+										updateAmounts('payers', getValues(), updatePayer, payersFields, payersShareMode ? payersShares : undefined);
 									},
 								})}
 							/>
@@ -152,6 +194,10 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
+								<label className="label justify-end gap-2 mb-1">
+									<span className="text-xs">Par parts</span>
+									<input type="checkbox" className="toggle toggle-sm" checked={payersShareMode} onChange={togglePayersShareMode} />
+								</label>
 								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
 								{payersFields.map((field, index) => (
 									<FormCheckbox
@@ -165,12 +211,19 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 										updateMethod={updatePayer}
 										fields={payersFields}
 										type="payers"
+										shareMode={payersShareMode}
+										shares={payersShares[field.user.id] ?? 1}
+										onSharesChange={handlePayerSharesChange}
 									/>
 								))}
 							</fieldset>
 
 							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 								<legend className="fieldset-legend">{getDebtorsFieldLabel(expenseType)}</legend>
+								<label className="label justify-end gap-2 mb-1">
+									<span className="text-xs">Par parts</span>
+									<input type="checkbox" className="toggle toggle-sm" checked={debtorsShareMode} onChange={toggleDebtorsShareMode} />
+								</label>
 								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox
@@ -184,6 +237,9 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 										updateMethod={updateDebtor}
 										fields={debtorsfields}
 										type="debtors"
+										shareMode={debtorsShareMode}
+										shares={debtorsShares[field.user.id] ?? 1}
+										onSharesChange={handleDebtorSharesChange}
 									/>
 								))}
 							</fieldset>
@@ -243,6 +299,7 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 	values: EditExpenseModalForm,
 	updateMethod: UseFieldArrayUpdate<EditExpenseModalForm, 'debtors' | 'payers'>,
 	debtorsOrPayersfields: FieldArrayWithId<EditExpenseModalForm>[],
+	sharesMap?: Record<number, number>,
 ) {
 	const debtorsOrPayers = values[type];
 	const totalAmountValue = values.totalAmount;
@@ -254,17 +311,41 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 		return;
 	}
 
-	const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
-
-	activeDebtorOrPayersFields.forEach((field) => {
-		updateMethod(
-			debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
-			{ amount: updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
-		);
-	});
+	if (sharesMap) {
+		const totalShares = activeDebtorOrPayersFields.reduce((sum, f) => sum + (sharesMap[f.user.id] ?? 1), 0);
+		if (totalShares === 0) return;
+		activeDebtorOrPayersFields.forEach((field) => {
+			const shares = sharesMap[field.user.id] ?? 1;
+			const amount = parseFloat(((shares / totalShares) * totalAmountValue).toFixed(2));
+			updateMethod(
+				debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
+				{ amount, isChecked: field.isChecked, user: field.user },
+			);
+		});
+	} else {
+		const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
+		activeDebtorOrPayersFields.forEach((field) => {
+			updateMethod(
+				debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
+				{ amount: updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user },
+			);
+		});
+	}
 }
 
-export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields }: FormCheckboxProps) {
+export function FormCheckbox({
+	isChecked,
+	register,
+	type,
+	user,
+	index,
+	getValues,
+	updateMethod,
+	fields,
+	shareMode,
+	shares,
+	onSharesChange,
+}: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
 			<div className="flex gap-2">
@@ -274,24 +355,44 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					className="checkbox"
 					{...register(`${type}.${index}.isChecked`, {
 						onChange() {
+							const isNowChecked = getValues(`${type}.${index}.isChecked`);
 							resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
-							updateAmounts(type, getValues(), updateMethod, fields);
+							if (shareMode) {
+								const newShare = isNowChecked ? Math.max(1, shares ?? 1) : 0;
+								onSharesChange?.(user.id, newShare);
+							} else {
+								updateAmounts(type, getValues(), updateMethod, fields, undefined);
+							}
 						},
 					})}
 				/>
 				{user.name}
 			</div>
-			<input
-				className="input w-44"
-				type="number"
-				step="0.01"
-				{...register(`${type}.${index}.amount`, {
-					valueAsNumber: true,
-					onBlur() {
-						toggleCheckedIfAmountChange(getValues, type, index, updateMethod, user);
-					},
-				})}
-			/>
+			{shareMode ? (
+				<div className="flex items-center gap-1.5">
+					<input
+						className="input w-20"
+						type="number"
+						min="1"
+						step="1"
+						value={shares ?? 1}
+						onChange={(e) => onSharesChange?.(user.id, Math.max(1, parseInt(e.target.value) || 1))}
+					/>
+					<span className="text-xs opacity-60">part(s)</span>
+				</div>
+			) : (
+				<input
+					className="input w-44"
+					type="number"
+					step="0.01"
+					{...register(`${type}.${index}.amount`, {
+						valueAsNumber: true,
+						onBlur() {
+							toggleCheckedIfAmountChange(getValues, type, index, updateMethod, user);
+						},
+					})}
+				/>
+			)}
 		</label>
 	);
 }

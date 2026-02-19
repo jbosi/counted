@@ -10,15 +10,7 @@ use shared::{CreatableExpense, EditableExpense, Expense, NewPayment, UserAmount}
 
 #[post("/api/v1/expenses")]
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
-    if expense.name.is_empty() {
-        return Err(ServerFnError::new("name cannot be empty"));
-    }
-    if expense.payers.is_empty() {
-        return Err(ServerFnError::new("payers cannot be empty"));
-    }
-    if expense.debtors.is_empty() {
-        return Err(ServerFnError::new("debtors cannot be empty"));
-    }
+    validate_expense(&expense.name, &expense.payers, &expense.debtors)?;
 
     let created_expense_id = expenses_repository::add_expense(expense.clone()).await?;
 
@@ -47,15 +39,7 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
 
 #[put("/api/v1/expenses")]
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
-    if expense.name.is_empty() {
-        return Err(ServerFnError::new("name cannot be empty"));
-    }
-    if expense.payers.is_empty() {
-        return Err(ServerFnError::new("payers cannot be empty"));
-    }
-    if expense.debtors.is_empty() {
-        return Err(ServerFnError::new("debtors cannot be empty"));
-    }
+    validate_expense(&expense.name, &expense.payers, &expense.debtors)?;
 
     expenses_repository::edit_expense(expense.clone()).await?;
 
@@ -104,6 +88,23 @@ pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
 
     expenses_repository::delete_expense(expense_id).await?;
 
+    Ok(())
+}
+
+fn validate_expense(
+    name: &str,
+    payers: &[UserAmount],
+    debtors: &[UserAmount],
+) -> Result<(), ServerFnError> {
+    if name.is_empty() {
+        return Err(ServerFnError::new("name cannot be empty"));
+    }
+    if payers.is_empty() {
+        return Err(ServerFnError::new("payers cannot be empty"));
+    }
+    if debtors.is_empty() {
+        return Err(ServerFnError::new("debtors cannot be empty"));
+    }
     Ok(())
 }
 

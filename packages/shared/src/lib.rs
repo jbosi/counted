@@ -19,6 +19,34 @@ pub struct ProjectDto {
     pub created_at: NaiveDateTime,
     pub currency: String,
     pub description: Option<String>,
+    pub owner_account_id: Option<Uuid>,
+}
+
+// -------- ACCOUNT ---------
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "server", derive(FromRow))]
+pub struct Account {
+    pub id: Uuid,
+    pub email: String,
+    pub display_name: String,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RegisterPayload {
+    pub email: String,
+    pub password: String,
+    pub display_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginPayload {
+    pub email: String,
+    pub password: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

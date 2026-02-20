@@ -91,6 +91,14 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 		(userId: number, newShares: number) => {
 			const next = { ...payersShares, [userId]: newShares };
 			setPayersShares(next);
+
+			if (newShares > 0) {
+				const fieldIndex = payersFields.findIndex((f) => f.user.id === userId);
+				if (fieldIndex !== -1 && !getValues(`payers.${fieldIndex}.isChecked`)) {
+					updatePayer(fieldIndex, { ...payersFields[fieldIndex], isChecked: true });
+				}
+			}
+
 			updateAmounts('payers', getValues(), updatePayer, payersFields, next);
 		},
 		[payersShares, getValues, updatePayer, payersFields],
@@ -100,6 +108,14 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 		(userId: number, newShares: number) => {
 			const next = { ...debtorsShares, [userId]: newShares };
 			setDebtorsShares(next);
+
+			if (newShares > 0) {
+				const fieldIndex = debtorsfields.findIndex((f) => f.user.id === userId);
+				if (fieldIndex !== -1 && !getValues(`debtors.${fieldIndex}.isChecked`)) {
+					updateDebtor(fieldIndex, { ...debtorsfields[fieldIndex], isChecked: true });
+				}
+			}
+
 			updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, next);
 		},
 		[debtorsShares, getValues, updateDebtor, debtorsfields],
@@ -139,113 +155,111 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 	);
 
 	return (
-		<>
-			<dialog ref={dialogRef} id={modalId} className="modal">
-				<div className="modal-box flex gap-3 flex-col">
-					<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
-						✕
-					</button>
-					<h1>Ajouter une dépense</h1>
-					<ErrorValidationCallout errors={errors} />
-					<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
-						<div className="flex flex-col gap-3">
-							<label className="label">Nom</label>
-							<input className="input w-full" {...register('name')} />
-							{errors.name && <span>Ce champ est requis</span>}
+		<dialog ref={dialogRef} id={modalId} className="modal">
+			<div className="modal-box flex gap-3 flex-col">
+				<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
+					✕
+				</button>
+				<h1>Ajouter une dépense</h1>
+				<ErrorValidationCallout errors={errors} />
+				<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
+					<div className="flex flex-col gap-3">
+						<label className="label">Nom</label>
+						<input className="input w-full" {...register('name')} />
+						{errors.name && <span>Ce champ est requis</span>}
 
-							<label className="label">Date</label>
-							<input className="input w-full" type="date" {...register('date')} />
+						<label className="label">Date</label>
+						<input className="input w-full" type="date" {...register('date')} />
 
-							<label className="label">Montant</label>
-							<input
-								min="0"
-								className="input w-full"
-								step="0.01"
-								type="number"
-								{...register('totalAmount', {
-									valueAsNumber: true,
-									onBlur() {
-										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, debtorsShareMode ? debtorsShares : undefined);
-										updateAmounts('payers', getValues(), updatePayer, payersFields, payersShareMode ? payersShares : undefined);
-									},
-								})}
-							/>
+						<label className="label">Montant</label>
+						<input
+							min="0"
+							className="input w-full"
+							step="0.01"
+							type="number"
+							{...register('totalAmount', {
+								valueAsNumber: true,
+								onBlur() {
+									updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, debtorsShareMode ? debtorsShares : undefined);
+									updateAmounts('payers', getValues(), updatePayer, payersFields, payersShareMode ? payersShares : undefined);
+								},
+							})}
+						/>
 
-							<label className="label">Type de dépense</label>
-							<select defaultValue="Dépense" className="select w-full" {...register('type')}>
-								<option value={'Expense' as ExpenseType}>Dépense</option>
-								<option value={'Gain' as ExpenseType}>Gain</option>
-								<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
-							</select>
+						<label className="label">Type de dépense</label>
+						<select defaultValue="Dépense" className="select w-full" {...register('type')}>
+							<option value={'Expense' as ExpenseType}>Dépense</option>
+							<option value={'Gain' as ExpenseType}>Gain</option>
+							<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
+						</select>
 
-							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
-								<label className="label justify-end gap-2 mb-1">
-									<span className="text-xs">Par parts</span>
-									<input type="checkbox" className="toggle toggle-sm" checked={payersShareMode} onChange={togglePayersShareMode} />
-								</label>
-								<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
-								{payersFields.map((field, index) => (
-									<FormCheckbox
-										key={field.id}
-										amount={field.amount}
-										isChecked={field.isChecked}
-										user={field.user}
-										index={index}
-										register={register}
-										getValues={getValues}
-										updateMethod={updatePayer}
-										fields={payersFields}
-										type="payers"
-										shareMode={payersShareMode}
-										shares={payersShares[field.user.id] ?? 1}
-										onSharesChange={handlePayerSharesChange}
-									/>
-								))}
-							</fieldset>
+						<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
+							<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
+							<label className="label justify-end gap-2 mb-1">
+								<span className="text-xs">Par parts</span>
+								<input type="checkbox" className="toggle toggle-sm" checked={payersShareMode} onChange={togglePayersShareMode} />
+							</label>
+							<SelectAllCheckbox initialValue={false} fields={payersFields} updateMethod={updatePayer} getValues={getValues} type={'payers'} />
+							{payersFields.map((field, index) => (
+								<FormCheckbox
+									key={field.id}
+									amount={field.amount}
+									isChecked={field.isChecked}
+									user={field.user}
+									index={index}
+									register={register}
+									getValues={getValues}
+									updateMethod={updatePayer}
+									fields={payersFields}
+									type="payers"
+									shareMode={payersShareMode}
+									shares={payersShares[field.user.id] ?? 1}
+									onSharesChange={handlePayerSharesChange}
+								/>
+							))}
+						</fieldset>
 
-							<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
-								<legend className="fieldset-legend">{getDebtorsFieldLabel(expenseType)}</legend>
-								<label className="label justify-end gap-2 mb-1">
-									<span className="text-xs">Par parts</span>
-									<input type="checkbox" className="toggle toggle-sm" checked={debtorsShareMode} onChange={toggleDebtorsShareMode} />
-								</label>
-								<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
-								{debtorsfields.map((field, index) => (
-									<FormCheckbox
-										key={field.id}
-										amount={field.amount}
-										isChecked={field.isChecked}
-										user={field.user}
-										index={index}
-										register={register}
-										getValues={getValues}
-										updateMethod={updateDebtor}
-										fields={debtorsfields}
-										type="debtors"
-										shareMode={debtorsShareMode}
-										shares={debtorsShares[field.user.id] ?? 1}
-										onSharesChange={handleDebtorSharesChange}
-									/>
-								))}
-							</fieldset>
+						<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
+							<legend className="fieldset-legend">{getDebtorsFieldLabel(expenseType)}</legend>
+							<label className="label justify-end gap-2 mb-1">
+								<span className="text-xs">Par parts</span>
+								<input type="checkbox" className="toggle toggle-sm" checked={debtorsShareMode} onChange={toggleDebtorsShareMode} />
+							</label>
+							<SelectAllCheckbox initialValue={true} fields={debtorsfields} updateMethod={updateDebtor} getValues={getValues} type={'debtors'} />
+							{debtorsfields.map((field, index) => (
+								<FormCheckbox
+									key={field.id}
+									amount={field.amount}
+									isChecked={field.isChecked}
+									user={field.user}
+									index={index}
+									register={register}
+									getValues={getValues}
+									updateMethod={updateDebtor}
+									fields={debtorsfields}
+									type="debtors"
+									shareMode={debtorsShareMode}
+									shares={debtorsShares[field.user.id] ?? 1}
+									onSharesChange={handleDebtorSharesChange}
+								/>
+							))}
+						</fieldset>
 
-							{isPending && <span className="loading loading-spinner loading-xs"></span>}
-							{isError && <span className="text-error">{(error as Error).message}</span>}
-						</div>
+						{isPending && <span className="loading loading-spinner loading-xs"></span>}
+						{isError && <span className="text-error">{(error as Error).message}</span>}
+					</div>
 
-						<footer className="flex gap-1.5 mt-12 justify-end">
-							<button className="btn btn-primary" type="submit">
-								Enregistrer
-							</button>
-							<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
-								Annuler
-							</button>
-						</footer>
-					</form>
-				</div>
-			</dialog>
-		</>
+					<footer className="flex gap-1.5 mt-12 justify-end">
+						<button className="btn btn-primary" type="submit">
+							Enregistrer
+						</button>
+						<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
+							Annuler
+						</button>
+					</footer>
+				</form>
+			</div>
+		</dialog>
 	);
 }
 
@@ -319,7 +333,7 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 	}
 }
 
-export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields, shareMode, shares, onSharesChange }: FormCheckboxProps) {
+export function FormCheckbox({ amount, isChecked, register, type, user, index, getValues, updateMethod, fields, shareMode, shares, onSharesChange }: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
 			<div className="flex gap-2">
@@ -343,7 +357,8 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 				{user.name}
 			</div>
 			{shareMode ? (
-				<div className="flex items-center gap-1.5">
+				<div className="flex items-center gap-2">
+					<span className="text-sm text-base-content/60 min-w-14 text-right">{amount.toFixed(2)} €</span>
 					<input
 						className="input w-20"
 						type="number"

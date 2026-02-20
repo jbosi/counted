@@ -98,6 +98,14 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 		(userId: number, newShares: number) => {
 			const next = { ...payersShares, [userId]: newShares };
 			setPayersShares(next);
+
+			if (newShares > 0) {
+				const fieldIndex = payersFields.findIndex((f) => f.user.id === userId);
+				if (fieldIndex !== -1 && !getValues(`payers.${fieldIndex}.isChecked`)) {
+					updatePayer(fieldIndex, { ...payersFields[fieldIndex], isChecked: true });
+				}
+			}
+
 			updateAmounts('payers', getValues(), updatePayer, payersFields, next);
 		},
 		[payersShares, getValues, updatePayer, payersFields],
@@ -107,6 +115,14 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 		(userId: number, newShares: number) => {
 			const next = { ...debtorsShares, [userId]: newShares };
 			setDebtorsShares(next);
+
+			if (newShares > 0) {
+				const fieldIndex = debtorsfields.findIndex((f) => f.user.id === userId);
+				if (fieldIndex !== -1 && !getValues(`debtors.${fieldIndex}.isChecked`)) {
+					updateDebtor(fieldIndex, { ...debtorsfields[fieldIndex], isChecked: true });
+				}
+			}
+
 			updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, next);
 		},
 		[debtorsShares, getValues, updateDebtor, debtorsfields],
@@ -333,19 +349,7 @@ function updateAmounts<T extends 'debtors' | 'payers'>(
 	}
 }
 
-export function FormCheckbox({
-	isChecked,
-	register,
-	type,
-	user,
-	index,
-	getValues,
-	updateMethod,
-	fields,
-	shareMode,
-	shares,
-	onSharesChange,
-}: FormCheckboxProps) {
+export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields, amount, shareMode, shares, onSharesChange }: FormCheckboxProps) {
 	return (
 		<label className="label justify-between">
 			<div className="flex gap-2">
@@ -369,7 +373,8 @@ export function FormCheckbox({
 				{user.name}
 			</div>
 			{shareMode ? (
-				<div className="flex items-center gap-1.5">
+				<div className="flex items-center gap-2">
+					<span className="text-sm text-base-content/60 min-w-14 text-right">{amount.toFixed(2)} €</span>
 					<input
 						className="input w-20"
 						type="number"

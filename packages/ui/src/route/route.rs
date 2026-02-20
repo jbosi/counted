@@ -1,3 +1,5 @@
+use crate::auth::login::Login;
+use crate::auth::register::Register;
 use crate::common::Navbar;
 use crate::expenses::Expenses;
 use crate::payments::Payments;
@@ -15,6 +17,10 @@ pub enum Route {
     Expenses { project_id: Uuid },
     #[route("/projects/:project_id/expenses/:expense_id")]
     Payments { project_id: Uuid, expense_id: i32 },
+    #[route("/login")]
+    Login {},
+    #[route("/register")]
+    Register {},
 }
 
 /// A web-specific Router around the shared `Navbar` component

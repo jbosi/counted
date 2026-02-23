@@ -18,6 +18,7 @@ import {
 	toggleCheckedIfAmountChange,
 	updateAmounts,
 } from './helpers/expenseModal.helper';
+import { ModalFooter } from '../shared/modalfooter';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -229,14 +230,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 						{isError && <span className="text-error">{(error as Error).message}</span>}
 					</div>
 
-					<footer className="flex gap-1.5 mt-12 justify-end">
-						<button className="btn btn-primary" type="submit">
-							Enregistrer
-						</button>
-						<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
-							Annuler
-						</button>
-					</footer>
+					<ModalFooter closeDialogFn={closeDialogFn} />
 				</form>
 			</div>
 		</dialog>

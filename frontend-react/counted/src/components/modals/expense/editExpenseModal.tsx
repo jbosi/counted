@@ -18,6 +18,7 @@ import {
 	updateAmounts,
 } from './helpers/expenseModal.helper';
 import { SelectAllCheckboxInput } from './components/selectAllCheckboxInput';
+import { ModalFooter } from '../shared/modalfooter';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -239,14 +240,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 							{isError && <span className="text-error">{(error as Error).message}</span>}
 						</div>
 
-						<footer className="flex gap-1.5 mt-12 justify-end">
-							<button className="btn btn-primary" type="submit">
-								Enregistrer
-							</button>
-							<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
-								Annuler
-							</button>
-						</footer>
+						<ModalFooter closeDialogFn={closeDialogFn} />
 					</form>
 				</div>
 			</dialog>

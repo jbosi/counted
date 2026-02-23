@@ -5,6 +5,7 @@ import type { CreatableUser, User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { FieldErrors, FieldValues } from 'react-hook-form';
+import { ModalFooter } from '../shared/modalfooter';
 
 export interface UserSelectionDialogProps {
 	modalId: string;
@@ -52,7 +53,7 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 		<>
 			<dialog ref={dialogRef} id={modalId} className="modal">
 				<div className="modal-box flex gap-3 flex-col">
-					<h1>{'Quel utilisateur êtes vous ?'}</h1>
+					<h1>Quel utilisateur êtes vous ?</h1>
 					<ErrorValidationCallout errors={errors} />
 					<form className="ml-4 mr-4" onSubmit={(e) => onSubmit(e)}>
 						<fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
@@ -76,11 +77,7 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 							</ul>
 						</fieldset>
 
-						<footer className="flex gap-1.5 mt-12 justify-end">
-							<button className="btn btn-primary" type="submit">
-								Enregistrer
-							</button>
-						</footer>
+						<ModalFooter hideCancelButton={true} />
 					</form>
 				</div>
 			</dialog>

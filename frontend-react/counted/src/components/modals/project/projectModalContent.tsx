@@ -8,6 +8,7 @@ import type { CreatableProject, EditableProject, ProjectDto } from '../../../typ
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
+import { ModalFooter } from '../shared/modalfooter';
 
 export interface ProjectModalContentProps {
 	modalId: string;
@@ -126,14 +127,7 @@ export function ProjectModalContent({
 							</ul>
 						</fieldset>
 
-						<footer className="flex gap-1.5 mt-12 justify-end">
-							<button className={`btn btn-primary ${isSubmitLoading ? 'loading' : ''}`} type="submit">
-								Enregistrer
-							</button>
-							<button className="btn btn-outline" type="button" onClick={() => closeDialogFn()}>
-								Annuler
-							</button>
-						</footer>
+						<ModalFooter closeDialogFn={closeDialogFn} isLoading={isSubmitLoading} />
 					</form>
 				</div>
 			</dialog>

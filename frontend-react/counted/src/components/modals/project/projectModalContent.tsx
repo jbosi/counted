@@ -8,7 +8,7 @@ import type { CreatableProject, EditableProject, ProjectDto } from '../../../typ
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
-import { ModalFooter } from '../shared/modalfooter';
+import { ModalFooter } from '../shared/modalFooter';
 
 export interface ProjectModalContentProps {
 	modalId: string;

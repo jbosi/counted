@@ -18,7 +18,7 @@ import {
 	updateAmounts,
 } from './helpers/expenseModal.helper';
 import { SelectAllCheckboxInput } from './components/selectAllCheckboxInput';
-import { ModalFooter } from '../shared/modalfooter';
+import { ModalFooter } from '../shared/modalFooter';
 import { ExpenseShareInput } from './components/expenseShareInput';
 
 export interface EditExpenseModalProps {

@@ -1,11 +1,11 @@
 import { useCallback, useContext, useState, type RefObject } from 'react';
+import type { FieldErrors, FieldValues } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { addToLocalStorage } from '../../../hooks/useLocalStorage';
 import type { CreatableUser, User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
-import type { FieldErrors, FieldValues } from 'react-hook-form';
-import { ModalFooter } from '../shared/modalfooter';
+import { ModalFooter } from '../shared/modalFooter';
 
 export interface UserSelectionDialogProps {
 	modalId: string;

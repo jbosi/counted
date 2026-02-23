@@ -1,6 +1,6 @@
 import { useState, type RefObject } from 'react';
 import { useImportTricount } from '../../../hooks/useImportTricount';
-import { ModalFooter } from '../shared/modalfooter';
+import { ModalFooter } from '../shared/modalFooter';
 
 interface ImportTricountModalProps {
 	dialogRef: RefObject<HTMLDialogElement | null>;

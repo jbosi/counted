@@ -18,7 +18,7 @@ import {
 	toggleCheckedIfAmountChange,
 	updateAmounts,
 } from './helpers/expenseModal.helper';
-import { ModalFooter } from '../shared/modalfooter';
+import { ModalFooter } from '../shared/modalFooter';
 
 export interface AddExpenseModalProps {
 	modalId: string;

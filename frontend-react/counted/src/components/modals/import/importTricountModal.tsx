@@ -1,5 +1,6 @@
 import { useState, type RefObject } from 'react';
 import { useImportTricount } from '../../../hooks/useImportTricount';
+import { ModalFooter } from '../shared/modalfooter';
 
 interface ImportTricountModalProps {
 	dialogRef: RefObject<HTMLDialogElement | null>;
@@ -46,16 +47,9 @@ export function ImportTricountModal({ dialogRef, modalId, closeDialogFn }: Impor
 					</div>
 				)}
 
-				{isError && <div className="text-error text-sm">{(error as Error)?.message ?? "Erreur lors de l'import"}</div>}
+				{isError && <div className="text-error text-sm">{(error as Error)?.message ?? 'Erreur lors de l`import'}</div>}
 
-				<footer className="flex gap-1.5 mt-4 justify-end">
-					<button className="btn btn-primary" type="button" onClick={handleSubmit} disabled={isPending || !tricountKey.trim()}>
-						{isPending ? <span className="loading loading-spinner loading-xs" /> : 'Importer'}
-					</button>
-					<button className="btn btn-outline" type="button" onClick={closeDialogFn}>
-						Annuler
-					</button>
-				</footer>
+				<ModalFooter closeDialogFn={closeDialogFn} disabled={isPending || !tricountKey.trim()} handleSubmit={handleSubmit} isLoading={isPending} submitName="Importer" />
 			</div>
 		</dialog>
 	);

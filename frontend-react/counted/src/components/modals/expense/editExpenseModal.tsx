@@ -19,6 +19,7 @@ import {
 } from './helpers/expenseModal.helper';
 import { SelectAllCheckboxInput } from './components/selectAllCheckboxInput';
 import { ModalFooter } from '../shared/modalfooter';
+import { ExpenseShareInput } from './components/expenseShareInput';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -274,26 +275,16 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 				{user.name}
 			</div>
 			{shareMode ? (
-				<div className="flex items-center gap-2">
-					<span className="text-sm text-base-content/60 min-w-14 text-right">{amount.toFixed(2)} €</span>
-					<input
-						className="input w-20"
-						type="number"
-						min="0"
-						step="1"
-						{...register(`${type}.${index}.shares`, {
-							valueAsNumber: true,
-							onBlur() {
-								const shares = getValues(`${type}.${index}.shares`) ?? 0;
-								if (shares > 0 && !getValues(`${type}.${index}.isChecked`)) {
-									updateMethod(index, { amount: 0, isChecked: true, user, shares });
-								}
-								onRecalculate?.();
-							},
-						})}
-					/>
-					<span className="text-xs opacity-60">part(s)</span>
-				</div>
+				<ExpenseShareInput
+					amount={amount}
+					user={user}
+					index={index}
+					register={register}
+					getValues={getValues}
+					updateMethod={updateMethod}
+					type="debtors"
+					onRecalculate={onRecalculate}
+				/>
 			) : (
 				<input
 					className="input w-44"

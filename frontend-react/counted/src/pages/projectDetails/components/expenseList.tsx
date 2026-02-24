@@ -1,3 +1,4 @@
+import { EmptyMagnifyingGlassIllustration } from '../../../shared/illustrations/emptyMagnifyingGlassIllustration';
 import type { Expense } from '../../../types/expenses.model';
 import { ExpenseItem } from './expenseItem';
 
@@ -9,7 +10,7 @@ function formatDate(dateStr: string): string {
 	return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function groupByDate(expenses: Expense[]): [string, Expense[]][] {
+function groupExpensesByDate(expenses: Expense[]): [string, Expense[]][] {
 	const map = new Map<string, Expense[]>();
 	for (const expense of expenses) {
 		const key = expense.date.split('T')[0];
@@ -24,19 +25,26 @@ function groupByDate(expenses: Expense[]): [string, Expense[]][] {
 }
 
 export function ExpenseList(props: ExpenseListProps) {
-	const groups = groupByDate(props.expenses);
+	const groups = groupExpensesByDate(props.expenses);
 	return (
 		<div className="counted-list">
-			{groups.map(([date, expenses]) => (
-				<div key={date}>
-					<div className="divider divider-start text-sm font-medium">{formatDate(date)}</div>
-					<ul className="counted-list">
-						{expenses.map((e) => (
-							<ExpenseItem key={e.id} expense={e} />
-						))}
-					</ul>
+			{groups.length > 0 ? (
+				groups.map(([date, expenses]) => (
+					<div key={date}>
+						<div className="divider divider-start text-sm font-medium">{formatDate(date)}</div>
+						<ul className="counted-list">
+							{expenses.map((e) => (
+								<ExpenseItem key={e.id} expense={e} />
+							))}
+						</ul>
+					</div>
+				))
+			) : (
+				<div className="flex justify-center flex-col items-center">
+					<span>Aucune dépense</span>
+					<EmptyMagnifyingGlassIllustration />
 				</div>
-			))}
+			)}
 		</div>
 	);
 }

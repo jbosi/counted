@@ -20,6 +20,7 @@ import {
 import { SelectAllCheckboxInput } from './components/selectAllCheckboxInput';
 import { ModalFooter } from '../shared/modalFooter';
 import { ExpenseShareInput } from './components/expenseShareInput';
+import { getPickerFormattedDate } from '../../../utils/date';
 
 export interface EditExpenseModalProps {
 	modalId: string;
@@ -75,7 +76,7 @@ function getInitialValues(users: User[], expense: Expense, payments: Payment[]):
 		totalAmount: expense.amount ?? 0,
 		name: expense.name ?? '',
 		type: expense.expenseType,
-		date: expense.date ?? new Date().toLocaleDateString('fr-FR'),
+		date: expense.date ?? getPickerFormattedDate(new Date()),
 	};
 }
 
@@ -282,7 +283,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					register={register}
 					getValues={getValues}
 					updateMethod={updateMethod}
-					type="debtors"
+					type={type}
 					onRecalculate={onRecalculate}
 				/>
 			) : (

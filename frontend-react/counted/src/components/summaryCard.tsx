@@ -2,6 +2,7 @@ import { useContext, useMemo } from 'react';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
 import { usePaymentsByProjectId } from '../hooks/usePayments';
 import { getProjectUserIdFromLocalstorage } from '../utils/get-project-from-localstorage';
+import { useExpensesByProjectId } from '../hooks/useExpenses';
 
 interface SummaryCardProps {
 	globalTotal: number;
@@ -18,6 +19,7 @@ function formatCurrency(value: number): string {
 export const SummaryCard = ({ globalTotal, projectId }: SummaryCardProps) => {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const { data: payments } = usePaymentsByProjectId(projectId);
+	const { data: expenses } = useExpensesByProjectId(projectId);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
 
 	// If calculated from the backend
@@ -28,11 +30,11 @@ export const SummaryCard = ({ globalTotal, projectId }: SummaryCardProps) => {
 		if (!payments || storedUserId == null) {
 			return 0;
 		}
-		return payments
-			?.filter((p) => p.userId === storedUserId)
-			.map((val) => val.amount)
-			.reduce((acc, val) => acc + val, 0);
-	}, [payments, storedUserId]);
+
+		const myPayments = payments?.filter((p) => p.userId === storedUserId);
+
+		return myPayments?.filter((p) => expenses?.find((e) => e.id === p.expenseId)?.expenseType === 'Expense' && p.isDebt).reduce((acc, val) => acc + val.amount, 0);
+	}, [expenses, payments, storedUserId]);
 
 	return (
 		<div>

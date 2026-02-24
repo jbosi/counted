@@ -19,6 +19,7 @@ import {
 	updateAmounts,
 } from './helpers/expenseModal.helper';
 import { ModalFooter } from '../shared/modalFooter';
+import { getPickerFormattedDate } from '../../../utils/date';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -26,6 +27,8 @@ export interface AddExpenseModalProps {
 	users: User[];
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	closeDialogFn: () => void;
+	restrictToTransfer?: boolean;
+	initialValues?: Partial<AddExpenseModalForm>;
 }
 
 export type AddExpenseModalForm = z.infer<typeof expenseFormSchema>;
@@ -65,13 +68,16 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 		debtors: initialDebtorsFormCheckBoxValues,
 		totalAmount: 0,
 		name: '',
-		date: new Date().toLocaleDateString('fr-FR'),
+		date: getPickerFormattedDate(new Date()),
 	};
 }
 
-export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
+export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn, restrictToTransfer, initialValues }: AddExpenseModalProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
-	const defaultValues = useMemo(() => getInitialValues(users), [users]);
+	const defaultValues = useMemo(
+		() => ({ ...getInitialValues(users), ...(restrictToTransfer ? { type: 'Transfer' as ExpenseType } : {}), ...initialValues }),
+		[users, restrictToTransfer, initialValues],
+	);
 
 	const {
 		register,
@@ -143,7 +149,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 				<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
 					✕
 				</button>
-				<h1>Ajouter une dépense</h1>
+				<h1>{restrictToTransfer ? 'Ajouter un transfert' : 'Ajouter une dépense'}</h1>
 				<ErrorValidationCallout errors={errors} />
 				<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
 					<div className="flex flex-col gap-3">
@@ -169,12 +175,17 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							})}
 						/>
 
-						<label className="label">Type de dépense</label>
-						<select defaultValue="Dépense" className="select w-full" {...register('type')}>
-							<option value={'Expense' as ExpenseType}>Dépense</option>
-							<option value={'Gain' as ExpenseType}>Gain</option>
-							<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
-						</select>
+						{!restrictToTransfer && (
+							<>
+								<label className="label">Type de dépense</label>
+								<select defaultValue="Dépense" className="select w-full" {...register('type')}>
+									<option value={'Expense' as ExpenseType}>Dépense</option>
+									<option value={'Gain' as ExpenseType}>Gain</option>
+									<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
+								</select>
+							</>
+						)}
+						{restrictToTransfer && <input type="hidden" {...register('type')} value="Transfer" />}
 
 						<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 							<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>
@@ -270,7 +281,7 @@ export function FormCheckboxGroup({ amount, isChecked, register, type, user, ind
 					register={register}
 					getValues={getValues}
 					updateMethod={updateMethod}
-					type="debtors"
+					type={type}
 					onRecalculate={onRecalculate}
 				/>
 			) : (

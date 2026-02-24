@@ -12,6 +12,16 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "server", derive(sqlx::Type))]
+#[cfg_attr(feature = "server", sqlx(type_name = "project_status", rename_all = "lowercase"))]
+pub enum ProjectStatus {
+    Ongoing,
+    Closed,
+    Archived,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "server", derive(FromRow))]
 pub struct ProjectDto {
     pub id: Uuid,
@@ -19,6 +29,7 @@ pub struct ProjectDto {
     pub created_at: NaiveDateTime,
     pub currency: String,
     pub description: Option<String>,
+    pub status: ProjectStatus,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -36,6 +47,7 @@ pub struct EditableProject {
     pub name: Option<String>,
     pub description: Option<String>,
     pub currency: Option<String>,
+    pub status: Option<ProjectStatus>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

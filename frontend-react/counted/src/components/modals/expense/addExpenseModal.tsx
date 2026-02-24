@@ -281,7 +281,7 @@ export function FormCheckboxGroup({ amount, isChecked, register, type, user, ind
 					register={register}
 					getValues={getValues}
 					updateMethod={updateMethod}
-					type="debtors"
+					type={type}
 					onRecalculate={onRecalculate}
 				/>
 			) : (

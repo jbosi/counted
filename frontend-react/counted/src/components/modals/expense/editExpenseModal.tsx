@@ -283,7 +283,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					register={register}
 					getValues={getValues}
 					updateMethod={updateMethod}
-					type="debtors"
+					type={type}
 					onRecalculate={onRecalculate}
 				/>
 			) : (

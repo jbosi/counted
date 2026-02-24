@@ -3,6 +3,7 @@ import { useLoaderData, useLocation } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { Loading } from '../../components/loading';
 import { AddExpenseModal } from '../../components/modals/expense/addExpenseModal';
+import type { AddExpenseModalForm } from '../../components/modals/expense/addExpenseModal';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
 import { UserSelectionDialog } from '../../components/modals/user/userSelectionDialog';
 import { SummaryCard } from '../../components/summaryCard';
@@ -11,6 +12,7 @@ import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
 import { useDeleteProject, useProject, useUpdateProjectStatus } from '../../hooks/useProjects';
+import type { ReimbursementSuggestion } from '../../types/summary.model';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
 import { ExpensesUserSection } from './components/expensesUserSection';
@@ -21,6 +23,7 @@ import { ReimbursementSuggestions } from './components/reimbursementSuggestions'
 import { DropdownAction } from '../../components/dropdowns/dropdownAction';
 import { BurgerIcon } from '../../shared/icons/burgerIcon';
 import { Dropdown } from '../../components/dropdowns/dropdown';
+import { getPickerFormattedDate } from '../../utils/date';
 
 interface ProjectDetailsProps {
 	projectId: string;
@@ -66,6 +69,7 @@ export const ProjectDetails = () => {
 	const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
 	const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 	const [isUserSelectionDialogOpen, setIsUserselectionDialogOpen] = useState(false);
+	const [expenseInitialValues, setExpenseInitialValues] = useState<Partial<AddExpenseModalForm> | undefined>(undefined);
 
 	const closeProjectDialog = () => {
 		setIsProjectDialogOpen(false);
@@ -74,8 +78,37 @@ export const ProjectDetails = () => {
 
 	const closeExpenseDialog = () => {
 		setIsExpenseDialogOpen(false);
+		setExpenseInitialValues(undefined);
 		expenseDialogRef.current?.close();
 	};
+
+	const openReimbursementExpense = useCallback(
+		(suggestion: ReimbursementSuggestion) => {
+			const debtor = users!.find((u) => u.id === suggestion.userIdDebtor)!;
+			const payer = users!.find((u) => u.id === suggestion.userIdPayer)!;
+
+			setExpenseInitialValues({
+				type: 'Transfer',
+				name: `Remboursement ${debtor.name} vers ${payer.name}`,
+				totalAmount: suggestion.amount,
+				date: getPickerFormattedDate(new Date()),
+				payers: users!.map((u) => ({
+					amount: u.id === debtor.id ? suggestion.amount : 0,
+					shares: u.id === debtor.id ? 1 : 0,
+					isChecked: u.id === debtor.id,
+					user: u,
+				})),
+				debtors: users!.map((u) => ({
+					amount: u.id === payer.id ? suggestion.amount : 0,
+					shares: u.id === payer.id ? 1 : 0,
+					isChecked: u.id === payer.id,
+					user: u,
+				})),
+			});
+			openDialog(setIsExpenseDialogOpen, expenseDialogRef);
+		},
+		[users, expenseDialogRef],
+	);
 
 	const closeUserSelectionDialog = () => {
 		setIsUserselectionDialogOpen(false);
@@ -162,6 +195,17 @@ export const ProjectDetails = () => {
 							closeDialogFn={closeUserSelectionDialog}
 						/>
 					)}
+					{isExpenseDialogOpen && (
+						<AddExpenseModal
+							modalId={'addExpenseModal'}
+							projectId={projectId}
+							users={users ?? []}
+							dialogRef={expenseDialogRef}
+							closeDialogFn={closeExpenseDialog}
+							restrictToTransfer={projectStatus === 'closed'}
+							initialValues={expenseInitialValues}
+						/>
+					)}
 				</>
 			) : (
 				<div className="flex justify-center">
@@ -199,30 +243,21 @@ export const ProjectDetails = () => {
 							<ExpenseList expenses={filteredExpenses} />
 
 							{(users?.length ?? 0) > 0 && projectStatus !== 'archived' && (
-								<>
-									<button
-										type="button"
-										className="btn btn-circle btn-lg sticky bottom-0 self-center mt-6 btn-soft"
-										onClick={() => openDialog(setIsExpenseDialogOpen, expenseDialogRef)}
-									>
-										+
-									</button>
-
-									{isExpenseDialogOpen && (
-										<AddExpenseModal
-											modalId={'addExpenseModal'}
-											projectId={projectId}
-											users={users ?? []}
-											dialogRef={expenseDialogRef}
-											closeDialogFn={closeExpenseDialog}
-											restrictToTransfer={projectStatus === 'closed'}
-										/>
-									)}
-								</>
+								<button
+									type="button"
+									className="btn btn-circle btn-lg sticky bottom-0 self-center mt-6 btn-soft"
+									onClick={() => openDialog(setIsExpenseDialogOpen, expenseDialogRef)}
+								>
+									+
+								</button>
 							)}
 						</>
 					) : activeTab === 'ReimbursementSuggestions' ? (
-						<ReimbursementSuggestions reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions} users={users} />
+						<ReimbursementSuggestions
+							reimbursementSuggestions={projectSummary.data?.reimbursementSuggestions}
+							users={users}
+							onReimburse={projectStatus !== 'archived' ? openReimbursementExpense : undefined}
+						/>
 					) : (
 						<ProjectSummary projectSummary={projectSummary.data} users={users} />
 					)}

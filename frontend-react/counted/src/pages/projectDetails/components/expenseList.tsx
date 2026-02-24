@@ -9,7 +9,7 @@ function formatDate(dateStr: string): string {
 	return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function groupByDate(expenses: Expense[]): [string, Expense[]][] {
+function groupExpensesByDate(expenses: Expense[]): [string, Expense[]][] {
 	const map = new Map<string, Expense[]>();
 	for (const expense of expenses) {
 		const key = expense.date.split('T')[0];
@@ -24,7 +24,7 @@ function groupByDate(expenses: Expense[]): [string, Expense[]][] {
 }
 
 export function ExpenseList(props: ExpenseListProps) {
-	const groups = groupByDate(props.expenses);
+	const groups = groupExpensesByDate(props.expenses);
 	return (
 		<div className="counted-list">
 			{groups.map(([date, expenses]) => (

@@ -84,7 +84,10 @@ export function ProjectItem({ project }: ProjectProps) {
 									<li>
 										<button
 											className="btn btn-warning btn-soft"
-											onClick={(e) => { e.stopPropagation(); updateStatus('closed'); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('closed');
+											}}
 										>
 											Cloturer
 										</button>
@@ -92,7 +95,10 @@ export function ProjectItem({ project }: ProjectProps) {
 									<li>
 										<button
 											className="btn btn-neutral btn-soft"
-											onClick={(e) => { e.stopPropagation(); updateStatus('archived'); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('archived');
+											}}
 										>
 											Archiver
 										</button>
@@ -104,7 +110,10 @@ export function ProjectItem({ project }: ProjectProps) {
 									<li>
 										<button
 											className="btn btn-success btn-soft"
-											onClick={(e) => { e.stopPropagation(); updateStatus('ongoing'); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('ongoing');
+											}}
 										>
 											Réouvrir
 										</button>
@@ -112,7 +121,10 @@ export function ProjectItem({ project }: ProjectProps) {
 									<li>
 										<button
 											className="btn btn-neutral btn-soft"
-											onClick={(e) => { e.stopPropagation(); updateStatus('archived'); }}
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('archived');
+											}}
 										>
 											Archiver
 										</button>
@@ -123,7 +135,10 @@ export function ProjectItem({ project }: ProjectProps) {
 								<li>
 									<button
 										className="btn btn-success btn-soft"
-										onClick={(e) => { e.stopPropagation(); updateStatus('ongoing'); }}
+										onClick={(e) => {
+											e.stopPropagation();
+											updateStatus('ongoing');
+										}}
 									>
 										Réouvrir
 									</button>

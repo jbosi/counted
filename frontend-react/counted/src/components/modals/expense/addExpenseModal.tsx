@@ -19,6 +19,7 @@ import {
 	updateAmounts,
 } from './helpers/expenseModal.helper';
 import { ModalFooter } from '../shared/modalFooter';
+import { getPickerFormattedDate } from '../../../utils/date';
 
 export interface AddExpenseModalProps {
 	modalId: string;
@@ -27,6 +28,7 @@ export interface AddExpenseModalProps {
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	closeDialogFn: () => void;
 	restrictToTransfer?: boolean;
+	initialValues?: Partial<AddExpenseModalForm>;
 }
 
 export type AddExpenseModalForm = z.infer<typeof expenseFormSchema>;
@@ -66,13 +68,16 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 		debtors: initialDebtorsFormCheckBoxValues,
 		totalAmount: 0,
 		name: '',
-		date: new Date().toLocaleDateString('fr-FR'),
+		date: getPickerFormattedDate(new Date()),
 	};
 }
 
-export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn, restrictToTransfer }: AddExpenseModalProps) {
+export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn, restrictToTransfer, initialValues }: AddExpenseModalProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
-	const defaultValues = useMemo(() => ({ ...getInitialValues(users), ...(restrictToTransfer ? { type: 'Transfer' as ExpenseType } : {}) }), [users, restrictToTransfer]);
+	const defaultValues = useMemo(
+		() => ({ ...getInitialValues(users), ...(restrictToTransfer ? { type: 'Transfer' as ExpenseType } : {}), ...initialValues }),
+		[users, restrictToTransfer, initialValues],
+	);
 
 	const {
 		register,
@@ -144,7 +149,7 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 				<button type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={closeDialogFn}>
 					✕
 				</button>
-				<h1>Ajouter une dépense</h1>
+				<h1>{restrictToTransfer ? 'Ajouter un transfert' : 'Ajouter une dépense'}</h1>
 				<ErrorValidationCallout errors={errors} />
 				<form className="ml-4 mr-4" onSubmit={handleSubmit(onSubmit)}>
 					<div className="flex flex-col gap-3">

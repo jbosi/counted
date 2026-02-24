@@ -10,7 +10,7 @@ import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useExpensesByProjectId, useExpenseSummary } from '../../hooks/useExpenses';
 import { usePaymentsByProjectId } from '../../hooks/usePayments';
-import { useDeleteProject, useProject } from '../../hooks/useProjects';
+import { useDeleteProject, useProject, useUpdateProjectStatus } from '../../hooks/useProjects';
 import { getProjectUserIdFromLocalstorage } from '../../utils/get-project-from-localstorage';
 import { openDialog } from '../../utils/open-dialog';
 import { ExpensesUserSection } from './components/expensesUserSection';
@@ -36,10 +36,13 @@ export const ProjectDetails = () => {
 	const { data: payments } = usePaymentsByProjectId(projectId);
 	const projectSummary = useExpenseSummary(projectId);
 	const { mutate: deleteProject } = useDeleteProject();
+	const { mutate: updateStatus } = useUpdateProjectStatus(projectId);
 	const location = useLocation();
 
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const storedUserId = getProjectUserIdFromLocalstorage(countedLocalStorage, projectId);
+
+	const projectStatus = project.data?.status ?? 'ongoing';
 
 	const [showMyPayments, setShowMyPayments] = useState(false);
 	const [showMyDebts, setShowMyDebts] = useState(false);
@@ -98,6 +101,41 @@ export const ProjectDetails = () => {
 					<AppHeader title={project.data?.name ?? ''} backButtonRoute="..">
 						<Dropdown id="AppHeaderId" icon={<BurgerIcon />}>
 							<DropdownAction onEdit={() => openDialog(setIsProjectDialogOpen, projectDialogRef)} onDelete={() => deleteProject(projectId)} />
+							{projectStatus === 'ongoing' && (
+								<>
+									<li>
+										<button type="button" className="btn btn-warning btn-soft" onClick={() => updateStatus('closed')}>
+											Cloturer
+										</button>
+									</li>
+									<li>
+										<button type="button" className="btn btn-neutral btn-soft" onClick={() => updateStatus('archived')}>
+											Archiver
+										</button>
+									</li>
+								</>
+							)}
+							{projectStatus === 'closed' && (
+								<>
+									<li>
+										<button type="button" className="btn btn-success btn-soft" onClick={() => updateStatus('ongoing')}>
+											Réouvrir
+										</button>
+									</li>
+									<li>
+										<button type="button" className="btn btn-neutral btn-soft" onClick={() => updateStatus('archived')}>
+											Archiver
+										</button>
+									</li>
+								</>
+							)}
+							{projectStatus === 'archived' && (
+								<li>
+									<button type="button" className="btn btn-success btn-soft" onClick={() => updateStatus('ongoing')}>
+										Réouvrir
+									</button>
+								</li>
+							)}
 							<li>
 								<button
 									type="button"
@@ -160,7 +198,7 @@ export const ProjectDetails = () => {
 							<ExpenseDropdownSettings showMyDebtsState={[showMyDebts, setShowMyDebts]} showMyPaymentsState={[showMyPayments, setShowMyPayments]} />
 							<ExpenseList expenses={filteredExpenses} />
 
-							{(users?.length ?? 0) > 0 && (
+							{(users?.length ?? 0) > 0 && projectStatus !== 'archived' && (
 								<>
 									<button
 										type="button"
@@ -177,6 +215,7 @@ export const ProjectDetails = () => {
 											users={users ?? []}
 											dialogRef={expenseDialogRef}
 											closeDialogFn={closeExpenseDialog}
+											restrictToTransfer={projectStatus === 'closed'}
 										/>
 									)}
 								</>

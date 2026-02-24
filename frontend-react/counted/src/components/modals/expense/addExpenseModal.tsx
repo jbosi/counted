@@ -26,6 +26,7 @@ export interface AddExpenseModalProps {
 	users: User[];
 	dialogRef: RefObject<HTMLDialogElement | null>;
 	closeDialogFn: () => void;
+	restrictToTransfer?: boolean;
 }
 
 export type AddExpenseModalForm = z.infer<typeof expenseFormSchema>;
@@ -69,9 +70,9 @@ function getInitialValues(users: User[]): Partial<AddExpenseModalForm> {
 	};
 }
 
-export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn }: AddExpenseModalProps) {
+export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDialogFn, restrictToTransfer }: AddExpenseModalProps) {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
-	const defaultValues = useMemo(() => getInitialValues(users), [users]);
+	const defaultValues = useMemo(() => ({ ...getInitialValues(users), ...(restrictToTransfer ? { type: 'Transfer' as ExpenseType } : {}) }), [users, restrictToTransfer]);
 
 	const {
 		register,
@@ -169,12 +170,17 @@ export function AddExpenseModal({ dialogRef, modalId, users, projectId, closeDia
 							})}
 						/>
 
-						<label className="label">Type de dépense</label>
-						<select defaultValue="Dépense" className="select w-full" {...register('type')}>
-							<option value={'Expense' as ExpenseType}>Dépense</option>
-							<option value={'Gain' as ExpenseType}>Gain</option>
-							<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
-						</select>
+						{!restrictToTransfer && (
+							<>
+								<label className="label">Type de dépense</label>
+								<select defaultValue="Dépense" className="select w-full" {...register('type')}>
+									<option value={'Expense' as ExpenseType}>Dépense</option>
+									<option value={'Gain' as ExpenseType}>Gain</option>
+									<option value={'Transfer' as ExpenseType}>Transfert d'argent</option>
+								</select>
+							</>
+						)}
+						{restrictToTransfer && <input type="hidden" {...register('type')} value="Transfer" />}
 
 						<fieldset className="fieldset bg-base-100 border-base-300 rounded-box border p-4 w-full">
 							<legend className="fieldset-legend">{getPayersFieldLabel(expenseType)}</legend>

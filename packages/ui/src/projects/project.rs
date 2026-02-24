@@ -149,6 +149,7 @@ pub fn ProjectComponent(props: ProjectProps) -> Element {
                         currency: Some(props.currency),
                         description: props.description,
                         name: Some(props.title),
+                        status: None,
                     },
                 }
             }

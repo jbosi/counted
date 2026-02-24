@@ -7,6 +7,7 @@ import { EditExpenseModal } from '../../components/modals/expense/editExpenseMod
 import { ProjectUsersContext } from '../../contexts/projectUsersContext';
 import { useDeleteExpense, useExpense } from '../../hooks/useExpenses';
 import { usePaymentsByExpenseId } from '../../hooks/usePayments';
+import { useProject } from '../../hooks/useProjects';
 import type { Expense, ExpenseType } from '../../types/expenses.model';
 import type { PaymentViewModel } from '../../types/payments.model';
 import type { User } from '../../types/users.model';
@@ -17,6 +18,7 @@ import { Dropdown } from '../../components/dropdowns/dropdown';
 export function PaymentPage() {
 	const { expenseId, projectId } = useParams<string>();
 	const { data: expense } = useExpense(parseInt(expenseId ?? '0', 10)); // TODO: handle error
+	const { data: project } = useProject(projectId ?? '');
 
 	const { projectUsers } = useContext(ProjectUsersContext);
 	const { mutate } = useDeleteExpense(projectId ?? '');
@@ -24,6 +26,10 @@ export function PaymentPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const expenseDialogRef = useRef<HTMLDialogElement>(null);
+
+	const projectStatus = project?.status ?? 'ongoing';
+	const canEdit = projectStatus !== 'archived' && !(projectStatus === 'closed' && expense?.expenseType !== 'Transfer');
+	const canDelete = projectStatus !== 'archived';
 
 	const onDeleteExpense = () => {
 		if (expense === undefined) {
@@ -44,9 +50,11 @@ export function PaymentPage() {
 	return (
 		<div className="container overflow-auto app-container p-4 max-w-md">
 			<AppHeader title={expense?.name} date={expense?.date} backButtonRoute="..">
-				<Dropdown id="AppHeaderId" icon={<BurgerIcon />}>
-					<DropdownAction onEdit={() => openModal()} onDelete={onDeleteExpense} />
-				</Dropdown>
+				{(canEdit || canDelete) && (
+					<Dropdown id="AppHeaderId" icon={<BurgerIcon />}>
+						<DropdownAction onEdit={canEdit ? () => openModal() : undefined} onDelete={canDelete ? onDeleteExpense : undefined} />
+					</Dropdown>
+				)}
 			</AppHeader>
 			<div className="container p-4 max-w-md rounded-xl flex flex-col">
 				{expense == null || projectUsers == null ? (

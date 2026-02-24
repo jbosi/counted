@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto};
+use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto, ProjectStatus};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -11,7 +11,7 @@ use sqlx::{Pool, Postgres};
 pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let projects: ProjectDto = sqlx::query_as("SELECT * FROM projects WHERE id = $1")
+    let projects: ProjectDto = sqlx::query_as("SELECT id, name, created_at, currency, description, status FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_one(&pool)
         .await
@@ -26,7 +26,7 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
     let projects: Vec<ProjectDto> =
-        sqlx::query_as("SELECT id, name, created_at, currency, description FROM projects")
+        sqlx::query_as("SELECT id, name, created_at, currency, description, status FROM projects")
             .fetch_all(&pool)
             .await
             .context("Failed to get projects")
@@ -41,7 +41,7 @@ pub async fn get_projects_by_ids(payload: BatchProject) -> Result<Vec<ProjectDto
 
     let projects: Vec<ProjectDto> = sqlx::query_as!(
         ProjectDto,
-        "SELECT id, name, created_at, currency, description FROM projects WHERE id = ANY($1)",
+        "SELECT id, name, created_at, currency, description, status as \"status: ProjectStatus\" FROM projects WHERE id = ANY($1)",
         &payload.ids[..]
     )
     .fetch_all(&pool)
@@ -91,12 +91,17 @@ pub async fn update_project_by_id(
         new_project.currency = editable_project.currency.unwrap();
     }
 
+    if editable_project.status.is_some() {
+        new_project.status = editable_project.status.unwrap();
+    }
+
     let update_project: ProjectDto = sqlx::query_as!(
         ProjectDto,
-        "UPDATE projects SET name = $1, description = $2, currency = $3 WHERE id = $4 RETURNING id, name, created_at, currency, description",
+        "UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status as \"status: ProjectStatus\"",
         new_project.name,
         new_project.description,
         new_project.currency,
+        new_project.status as ProjectStatus,
         new_project.id
     )
     .fetch_one(&pool)

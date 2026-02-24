@@ -46,11 +46,14 @@ pub async fn import_tricount(
     let registry = tricount_client::fetch_tricount(&key).await?;
 
     // Create project
-    let project_id = projects_repository::add_project(CreatableProject {
-        name: registry.title.clone(),
-        description: Some("Imported from Tricount".to_string()),
-        currency: Some(registry.currency.clone()),
-    })
+    let project_id = projects_repository::add_project(
+        CreatableProject {
+            name: registry.title.clone(),
+            description: Some("Imported from Tricount".to_string()),
+            currency: Some(registry.currency.clone()),
+        },
+        None, // Tricount imports are anonymous (no owner account)
+    )
     .await?;
 
     // Extract members and create users

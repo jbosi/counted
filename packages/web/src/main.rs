@@ -1,4 +1,6 @@
+use api::auth::auth_controller::me;
 use dioxus::prelude::*;
+use shared::Account;
 use ui::route::Route;
 
 use shared::sse::EventSSE;
@@ -17,43 +19,30 @@ use web_sys::EventSource;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
-// const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
-    // Set the logger ahead of time since we don't use `dioxus::launch` on the server
     dioxus::logger::initialize_default();
-
-    // #[cfg(feature = "web")]
-    // // Hydrate the application on the client
-    // LaunchBuilder::web().launch(app);
-    //
-    // #[cfg(feature = "server")]
-    // {
-    //     use axum::routing::*;
-    //     tokio::runtime::Runtime::new().unwrap().block_on(async move {
-    //         let app_routes = Router::new()
-    //             .serve_dioxus_application(ServeConfig::new(), app)
-    //             .route("/sse", get(sse_handler));
-    //
-    //         // serve the app using the address passed by the CLI
-    //         let addr = dioxus::cli_config::fullstack_address_or_localhost();
-    //         let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    //
-    //         axum::serve(listener, app_routes.into_make_service()).await.unwrap();
-    //     });
-    // }
-
     dioxus::launch(app);
-
 }
 
 #[component]
 fn app() -> Element {
+    // Global auth state — populated on mount by calling /api/v1/auth/me
+    let auth: Signal<Option<Account>> = use_context_provider(|| Signal::new(None));
+
+    use_effect(move || {
+        let mut auth = auth;
+        spawn(async move {
+            if let Ok(account) = me().await {
+                auth.set(account);
+            }
+        });
+    });
+
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }
-        // document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
         main {
             "data-theme": "cupcake",

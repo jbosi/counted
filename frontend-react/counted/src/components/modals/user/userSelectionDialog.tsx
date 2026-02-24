@@ -50,37 +50,35 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 	);
 
 	return (
-		<>
-			<dialog ref={dialogRef} id={modalId} className="modal">
-				<div className="modal-box flex gap-3 flex-col">
-					<h1>Quel utilisateur êtes vous ?</h1>
-					<ErrorValidationCallout errors={errors} />
-					<form className="ml-4 mr-4" onSubmit={(e) => onSubmit(e)}>
-						<fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
-							<legend className="fieldset-legend">Liste des utilisateurs</legend>
+		<dialog ref={dialogRef} id={modalId} className="modal">
+			<div className="modal-box flex gap-3 flex-col">
+				<h1>Quel utilisateur êtes vous ?</h1>
+				<ErrorValidationCallout errors={errors} />
+				<form className="ml-4 mr-4" onSubmit={(e) => onSubmit(e)}>
+					<fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
+						<legend className="fieldset-legend">Liste des utilisateurs</legend>
 
-							<ul className="counted-list">
-								{users?.map((u, index) => {
-									return (
-										<li key={index} className="userSelectionDialog-userList">
-											<span className="self-center text-left text-sm">{u.name}</span>
-											{isUserSelected(u, projectId) ? (
-												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
-											) : (
-												<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
-													C'est moi !
-												</button>
-											)}
-										</li>
-									);
-								})}
-							</ul>
-						</fieldset>
+						<ul className="counted-list">
+							{users?.map((u, index) => {
+								return (
+									<li key={index} className="userSelectionDialog-userList">
+										<span className="self-center text-left text-sm">{u.name}</span>
+										{isUserSelected(u, projectId) ? (
+											<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
+										) : (
+											<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
+												C'est moi !
+											</button>
+										)}
+									</li>
+								);
+							})}
+						</ul>
+					</fieldset>
 
-						<ModalFooter hideCancelButton={true} />
-					</form>
-				</div>
-			</dialog>
-		</>
+					<ModalFooter hideCancelButton={true} />
+				</form>
+			</div>
+		</dialog>
 	);
 }

@@ -1,6 +1,7 @@
 import { Avatar } from '../../../components/avatar';
 import { DollarIcon } from '../../../shared/icons/dollarIcon';
 import { RightArrowIcon } from '../../../shared/icons/righArrowIcon';
+import { CheckMarkIllustration } from '../../../shared/illustrations/checkMarkIllustration';
 import type { ReimbursementSuggestion } from '../../../types/summary.model';
 import type { User } from '../../../types/users.model';
 
@@ -11,8 +12,13 @@ interface ReimbursementSuggestionsProps {
 }
 
 export function ReimbursementSuggestions({ reimbursementSuggestions, users, onReimburse }: ReimbursementSuggestionsProps) {
-	if (reimbursementSuggestions === undefined) {
-		return <></>;
+	if (reimbursementSuggestions === undefined || reimbursementSuggestions?.length === 0) {
+		return (
+			<div className="flex justify-center flex-col items-center">
+				<span className="mt-12">Les comptes sont bons !</span>
+				<CheckMarkIllustration />
+			</div>
+		);
 	}
 
 	return (

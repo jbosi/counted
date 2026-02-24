@@ -165,7 +165,7 @@ export const ProjectDetails = () => {
 							{projectStatus === 'archived' && (
 								<li>
 									<button type="button" className="btn btn-success btn-soft" onClick={() => updateStatus('ongoing')}>
-										Réouvrir
+										Désarchiver
 									</button>
 								</li>
 							)}

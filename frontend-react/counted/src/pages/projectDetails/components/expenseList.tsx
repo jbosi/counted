@@ -1,3 +1,4 @@
+import { EmptyMagnifyingGlassIllustration } from '../../../shared/illustrations/emptyMagnifyingGlassIllustration';
 import type { Expense } from '../../../types/expenses.model';
 import { ExpenseItem } from './expenseItem';
 
@@ -27,16 +28,23 @@ export function ExpenseList(props: ExpenseListProps) {
 	const groups = groupExpensesByDate(props.expenses);
 	return (
 		<div className="counted-list">
-			{groups.map(([date, expenses]) => (
-				<div key={date}>
-					<div className="divider divider-start text-sm font-medium">{formatDate(date)}</div>
-					<ul className="counted-list">
-						{expenses.map((e) => (
-							<ExpenseItem key={e.id} expense={e} />
-						))}
-					</ul>
+			{groups.length > 0 ? (
+				groups.map(([date, expenses]) => (
+					<div key={date}>
+						<div className="divider divider-start text-sm font-medium">{formatDate(date)}</div>
+						<ul className="counted-list">
+							{expenses.map((e) => (
+								<ExpenseItem key={e.id} expense={e} />
+							))}
+						</ul>
+					</div>
+				))
+			) : (
+				<div className="flex justify-center flex-col items-center">
+					<span>Aucune dépense</span>
+					<EmptyMagnifyingGlassIllustration />
 				</div>
-			))}
+			)}
 		</div>
 	);
 }

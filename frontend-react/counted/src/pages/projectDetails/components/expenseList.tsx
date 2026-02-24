@@ -41,8 +41,9 @@ export function ExpenseList(props: ExpenseListProps) {
 				))
 			) : (
 				<div className="flex justify-center flex-col items-center">
-					<span>Aucune dépense</span>
 					<EmptyMagnifyingGlassIllustration />
+					<span className="font-bold">Aucune dépense</span>
+					<span>Commencez par ajouter des dépenses en cliquant sur le bouton ci-dessous</span>
 				</div>
 			)}
 		</div>

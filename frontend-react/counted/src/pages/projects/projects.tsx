@@ -9,6 +9,7 @@ import { useProjects } from '../../hooks/useProjects';
 import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import { closeDialog, openDialog } from '../../utils/open-dialog';
 import { ProjectItem } from './projectItem';
+import { EmptyMagnifyingGlassIllustration } from '../../shared/illustrations/emptyMagnifyingGlassIllustration';
 
 export function Projects() {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
@@ -65,7 +66,11 @@ export function Projects() {
 			</div>
 			<div className="space-y-4">
 				{!visibleProjects || visibleProjects.length === 0 ? (
-					<div className="m-2">Ajoutez un projet en cliquant sur le bouton ci dessous</div>
+					<div className="flex justify-center flex-col items-center">
+						<EmptyMagnifyingGlassIllustration />
+						<span className="font-bold">Aucun projet</span>
+						<span>Commencez par ajouter un projet en cliquant sur le bouton ci-dessous</span>
+					</div>
 				) : (
 					visibleProjects.map((project) => <ProjectItem key={project.id} project={project} />)
 				)}

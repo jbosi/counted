@@ -15,8 +15,9 @@ export function ReimbursementSuggestions({ reimbursementSuggestions, users, onRe
 	if (reimbursementSuggestions === undefined || reimbursementSuggestions?.length === 0) {
 		return (
 			<div className="flex justify-center flex-col items-center">
-				<span className="mt-12">Les comptes sont bons !</span>
 				<CheckMarkIllustration />
+				<span className="font-bold">Les comptes sont bons !</span>
+				<span>Des suggestions de remboursement seront proposées ici si les comptes ne sont pas équilibrés</span>
 			</div>
 		);
 	}

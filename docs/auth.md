@@ -16,13 +16,15 @@ Design decisions are documented in [DOCUMENTATION.md §9](../DOCUMENTATION.md#9-
 
 ### `accounts`
 
-| Column        | Type             | Notes                        |
-| ------------- | ---------------- | ---------------------------- |
-| id            | UUID PK          | `gen_random_uuid()`          |
-| email         | VARCHAR NOT NULL | UNIQUE constraint            |
-| password_hash | VARCHAR NOT NULL | Argon2id hash, never exposed |
-| display_name  | VARCHAR NOT NULL | Shown in UI                  |
-| created_at    | TIMESTAMP        | DEFAULT current_timestamp    |
+| Column               | Type             | Notes                                               |
+| -------------------- | ---------------- | --------------------------------------------------- |
+| id                   | UUID PK          | `gen_random_uuid()`                                 |
+| email                | VARCHAR NOT NULL | UNIQUE constraint                                   |
+| password_hash        | VARCHAR NOT NULL | Argon2id hash, never exposed                        |
+| display_name         | VARCHAR NOT NULL | Shown in UI                                         |
+| created_at           | TIMESTAMP        | DEFAULT current_timestamp                           |
+| failed_login_count   | INTEGER          | Incremented on each failed login, reset on success  |
+| locked_until         | TIMESTAMP        | Nullable — account locked until this time when set  |
 
 ### `sessions`
 
@@ -58,9 +60,10 @@ Nullable `UUID` FK referencing `accounts(id)` ON DELETE SET NULL. When null, the
 **File**: [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs)
 
 1. Fetch account by email — return generic `"Invalid email or password"` if not found (prevents email enumeration)
-2. Parse stored hash and verify with `Argon2::default().verify_password()` (constant-time)
-3. Create a session
-4. Return the `Account` DTO
+2. Check `locked_until > NOW()` — return `"Account temporarily locked"` if true (see [Brute Force Protection](#brute-force-protection))
+3. Parse stored hash and verify with `Argon2::default().verify_password()` (constant-time)
+4. On failure: call `increment_failed_login()`, return `"Invalid email or password"`
+5. On success: call `reset_failed_login()`, create a session, return the `Account` DTO
 
 ---
 
@@ -89,6 +92,62 @@ Session validation runs on every authenticated request via `get_current_account_
 1. Parse `session_id` UUID from `Cookie` header
 2. Query: `SELECT account_id FROM sessions WHERE id = $1 AND expires_at > NOW()`
 3. Returns `Option<Uuid>` — `None` on any failure (expired, invalid, missing)
+
+---
+
+## Brute Force Protection
+
+Two complementary layers protect against credential attacks:
+
+### 1. Nginx rate limiting (volumetric attacks)
+
+**File**: [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf)
+
+A dedicated `auth_limit` zone applies to `POST /api/v1/auth/login` and `POST /api/v1/auth/register`:
+
+```nginx
+limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=5r/m;
+
+location ~ ^/api/v1/auth/(login|register) {
+    limit_req zone=auth_limit burst=2 nodelay;
+    limit_req_status 429;
+    ...
+}
+```
+
+- **5 requests/minute per IP** (vs. the general 10 req/s zone — effectively no protection for auth)
+- `burst=2` allows 2 rapid requests (e.g. a page load + immediate submit) before enforcing the limit
+- Returns `429 Too Many Requests` — handled before the request reaches Rust
+- Protects against flood attacks and credential stuffing at minimal cost (memory-only, no DB)
+
+This location block is placed **before** the generic `/api` block so nginx matches it first (regex `~` takes priority over prefix `/api`).
+
+### 2. Account lockout (targeted attacks)
+
+**Files**: [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs), [packages/api/src/auth/auth_repository.rs](../packages/api/src/auth/auth_repository.rs)
+
+Per-account lockout handles attackers who stay under the IP rate limit (e.g. rotating proxies):
+
+- After **5 consecutive failed logins**, `locked_until` is set to `NOW() + 15 minutes` in the DB
+- While locked, the login endpoint returns `"Account temporarily locked. Try again later."` — the password is not even checked
+- On a **successful login**, `failed_login_count` and `locked_until` are reset to zero/null
+
+The lockout check is implemented in `is_account_locked(locked_until, now) -> bool`, a pure function covered by 4 unit tests (`cargo test --package api`).
+
+The DB update is atomic via a SQL CASE expression:
+
+```sql
+UPDATE accounts
+SET
+  failed_login_count = failed_login_count + 1,
+  locked_until = CASE
+    WHEN failed_login_count + 1 >= 5 THEN NOW() + INTERVAL '15 minutes'
+    ELSE locked_until
+  END
+WHERE id = $1
+```
+
+> **DoS tradeoff**: Account lockout can theoretically be weaponised — an attacker who knows a victim's email can lock them out by failing 5 times. This is a known, accepted tradeoff for most apps at this scale. Mitigation: the 15-minute window is short and auto-expires; no manual intervention is needed.
 
 ---
 
@@ -159,6 +218,8 @@ Routes `/login` and `/register` render [packages/ui/src/auth/login.rs](../packag
 | [migrations/20260220115825_create_accounts.up.sql](../migrations/20260220115825_create_accounts.up.sql) | accounts table |
 | [migrations/20260220115826_create_sessions.up.sql](../migrations/20260220115826_create_sessions.up.sql) | sessions table |
 | [migrations/20260220115827_project_owner_account_id.up.sql](../migrations/20260220115827_project_owner_account_id.up.sql) | owner_account_id column |
+| [migrations/20260308000000_account_lockout.up.sql](../migrations/20260308000000_account_lockout.up.sql) | failed_login_count + locked_until columns |
+| [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf) | auth_limit rate zone + location block |
 
 ---
 
@@ -169,8 +230,8 @@ Items not yet implemented, ordered by severity:
 | Gap | Severity | Notes |
 |---|---|---|
 | Expense / payment / user endpoints have no auth | Critical | Anyone with a project UUID can mutate its expenses |
-| No rate limiting on auth endpoints | High | Login and register are open to brute force |
-| No account lockout after repeated failures | High | No failed attempt tracking in DB |
+| ~~No rate limiting on auth endpoints~~ | ~~High~~ | Implemented — nginx `auth_limit` zone (5 req/min/IP) |
+| ~~No account lockout after repeated failures~~ | ~~High~~ | Implemented — 5 failures → 15-min lockout in DB |
 | `Secure` cookie flag off by default | Medium | Requires `COOKIE_SECURE=true` env var to enable |
 | No server-side password strength validation | Medium | Only frontend `minlength=8`, easily bypassed via API |
 | No email verification | Medium | Accounts created with unverified email addresses |

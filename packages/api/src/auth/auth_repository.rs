@@ -11,12 +11,15 @@ use sqlx::{Pool, Postgres};
 use shared::Account;
 
 #[cfg(feature = "server")]
+#[derive(sqlx::FromRow)]
 pub struct AccountWithHash {
     pub id: Uuid,
     pub email: String,
     pub display_name: String,
     pub created_at: NaiveDateTime,
     pub password_hash: String,
+    pub failed_login_count: i32,
+    pub locked_until: Option<NaiveDateTime>,
 }
 
 #[cfg(feature = "server")]
@@ -45,8 +48,8 @@ pub async fn create_account(
 pub async fn find_account_by_email(email: &str) -> Result<Option<AccountWithHash>, ServerFnError> {
     let pool: Pool<Postgres> = get_db().await;
 
-    let row = sqlx::query_as::<_, (Uuid, String, String, NaiveDateTime, String)>(
-        "SELECT id, email, display_name, created_at, password_hash FROM accounts WHERE email = $1",
+    let account = sqlx::query_as::<_, AccountWithHash>(
+        "SELECT id, email, display_name, created_at, password_hash, failed_login_count, locked_until FROM accounts WHERE email = $1",
     )
     .bind(email)
     .fetch_optional(&pool)
@@ -54,13 +57,7 @@ pub async fn find_account_by_email(email: &str) -> Result<Option<AccountWithHash
     .context("Failed to query account by email")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(row.map(|(id, email, display_name, created_at, password_hash)| AccountWithHash {
-        id,
-        email,
-        display_name,
-        created_at,
-        password_hash,
-    }))
+    Ok(account)
 }
 
 #[cfg(feature = "server")]
@@ -77,6 +74,43 @@ pub async fn get_account_by_id(id: Uuid) -> Result<Option<Account>, ServerFnErro
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(account)
+}
+
+#[cfg(feature = "server")]
+pub async fn increment_failed_login(id: Uuid) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    sqlx::query(
+        "UPDATE accounts
+         SET
+           failed_login_count = failed_login_count + 1,
+           locked_until = CASE
+             WHEN failed_login_count + 1 >= 5 THEN NOW() + INTERVAL '15 minutes'
+             ELSE locked_until
+           END
+         WHERE id = $1",
+    )
+    .bind(id)
+    .execute(&pool)
+    .await
+    .context("Failed to increment failed login count")
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
+}
+
+#[cfg(feature = "server")]
+pub async fn reset_failed_login(id: Uuid) -> Result<(), ServerFnError> {
+    let pool: Pool<Postgres> = get_db().await;
+
+    sqlx::query("UPDATE accounts SET failed_login_count = 0, locked_until = NULL WHERE id = $1")
+        .bind(id)
+        .execute(&pool)
+        .await
+        .context("Failed to reset failed login count")
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(())
 }
 
 #[cfg(feature = "server")]

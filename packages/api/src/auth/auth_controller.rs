@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use dioxus::fullstack::Json;
 use dioxus::prelude::*;
 use shared::{Account, LoginPayload, RegisterPayload};
@@ -19,6 +20,10 @@ use chrono::{Duration, Utc};
 use dioxus_fullstack::FullstackContext;
 #[cfg(feature = "server")]
 use uuid::Uuid;
+
+fn is_account_locked(locked_until: Option<NaiveDateTime>, now: NaiveDateTime) -> bool {
+    locked_until.map_or(false, |l| l > now)
+}
 
 #[post("/api/v1/auth/register")]
 pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, ServerFnError> {
@@ -51,13 +56,22 @@ pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerF
         .await?
         .ok_or_else(|| ServerFnError::new("Invalid email or password"))?;
 
+    if is_account_locked(account_with_hash.locked_until, Utc::now().naive_utc()) {
+        return Err(ServerFnError::new("Account temporarily locked. Try again later."));
+    }
+
     let parsed_hash = PasswordHash::new(&account_with_hash.password_hash)
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Argon2::default()
+    if Argon2::default()
         .verify_password(payload.password.as_bytes(), &parsed_hash)
-        .map_err(|_| ServerFnError::new("Invalid email or password"))?;
+        .is_err()
+    {
+        let _ = auth_repository::increment_failed_login(account_with_hash.id).await;
+        return Err(ServerFnError::new("Invalid email or password"));
+    }
 
+    let _ = auth_repository::reset_failed_login(account_with_hash.id).await;
     create_session_and_set_cookie(account_with_hash.id).await?;
 
     Ok(Account {
@@ -130,4 +144,38 @@ async fn create_session_and_set_cookie(account_id: Uuid) -> Result<Uuid, ServerF
     ctx.add_response_header(SET_COOKIE, header_value);
 
     Ok(session_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration, Utc};
+
+    fn now() -> NaiveDateTime {
+        Utc::now().naive_utc()
+    }
+
+    #[test]
+    fn not_locked_when_no_locked_until() {
+        assert!(!is_account_locked(None, now()));
+    }
+
+    #[test]
+    fn not_locked_when_locked_until_in_past() {
+        let past = now() - Duration::minutes(1);
+        assert!(!is_account_locked(Some(past), now()));
+    }
+
+    #[test]
+    fn locked_when_locked_until_in_future() {
+        let future = now() + Duration::minutes(14);
+        assert!(is_account_locked(Some(future), now()));
+    }
+
+    #[test]
+    fn not_locked_exactly_at_expiry() {
+        // locked_until == now: not strictly greater, so not locked
+        let t = now();
+        assert!(!is_account_locked(Some(t), t));
+    }
 }

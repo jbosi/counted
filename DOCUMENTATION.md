@@ -41,23 +41,23 @@ The Rust workspace uses resolver 2. `packages/web` is the actual build artifact 
 
 ## 2. Tech Stack
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Language (backend) | Rust | stable |
-| Fullstack framework | Dioxus | 0.7.2 |
-| Web server | axum | 0.7 |
-| Async runtime | tokio | 1.43 |
-| Database | PostgreSQL | 15 |
-| DB driver | sqlx | 0.8.6 |
-| Frontend framework | React | 19 |
-| Frontend routing | React Router | 7 |
-| Server state | TanStack React Query | 5 |
-| Forms | React Hook Form + Zod | 7 / 4 |
-| Styling | TailwindCSS + DaisyUI | 4 / 5 |
-| Build tool (React) | Vite | 7 |
-| Build tool (Rust) | dx (Dioxus CLI) | — |
-| Reverse proxy | nginx | alpine |
-| Deployment | Docker Compose | — |
+| Layer               | Technology            | Version |
+| ------------------- | --------------------- | ------- |
+| Language (backend)  | Rust                  | stable  |
+| Fullstack framework | Dioxus                | 0.7.2   |
+| Web server          | axum                  | 0.7     |
+| Async runtime       | tokio                 | 1.43    |
+| Database            | PostgreSQL            | 15      |
+| DB driver           | sqlx                  | 0.8.6   |
+| Frontend framework  | React                 | 19      |
+| Frontend routing    | React Router          | 7       |
+| Server state        | TanStack React Query  | 5       |
+| Forms               | React Hook Form + Zod | 7 / 4   |
+| Styling             | TailwindCSS + DaisyUI | 4 / 5   |
+| Build tool (React)  | Vite                  | 7       |
+| Build tool (Rust)   | dx (Dioxus CLI)       | —       |
+| Reverse proxy       | nginx                 | alpine  |
+| Deployment          | Docker Compose        | —       |
 
 ---
 
@@ -84,12 +84,12 @@ Entry point: `packages/web/src/main.rs` calls `dioxus::launch(app)`, which handl
 
 ### 3.2 Package Roles
 
-| Package | Role |
-|---------|------|
-| `shared` | Pure data: DTOs, enums, serialization contracts. No framework dependency. Compiled into both the server binary and the WASM bundle. |
-| `api` | All server-side logic: controllers, repositories, DB access. Feature-gated: server-only code is under `[features] server` (sqlx, axum, tokio, etc. are optional). |
-| `ui` | Dioxus components, pages, routes. Compiled to WASM for the browser. |
-| `web` | Thin entry point. Provides context, registers all server functions, produces the final artifact via `dx bundle --web --release --package web`. |
+| Package  | Role                                                                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared` | Pure data: DTOs, enums, serialization contracts. No framework dependency. Compiled into both the server binary and the WASM bundle.                               |
+| `api`    | All server-side logic: controllers, repositories, DB access. Feature-gated: server-only code is under `[features] server` (sqlx, axum, tokio, etc. are optional). |
+| `ui`     | Dioxus components, pages, routes. Compiled to WASM for the browser.                                                                                               |
+| `web`    | Thin entry point. Provides context, registers all server functions, produces the final artifact via `dx bundle --web --release --package web`.                    |
 
 ### 3.3 Module Structure (`packages/api/src/`)
 
@@ -152,6 +152,7 @@ Pool initialisation reads `DATABASE_URL` from the environment at startup.
 
 ### 3.6 Real-Time Updates (SSE)
 
+It is not used and maybe never used :
 `packages/api/src/sse/sse.rs` implements a broadcast channel using `tokio` + `async-stream`. The server publishes events (expense created/updated/deleted, project changes) and the client subscribes via a standard `EventSource` connection. The `EventSSE` enum in `shared` defines the event types.
 
 ---
@@ -162,66 +163,71 @@ Pool initialisation reads `DATABASE_URL` from the environment at startup.
 
 All migrations live in `/migrations/`. They are run by sqlx at startup via `runMigrationsAndBinary.sh`.
 
-| Date | Migration | Change |
-|------|-----------|--------|
-| 2025-06-15 | `users` | CREATE TABLE users |
+| Date       | Migration                      | Change                                                    |
+| ---------- | ------------------------------ | --------------------------------------------------------- |
+| 2025-06-15 | `users`                        | CREATE TABLE users                                        |
 | 2025-06-15 | `create_expenses_and_projects` | CREATE TABLE projects, expenses; CREATE TYPE expense_type |
-| 2025-06-15 | `create_payments` | CREATE TABLE payments |
-| 2025-06-15 | `create_user_projects` | CREATE TABLE user_projects |
-| 2025-07-11 | `project.description` | ALTER projects ADD description |
-| 2026-02-08 | `project.deletion.cascade` | Add CASCADE on expenses/payments FK |
-| 2026-02-08 | `user.deletion.cascade` | Add CASCADE on payments FK |
-| 2026-02-13 | `expense.date` | ALTER expenses ADD date (DATE) |
-| 2026-02-25 | `project.status` | CREATE TYPE project_status; ALTER projects ADD status |
+| 2025-06-15 | `create_payments`              | CREATE TABLE payments                                     |
+| 2025-06-15 | `create_user_projects`         | CREATE TABLE user_projects                                |
+| 2025-07-11 | `project.description`          | ALTER projects ADD description                            |
+| 2026-02-08 | `project.deletion.cascade`     | Add CASCADE on expenses/payments FK                       |
+| 2026-02-08 | `user.deletion.cascade`        | Add CASCADE on payments FK                                |
+| 2026-02-13 | `expense.date`                 | ALTER expenses ADD date (DATE)                            |
+| 2026-02-25 | `project.status`               | CREATE TYPE project_status; ALTER projects ADD status     |
 
 ### 4.2 Schema
 
 #### `users`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | SERIAL PK | — |
-| name | VARCHAR NOT NULL | Display name within a project |
-| balance | DOUBLE PRECISION | Nullable legacy field |
-| created_at | TIMESTAMP | DEFAULT current_timestamp |
+
+| Column     | Type             | Notes                         |
+| ---------- | ---------------- | ----------------------------- |
+| id         | SERIAL PK        | —                             |
+| name       | VARCHAR NOT NULL | Display name within a project |
+| balance    | DOUBLE PRECISION | Nullable legacy field         |
+| created_at | TIMESTAMP        | DEFAULT current_timestamp     |
 
 Users are project-scoped — the same person creates a new user record per project.
 
 #### `projects`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | gen_random_uuid() |
-| name | VARCHAR NOT NULL | — |
-| description | VARCHAR | Nullable |
-| currency | VARCHAR NOT NULL | e.g. "EUR" |
-| created_at | TIMESTAMP NOT NULL | — |
-| status | project_status | `ongoing` \| `closed` \| `archived`, DEFAULT `ongoing` |
+
+| Column      | Type               | Notes                                                  |
+| ----------- | ------------------ | ------------------------------------------------------ |
+| id          | UUID PK            | gen_random_uuid()                                      |
+| name        | VARCHAR NOT NULL   | —                                                      |
+| description | VARCHAR            | Nullable                                               |
+| currency    | VARCHAR NOT NULL   | e.g. "EUR"                                             |
+| created_at  | TIMESTAMP NOT NULL | —                                                      |
+| status      | project_status     | `ongoing` \| `closed` \| `archived`, DEFAULT `ongoing` |
 
 #### `expenses`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | SERIAL PK | — |
-| author_id | INTEGER FK → users | Who entered the expense |
-| project_id | UUID FK → projects | CASCADE delete |
-| created_at | TIMESTAMP NOT NULL | Record creation time |
-| date | DATE | Actual expense date (user-supplied) |
-| amount | DOUBLE PRECISION NOT NULL | Total amount |
-| name | VARCHAR NOT NULL | Label |
-| description | VARCHAR | Optional note |
-| expense_type | expense_type | `expense` \| `transfer` \| `gain` |
+
+| Column       | Type                      | Notes                               |
+| ------------ | ------------------------- | ----------------------------------- |
+| id           | SERIAL PK                 | —                                   |
+| author_id    | INTEGER FK → users        | Who entered the expense             |
+| project_id   | UUID FK → projects        | CASCADE delete                      |
+| created_at   | TIMESTAMP NOT NULL        | Record creation time                |
+| date         | DATE                      | Actual expense date (user-supplied) |
+| amount       | DOUBLE PRECISION NOT NULL | Total amount                        |
+| name         | VARCHAR NOT NULL          | Label                               |
+| description  | VARCHAR                   | Optional note                       |
+| expense_type | expense_type              | `expense` \| `transfer` \| `gain`   |
 
 #### `payments`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | SERIAL PK | — |
-| expense_id | INTEGER FK → expenses | — |
-| user_id | INTEGER FK → users | CASCADE delete |
-| is_debt | BOOLEAN NOT NULL | `false` = paid / `true` = owes |
-| amount | DOUBLE PRECISION NOT NULL | — |
-| created_at | TIMESTAMP NOT NULL | — |
+
+| Column     | Type                      | Notes                          |
+| ---------- | ------------------------- | ------------------------------ |
+| id         | SERIAL PK                 | —                              |
+| expense_id | INTEGER FK → expenses     | —                              |
+| user_id    | INTEGER FK → users        | CASCADE delete                 |
+| is_debt    | BOOLEAN NOT NULL          | `false` = paid / `true` = owes |
+| amount     | DOUBLE PRECISION NOT NULL | —                              |
+| created_at | TIMESTAMP NOT NULL        | —                              |
 
 Each expense produces multiple payment rows: one per payer (`is_debt = false`) and one per debtor (`is_debt = true`).
 
 #### `user_projects`
+
 Junction table linking users to projects (composite PK: `project_id`, `user_id`).
 
 ### 4.3 Design Notes
@@ -251,11 +257,11 @@ React Router v7 (browser history):
 
 Three layers:
 
-| Layer | Tool | What it manages |
-|-------|------|----------------|
-| Server state | TanStack React Query | API data, caching, mutations, invalidation |
-| Persistent local state | React Context + localStorage | Project/user associations across sessions |
-| Form state | react-hook-form + Zod | Modal forms with validation |
+| Layer                  | Tool                         | What it manages                            |
+| ---------------------- | ---------------------------- | ------------------------------------------ |
+| Server state           | TanStack React Query         | API data, caching, mutations, invalidation |
+| Persistent local state | React Context + localStorage | Project/user associations across sessions  |
+| Form state             | react-hook-form + Zod        | Modal forms with validation                |
 
 No Redux or Zustand — React Query covers all server state, Context covers the small amount of persistent client state.
 
@@ -265,14 +271,14 @@ No Redux or Zustand — React Query covers all server state, Context covers the 
 
 `src/services/` contains thin fetch wrappers (get, post, put, delete) with automatic JSON serialisation. All data fetching goes through React Query hooks in `src/hooks/`:
 
-| Hook file | Purpose |
-|-----------|---------|
-| `useProjects.ts` | CRUD for projects, status updates |
-| `useExpenses.ts` | CRUD for expenses, summary/balance |
-| `useUsers.ts` | Add/delete project participants |
-| `usePayments.ts` | Fetch payments by expense or project |
-| `useImportTricount.ts` | Trigger Tricount import |
-| `useLocalStorage.ts` | Hydrate and update localStorage |
+| Hook file              | Purpose                              |
+| ---------------------- | ------------------------------------ |
+| `useProjects.ts`       | CRUD for projects, status updates    |
+| `useExpenses.ts`       | CRUD for expenses, summary/balance   |
+| `useUsers.ts`          | Add/delete project participants      |
+| `usePayments.ts`       | Fetch payments by expense or project |
+| `useImportTricount.ts` | Trigger Tricount import              |
+| `useLocalStorage.ts`   | Hydrate and update localStorage      |
 
 ### 5.4 Component Patterns
 
@@ -292,11 +298,11 @@ TailwindCSS v4 via the `@tailwindcss/vite` plugin, with DaisyUI v5 component cla
 
 Three services on `counted-network` (bridge):
 
-| Service | Build | Ports | Role |
-|---------|-------|-------|------|
-| `frontend` | Node 25 build → nginx alpine | 80, 443 | Serves React SPA; proxies `/api/*` to backend |
-| `backend` | cargo-chef → minimal runtime | 8080 | Dioxus fullstack server; runs migrations on startup |
-| `db` | postgres:15 image | 5432 | PostgreSQL; `pgdata` volume for persistence |
+| Service    | Build                        | Ports   | Role                                                |
+| ---------- | ---------------------------- | ------- | --------------------------------------------------- |
+| `frontend` | Node 25 build → nginx alpine | 80, 443 | Serves React SPA; proxies `/api/*` to backend       |
+| `backend`  | cargo-chef → minimal runtime | 8080    | Dioxus fullstack server; runs migrations on startup |
+| `db`       | postgres:15 image            | 5432    | PostgreSQL; `pgdata` volume for persistence         |
 
 `backend` depends on `db` with a `service_healthy` condition (pg_isready healthcheck).
 
@@ -314,6 +320,7 @@ Multi-stage using `cargo-chef` for dependency caching:
 The frontend container serves the React SPA and reverse-proxies all `/api/*` traffic to the backend.
 
 **Security configuration:**
+
 - TLS 1.2+ only, Let's Encrypt certificates
 - HSTS `max-age=31536000` (1 year)
 - Rate limiting: 10 req/s per IP, 10 concurrent connections per IP (returns 429)
@@ -323,9 +330,9 @@ The frontend container serves the React SPA and reverse-proxies all `/api/*` tra
 
 ### 6.4 Environment Variables
 
-| Variable | Consumer | Purpose |
-|----------|----------|---------|
-| `DATABASE_URL` | backend | PostgreSQL connection string |
+| Variable       | Consumer | Purpose                      |
+| -------------- | -------- | ---------------------------- |
+| `DATABASE_URL` | backend  | PostgreSQL connection string |
 
 ---
 
@@ -395,3 +402,7 @@ Sessions are immediately revocable (just delete the row). JWTs require additiona
 ### Why HttpOnly cookies over Authorization header?
 
 HttpOnly cookies are invisible to JavaScript — they cannot be stolen via XSS. The browser sends them automatically, so no token management is needed on the client. SameSite=Lax provides CSRF protection for state-mutating requests.
+
+## 10. Documentation
+
+More documentation on architectural / tech / feature choices could be find in ./docs folder.

@@ -2,7 +2,7 @@ use chrono::Local;
 use dioxus::core::bail;
 use dioxus::fullstack::Json;
 use dioxus::prelude::*;
-use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto};
+use shared::{BatchProject, CreatableProject, EditableProject, ProjectDto, ProjectStatus};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
@@ -68,6 +68,7 @@ pub async fn add_project(
         created_at: Local::now().naive_local(),
         currency: "EUR".to_string(),
         owner_account_id,
+        status: ProjectStatus::Ongoing,
     };
 
     Ok(new_project)

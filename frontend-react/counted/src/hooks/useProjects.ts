@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
 import { projectsService } from '../services/projectsService';
-import type { CreatableProject, EditableProject, ProjectDto } from '../types/projects.model';
+import type { CreatableProject, EditableProject, ProjectDto, ProjectStatus } from '../types/projects.model';
 import { addToLocalStorage, removeFromLocalStorage } from './useLocalStorage';
 
 export function useProjects(projectsIds: string[]) {
@@ -42,6 +42,18 @@ export function useEditProject() {
 		mutationFn: (editableUser: EditableProject) => projectsService.editProjectAsync(editableUser),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+		},
+	});
+}
+
+export function useUpdateProjectStatus(projectId: string) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (status: ProjectStatus) => projectsService.editProjectAsync({ id: projectId, status }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+			queryClient.invalidateQueries({ queryKey: [`project-${projectId}`] });
 		},
 	});
 }

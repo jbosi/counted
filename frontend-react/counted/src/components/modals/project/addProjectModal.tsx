@@ -8,8 +8,10 @@ import { useAddUsers } from '../../../hooks/useUsers';
 import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
 import type { AddProjectModalProps, ProjectModalForm } from './models/projectModal.model';
 import { ProjectModalContent } from './projectModalContent';
+import { useNavigate } from 'react-router';
 
 export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjectModalProps) {
+	const navigate = useNavigate();
 	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 	const useFormReturn = useForm<ProjectModalForm>({
@@ -37,6 +39,7 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 		}
 
 		closeDialogFn();
+		navigate(`projects/${createdProject.id}`);
 	};
 
 	return (

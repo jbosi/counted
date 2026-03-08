@@ -7,7 +7,7 @@ export const openDialog = (setIsOpenFn: (setIsOpen: SetStateAction<boolean>) => 
 	}, delay ?? 100);
 };
 
-export const closeDialog = (setIsOpenFn: (setIsOpen: SetStateAction<boolean>) => void, dialogRef: RefObject<HTMLDialogElement | null>, delay?: number) => {
+export const closeDialog = (setIsOpenFn: (setIsOpen: SetStateAction<boolean>) => void, dialogRef: RefObject<HTMLDialogElement | null>) => {
 	setIsOpenFn(false);
 	dialogRef.current?.close();
 };

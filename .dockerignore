@@ -23,7 +23,7 @@ README.md
 # Cargo generated files
 **/*.rs.bk
 **/*.rmeta
-Cargo.lock
+# NOTE: Cargo.lock is intentionally NOT ignored — cargo-chef needs it for reproducible builds
 
 # Local environment files
 .env

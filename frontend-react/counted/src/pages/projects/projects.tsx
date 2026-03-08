@@ -9,6 +9,7 @@ import { useProjects } from '../../hooks/useProjects';
 import { SettingsIcon } from '../../shared/icons/settingsIcon';
 import { closeDialog, openDialog } from '../../utils/open-dialog';
 import { ProjectItem } from './projectItem';
+import { EmptyMagnifyingGlassIllustration } from '../../shared/illustrations/emptyMagnifyingGlassIllustration';
 
 export function Projects() {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
@@ -16,6 +17,7 @@ export function Projects() {
 	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
 	const [isModalOpen, setIsProjectDialogOpen] = useState(false);
 	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+	const [showArchived, setShowArchived] = useState(false);
 
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
 	const openProjectModal = () => openDialog(setIsProjectDialogOpen, projectDialogRef);
@@ -24,6 +26,8 @@ export function Projects() {
 	const importDialogRef = useRef<HTMLDialogElement>(null);
 	const openImportModal = () => openDialog(setIsImportModalOpen, importDialogRef);
 	const closeImportModal = () => closeDialog(setIsImportModalOpen, importDialogRef);
+
+	const visibleProjects = projects?.filter((p) => showArchived || p.status !== 'archived');
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -37,6 +41,12 @@ export function Projects() {
 		<div className="container overflow-auto app-container p-4">
 			<AppHeader title="Counted">
 				<Dropdown id="AppHeaderId" icon={<SettingsIcon />}>
+					<li>
+						<label className="label cursor-pointer justify-between gap-2 px-4">
+							<span className="text-sm">Afficher projets archivés</span>
+							<input type="checkbox" className="toggle toggle-sm toggle-primary" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+						</label>
+					</li>
 					<li>
 						<button type="button" className="btn btn-ghost" onClick={() => openImportModal()}>
 							Importer depuis Tricount
@@ -55,10 +65,14 @@ export function Projects() {
 				</div>
 			</div>
 			<div className="space-y-4">
-				{!projects ? (
-					<div className="m-2">Ajoutez un projet en cliquant sur le bouton ci dessous</div>
+				{!visibleProjects || visibleProjects.length === 0 ? (
+					<div className="flex justify-center flex-col items-center">
+						<EmptyMagnifyingGlassIllustration />
+						<span className="font-bold">Aucun projet</span>
+						<span>Commencez par ajouter un projet en cliquant sur le bouton ci-dessous</span>
+					</div>
 				) : (
-					projects.map((project) => <ProjectItem key={project.id} project={project} />)
+					visibleProjects.map((project) => <ProjectItem key={project.id} project={project} />)
 				)}
 			</div>
 

@@ -34,7 +34,7 @@ dialog {
 }
 
 .reimbursement-list {
-	grid-template-columns: min-content auto;
+	grid-template-columns: min-content auto min-content;
 }
 
 .projectDialogContent-userList {

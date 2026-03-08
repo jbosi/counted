@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ProjectUsersContext } from '../contexts/projectUsersContext';
-import type { User } from '../types/users.model';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Outlet, useParams } from 'react-router';
-import { useUsersByProjectId } from '../hooks/useUsers';
+import { ErrorFallback } from '../components/errorFallback';
 import { Loading } from '../components/loading';
+import { ProjectUsersContext } from '../contexts/projectUsersContext';
+import { useUsersByProjectId } from '../hooks/useUsers';
+import type { User } from '../types/users.model';
 
 export function ProjectLayout() {
 	const [projectUsers, setProjectUsers] = useState<User[]>();
@@ -15,5 +17,15 @@ export function ProjectLayout() {
 		setProjectUsers(data);
 	}, [data]);
 
-	return <ProjectUsersContext value={{ projectUsers, setProjectUsers }}>{isLoading ? <Loading /> : <Outlet />}</ProjectUsersContext>;
+	return (
+		<ProjectUsersContext value={{ projectUsers, setProjectUsers }}>
+			{isLoading ? (
+				<Loading />
+			) : (
+				<ErrorBoundary FallbackComponent={ErrorFallback}>
+					<Outlet />
+				</ErrorBoundary>
+			)}
+		</ProjectUsersContext>
+	);
 }

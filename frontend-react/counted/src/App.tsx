@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import './App.css';
+import { ErrorFallback } from './components/errorFallback';
 import { CountedLocalStorageContext } from './contexts/localStorageContext';
 import { useInitializeLocalStorage } from './hooks/useLocalStorage';
 import { ProjectLayout } from './layouts/projectLayout';
@@ -43,12 +45,14 @@ function App() {
 	useInitializeLocalStorage(setCountedLocalStorage);
 
 	return (
-		<QueryClientProvider client={queryClient}>
-			<CountedLocalStorageContext value={{ countedLocalStorage, setCountedLocalStorage }}>
-				<ReactQueryDevtools initialIsOpen={false} />
-				<RouterProvider router={router} />
-			</CountedLocalStorageContext>
-		</QueryClientProvider>
+		<ErrorBoundary FallbackComponent={ErrorFallback}>
+			<QueryClientProvider client={queryClient}>
+				<CountedLocalStorageContext value={{ countedLocalStorage, setCountedLocalStorage }}>
+					<ReactQueryDevtools initialIsOpen={false} />
+					<RouterProvider router={router} />
+				</CountedLocalStorageContext>
+			</QueryClientProvider>
+		</ErrorBoundary>
 	);
 }
 

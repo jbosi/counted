@@ -2,9 +2,9 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AvatarGroup } from '../../components/avatarGroup';
 import { EditProjectModal } from '../../components/modals/project/editProjectModal';
-import { useDeleteProject } from '../../hooks/useProjects';
+import { useDeleteProject, useUpdateProjectStatus } from '../../hooks/useProjects';
 import { useUsersByProjectId } from '../../hooks/useUsers';
-import type { ProjectDto } from '../../types/projects.model';
+import type { ProjectDto, ProjectStatus } from '../../types/projects.model';
 import { DropdownAction } from '../../components/dropdowns/dropdownAction';
 import { Dropdown } from '../../components/dropdowns/dropdown';
 
@@ -12,9 +12,35 @@ export interface ProjectProps {
 	project: ProjectDto;
 }
 
+function StatusBadge({ status }: { status: ProjectStatus }) {
+	if (status === 'closed') {
+		return (
+			<div className="flex gap-1 items-center">
+				<div className="status status-warning"></div>
+				<span>Cloturé</span>
+			</div>
+		);
+	}
+	if (status === 'archived') {
+		return (
+			<div className="flex gap-1 items-center">
+				<div className="status status-neutral"></div>
+				<span>Archivé</span>
+			</div>
+		);
+	}
+	return (
+		<div className="flex gap-1 items-center">
+			<div className="status status-success"></div>
+			<span>En cours</span>
+		</div>
+	);
+}
+
 export function ProjectItem({ project }: ProjectProps) {
 	const { data: users, error, isLoading } = useUsersByProjectId(project.id);
-	const { mutate } = useDeleteProject();
+	const { mutate: deleteProject } = useDeleteProject();
+	const { mutate: updateStatus } = useUpdateProjectStatus(project.id);
 
 	const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
 	const projectDialogRef = useRef<HTMLDialogElement>(null);
@@ -52,7 +78,72 @@ export function ProjectItem({ project }: ProjectProps) {
 					<div className="flex flex-row justify-between">
 						<h2 className="card-title">{project.name}</h2>
 						<Dropdown id={project.id} icon={<>...</>}>
-							<DropdownAction onDelete={() => mutate(project.id)} onEdit={() => openProjectModal()} />
+							<DropdownAction onDelete={() => deleteProject(project.id)} onEdit={() => openProjectModal()} />
+							{project.status === 'ongoing' && (
+								<>
+									<li>
+										<button
+											className="btn btn-warning btn-soft"
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('closed');
+											}}
+										>
+											Cloturer
+										</button>
+									</li>
+									<li>
+										<button
+											className="btn btn-neutral btn-soft"
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('archived');
+											}}
+										>
+											Archiver
+										</button>
+									</li>
+								</>
+							)}
+							{project.status === 'closed' && (
+								<>
+									<li>
+										<button
+											className="btn btn-success btn-soft"
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('ongoing');
+											}}
+										>
+											Réouvrir
+										</button>
+									</li>
+									<li>
+										<button
+											className="btn btn-neutral btn-soft"
+											onClick={(e) => {
+												e.stopPropagation();
+												updateStatus('archived');
+											}}
+										>
+											Archiver
+										</button>
+									</li>
+								</>
+							)}
+							{project.status === 'archived' && (
+								<li>
+									<button
+										className="btn btn-success btn-soft"
+										onClick={(e) => {
+											e.stopPropagation();
+											updateStatus('ongoing');
+										}}
+									>
+										Réouvrir
+									</button>
+								</li>
+							)}
 						</Dropdown>
 						{isProjectDialogOpen && (
 							<EditProjectModal dialogRef={projectDialogRef} modalId={'EditProjectModal'} project={project} users={users ?? []} closeDialogFn={closeProjectDialog} />
@@ -63,10 +154,7 @@ export function ProjectItem({ project }: ProjectProps) {
 					<p>{project.description}</p>
 
 					<div className="card-actions justify-between">
-						<div className="flex gap-1 items-center">
-							<div className="status status-success"></div>
-							<span>En cours</span>
-						</div>
+						<StatusBadge status={project.status} />
 
 						<div className="flex gap-1 items-center">
 							<AvatarGroup data={users} />

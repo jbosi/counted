@@ -58,6 +58,7 @@ pub fn UpdateProjectModal(mut props: UpdateProjectModalProps) -> Element {
                                     name: project_name(),
                                     description: project_description(),
                                     currency: None,
+                                    status: None,
                                 };
                                 // update_project_by_id(updatable_project)
                                 //     .await

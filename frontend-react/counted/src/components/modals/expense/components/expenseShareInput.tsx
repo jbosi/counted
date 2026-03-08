@@ -1,11 +1,14 @@
+import { useWatch } from 'react-hook-form';
 import type { FormCheckboxGroupProps } from '../addExpenseModal';
 
 type ExpenseShareInputProps = Omit<FormCheckboxGroupProps, 'isChecked' | 'fields' | 'shareMode'>;
 
-export function ExpenseShareInput({ amount, register, type, user, index, getValues, updateMethod, onRecalculate }: ExpenseShareInputProps) {
+export function ExpenseShareInput({ control, register, type, user, index, getValues, updateMethod, onRecalculate }: ExpenseShareInputProps) {
+	const amount = useWatch({ control, name: `${type}.${index}.amount` as `debtors.${number}.amount` | `payers.${number}.amount` });
+
 	return (
 		<div className="flex items-center gap-2">
-			<span className="text-sm text-base-content/60 min-w-14 text-right">{amount.toFixed(2)} €</span>
+			<span className="text-sm text-base-content/60 min-w-14 text-right">{(amount ?? 0).toFixed(2)} €</span>
 			<input
 				className="input w-20"
 				type="number"

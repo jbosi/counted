@@ -44,7 +44,21 @@ pub async fn get_projects() -> Result<Vec<ProjectDto>, ServerFnError> {
 pub async fn get_projects_by_ids(
     Json(payload): Json<BatchProject>,
 ) -> Result<Vec<ProjectDto>, ServerFnError> {
+    #[cfg(feature = "server")]
+    let account_id = get_current_account_id().await;
+    #[cfg(not(feature = "server"))]
+    let account_id: Option<Uuid> = None;
+
     let projects: Vec<ProjectDto> = projects_repository::get_projects_by_ids(payload).await?;
+
+    #[cfg(feature = "server")]
+    for project in &projects {
+        if let Some(owner_id) = project.owner_account_id {
+            if account_id != Some(owner_id) {
+                return Err(ServerFnError::new("Forbidden"));
+            }
+        }
+    }
 
     Ok(projects)
 }

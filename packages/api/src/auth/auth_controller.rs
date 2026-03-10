@@ -27,18 +27,29 @@ fn is_account_locked(locked_until: Option<NaiveDateTime>, now: NaiveDateTime) ->
 
 #[post("/api/v1/auth/register")]
 pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, ServerFnError> {
-    if auth_repository::find_account_by_email(&payload.email).await?.is_some() {
-        return Err(ServerFnError::new("Email already in use"));
+    if payload.email.len() > 254 || payload.password.len() > 128 || payload.display_name.len() > 100 {
+        return Err(ServerFnError::new("Invalid input"));
     }
 
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
-        .hash_password(payload.password.as_bytes(), &salt)
-        .map_err(|e| ServerFnError::new(e.to_string()))?
-        .to_string();
+    let email = payload.email.to_lowercase();
+
+    if auth_repository::find_account_by_email(&email).await?.is_some() {
+        return Err(ServerFnError::new("Registration failed"));
+    }
+
+    let password_bytes = payload.password.into_bytes();
+    let password_hash = tokio::task::spawn_blocking(move || {
+        let salt = SaltString::generate(&mut OsRng);
+        Argon2::default()
+            .hash_password(&password_bytes, &salt)
+            .map(|h| h.to_string())
+    })
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let account_id =
-        auth_repository::create_account(&payload.email, &password_hash, &payload.display_name)
+        auth_repository::create_account(&email, &password_hash, &payload.display_name)
             .await?;
 
     create_session_and_set_cookie(account_id).await?;
@@ -52,7 +63,13 @@ pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, S
 
 #[post("/api/v1/auth/login")]
 pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerFnError> {
-    let account_with_hash = auth_repository::find_account_by_email(&payload.email)
+    if payload.email.len() > 254 || payload.password.len() > 128 {
+        return Err(ServerFnError::new("Invalid email or password"));
+    }
+
+    let email = payload.email.to_lowercase();
+
+    let account_with_hash = auth_repository::find_account_by_email(&email)
         .await?
         .ok_or_else(|| ServerFnError::new("Invalid email or password"))?;
 
@@ -60,18 +77,36 @@ pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerF
         return Err(ServerFnError::new("Account temporarily locked. Try again later."));
     }
 
-    let parsed_hash = PasswordHash::new(&account_with_hash.password_hash)
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let hash_str = account_with_hash.password_hash.clone();
+    let password_bytes = payload.password.into_bytes();
+    let verified = tokio::task::spawn_blocking(move || {
+        PasswordHash::new(&hash_str)
+            .map_err(|e| e.to_string())
+            .and_then(|parsed| {
+                Argon2::default()
+                    .verify_password(&password_bytes, &parsed)
+                    .map_err(|e| e.to_string())
+            })
+    })
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    if Argon2::default()
-        .verify_password(payload.password.as_bytes(), &parsed_hash)
-        .is_err()
-    {
-        let _ = auth_repository::increment_failed_login(account_with_hash.id).await;
+    if verified.is_err() {
+        auth_repository::increment_failed_login(account_with_hash.id)
+            .await
+            .map_err(|e| {
+                eprintln!("ERROR: Failed to increment failed_login_count: {}", e);
+                e
+            })?;
         return Err(ServerFnError::new("Invalid email or password"));
     }
 
-    let _ = auth_repository::reset_failed_login(account_with_hash.id).await;
+    auth_repository::reset_failed_login(account_with_hash.id)
+        .await
+        .map_err(|e| {
+            eprintln!("ERROR: Failed to reset failed_login_count: {}", e);
+            e
+        })?;
     create_session_and_set_cookie(account_with_hash.id).await?;
 
     Ok(Account {
@@ -107,8 +142,14 @@ pub async fn logout() -> Result<(), ServerFnError> {
         let _ = auth_repository::delete_session(session_id).await;
     }
 
-    let clear_cookie =
-        HeaderValue::from_static("session_id=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0");
+    let secure_attr =
+        if std::env::var("COOKIE_SECURE").as_deref() == Ok("false") { "" } else { "; Secure" };
+    let clear_cookie_value = format!(
+        "session_id=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0{}",
+        secure_attr
+    );
+    let clear_cookie = HeaderValue::from_str(&clear_cookie_value)
+        .map_err(|e| ServerFnError::new(e.to_string()))?;
     ctx.add_response_header(SET_COOKIE, clear_cookie);
 
     Ok(())
@@ -129,7 +170,7 @@ async fn create_session_and_set_cookie(account_id: Uuid) -> Result<Uuid, ServerF
     let session_id = auth_repository::create_session(account_id, expires_at).await?;
 
     let secure_attr =
-        if std::env::var("COOKIE_SECURE").as_deref() == Ok("true") { "; Secure" } else { "" };
+        if std::env::var("COOKIE_SECURE").as_deref() == Ok("false") { "" } else { "; Secure" };
 
     let cookie_value = format!(
         "session_id={}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000{}",

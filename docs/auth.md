@@ -165,9 +165,9 @@ session_id=<UUID>; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000[; Secure]
 | `SameSite` | `Lax`       | Sent on top-level navigations; blocks CSRF mutations  |
 | `Path`     | `/`         | Available to all routes                               |
 | `Max-Age`  | `2592000`   | 30 days (matches DB `expires_at`)                     |
-| `Secure`   | conditional | Only set when `COOKIE_SECURE=true` env var is present |
+| `Secure`   | default ON  | Omitted only when `COOKIE_SECURE=false` env var is set |
 
-> **Production note**: Set `COOKIE_SECURE=true` in docker-compose environment to enable the `Secure` flag. Without it the cookie is sent over HTTP — harmless behind TLS termination, but risky in non-HTTPS environments.
+> **Local dev note**: Set `COOKIE_SECURE=false` in the devcontainer environment (already configured in `.devcontainer/docker-compose.yml`) to disable the `Secure` flag for HTTP-only local dev. Production gets `Secure` by default.
 
 ---
 
@@ -264,10 +264,14 @@ Items not yet implemented, ordered by severity:
 
 | Gap                                             | Severity | Notes                                                                                        |
 | ----------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| Expense / payment / user endpoints have no auth | Critical | Anyone with a project UUID can mutate its expenses                                           |
+| Expense / payment / user endpoints have no auth | Design   | Intentional — project UUID is the access token for anonymous projects (URL-sharing model)    |
 | ~~No rate limiting on auth endpoints~~          | ~~High~~ | Implemented — nginx `auth_limit` zone (5 req/min/IP)                                         |
 | ~~No account lockout after repeated failures~~  | ~~High~~ | Implemented — 5 failures → 15-min lockout in DB                                              |
-| `Secure` cookie flag off by default             | Medium   | Requires `COOKIE_SECURE=true` env var to enable                                              |
+| ~~Email enumeration via `/register`~~           | ~~High~~ | Fixed — generic `"Registration failed"` error regardless of email existence                  |
+| ~~No input length validation~~                  | ~~High~~ | Fixed — email ≤ 254, password ≤ 128, display_name ≤ 100 enforced server-side                |
+| ~~Argon2 blocking async thread~~                | ~~Critical~~ | Fixed — Argon2 runs in `tokio::task::spawn_blocking`                                     |
+| ~~`Secure` cookie flag off by default~~         | ~~Medium~~ | Fixed — `Secure` is ON by default; opt-out via `COOKIE_SECURE=false` for local dev        |
+| ~~No email normalization~~                      | ~~Medium~~ | Fixed — emails lowercased before storage and lookup                                        |
 | No server-side password strength validation     | Medium   | Only frontend `minlength=8`, easily bypassed via API                                         |
 | No email verification                           | Medium   | Accounts created with unverified email addresses                                             |
 | No session cleanup job                          | Low      | Expired sessions accumulate; add `DELETE FROM sessions WHERE expires_at < NOW()` cron        |

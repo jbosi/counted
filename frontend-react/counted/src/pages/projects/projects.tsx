@@ -1,18 +1,21 @@
 import { useContext, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { AppHeader } from '../../components/appHeader';
 import { Dropdown } from '../../components/dropdowns/dropdown';
 import { ImportTricountModal } from '../../components/modals/import/importTricountModal';
 import { AddProjectModal } from '../../components/modals/project/addProjectModal';
+import { AuthContext } from '../../contexts/authContext';
 import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useTotalDebts } from '../../hooks/useExpenses';
 import { useProjects } from '../../hooks/useProjects';
 import { SettingsIcon } from '../../shared/icons/settingsIcon';
+import { EmptyMagnifyingGlassIllustration } from '../../shared/illustrations/emptyMagnifyingGlassIllustration';
 import { closeDialog, openDialog } from '../../utils/open-dialog';
 import { ProjectItem } from './projectItem';
-import { EmptyMagnifyingGlassIllustration } from '../../shared/illustrations/emptyMagnifyingGlassIllustration';
 
 export function Projects() {
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { account } = useContext(AuthContext);
 	const { data: projects, isLoading, error } = useProjects(countedLocalStorage?.projects.map((p) => p.projectId) ?? []);
 	const { totalDebts } = useTotalDebts(countedLocalStorage?.projects ?? []);
 	const [isModalOpen, setIsProjectDialogOpen] = useState(false);
@@ -40,19 +43,30 @@ export function Projects() {
 	return (
 		<div className="container overflow-auto app-container p-4">
 			<AppHeader title="Counted">
-				<Dropdown id="AppHeaderId" icon={<SettingsIcon />}>
-					<li>
-						<label className="label cursor-pointer justify-between gap-2 px-4">
-							<span className="text-sm">Afficher projets archivés</span>
-							<input type="checkbox" className="toggle toggle-sm toggle-primary" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
-						</label>
-					</li>
-					<li>
-						<button type="button" className="btn btn-ghost" onClick={() => openImportModal()}>
-							Importer depuis Tricount
-						</button>
-					</li>
-				</Dropdown>
+				<div className="flex items-center gap-2">
+					{account ? (
+						<Link to="/account" className="btn btn-ghost btn-sm">
+							{account.displayName}
+						</Link>
+					) : account === null ? (
+						<Link to="/login" className="btn btn-primary btn-sm">
+							Connexion
+						</Link>
+					) : null}
+					<Dropdown id="AppHeaderId" icon={<SettingsIcon />}>
+						<li>
+							<label className="label cursor-pointer justify-between gap-2 px-4">
+								<span className="text-sm">Afficher projets archivés</span>
+								<input type="checkbox" className="toggle toggle-sm toggle-primary" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+							</label>
+						</li>
+						<li>
+							<button type="button" className="btn btn-ghost" onClick={() => openImportModal()}>
+								Importer depuis Tricount
+							</button>
+						</li>
+					</Dropdown>
+				</div>
 			</AppHeader>
 			<div className="stats shadow overflow-visible">
 				<div className="stat">

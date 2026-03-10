@@ -196,6 +196,8 @@ Expense, payment, and user endpoints **do not currently enforce authentication o
 
 ## Frontend Auth State
 
+### Dioxus UI
+
 **File**: [packages/web/src/main.rs](../packages/web/src/main.rs)
 
 On app mount, `GET /api/v1/auth/me` is called. The result (`Option<Account>`) is stored in a Dioxus context signal and consumed by:
@@ -204,6 +206,38 @@ On app mount, `GET /api/v1/auth/me` is called. The result (`Option<Account>`) is
 - **Projects page** ([packages/ui/src/projects/projects.rs](../packages/ui/src/projects/projects.rs)) — shows auth-gated UI (create project button, owned project list)
 
 Routes `/login` and `/register` render [packages/ui/src/auth/login.rs](../packages/ui/src/auth/login.rs) and [packages/ui/src/auth/register.rs](../packages/ui/src/auth/register.rs).
+
+### React Frontend
+
+**Files**: [frontend-react/counted/src/](../frontend-react/counted/src/)
+
+On app mount, `GET /api/v1/auth/me` is called via `useEffect` in `App.tsx`. The result is stored in `AuthContext`:
+
+| Value | Meaning |
+| --- | --- |
+| `undefined` | Loading (request in flight) |
+| `null` | Unauthenticated |
+| `Account` | Authenticated |
+
+**Key files:**
+
+| File | Role |
+| --- | --- |
+| [frontend-react/counted/src/types/auth.model.ts](../frontend-react/counted/src/types/auth.model.ts) | `Account`, `RegisterPayload`, `LoginPayload` TS types |
+| [frontend-react/counted/src/contexts/authContext.ts](../frontend-react/counted/src/contexts/authContext.ts) | `AuthContext` — holds `account` state |
+| [frontend-react/counted/src/services/authService.ts](../frontend-react/counted/src/services/authService.ts) | `register`, `login`, `logout`, `me` fetch wrappers |
+| [frontend-react/counted/src/hooks/useAuth.ts](../frontend-react/counted/src/hooks/useAuth.ts) | `useLogin`, `useRegister`, `useLogout` React Query mutations |
+| [frontend-react/counted/src/pages/auth/LoginPage.tsx](../frontend-react/counted/src/pages/auth/LoginPage.tsx) | `/login` route — email + password form |
+| [frontend-react/counted/src/pages/auth/RegisterPage.tsx](../frontend-react/counted/src/pages/auth/RegisterPage.tsx) | `/register` route — email + display name + password form |
+| [frontend-react/counted/src/pages/auth/AccountPage.tsx](../frontend-react/counted/src/pages/auth/AccountPage.tsx) | `/account` route — account info + logout |
+
+**Projects page header**: shows account `displayName` as a link to `/account` when authenticated, or a "Connexion" button to `/login` when not.
+
+**Redirect guards**: `/login` and `/register` redirect to `/` if `account` is already set.
+
+**Mutations behaviour:**
+- Login / Register: set `account` in context, invalidate `['projects']` query
+- Logout: set `account` to `null`, call `queryClient.clear()` to wipe all cached data
 
 ---
 

@@ -16,24 +16,24 @@ Design decisions are documented in [DOCUMENTATION.md §9](../DOCUMENTATION.md#9-
 
 ### `accounts`
 
-| Column               | Type             | Notes                                               |
-| -------------------- | ---------------- | --------------------------------------------------- |
-| id                   | UUID PK          | `gen_random_uuid()`                                 |
-| email                | VARCHAR NOT NULL | UNIQUE constraint                                   |
-| password_hash        | VARCHAR NOT NULL | Argon2id hash, never exposed                        |
-| display_name         | VARCHAR NOT NULL | Shown in UI                                         |
-| created_at           | TIMESTAMP        | DEFAULT current_timestamp                           |
-| failed_login_count   | INTEGER          | Incremented on each failed login, reset on success  |
-| locked_until         | TIMESTAMP        | Nullable — account locked until this time when set  |
+| Column             | Type             | Notes                                              |
+| ------------------ | ---------------- | -------------------------------------------------- |
+| id                 | UUID PK          | `gen_random_uuid()`                                |
+| email              | VARCHAR NOT NULL | UNIQUE constraint                                  |
+| password_hash      | VARCHAR NOT NULL | Argon2id hash, never exposed                       |
+| display_name       | VARCHAR NOT NULL | Shown in UI                                        |
+| created_at         | TIMESTAMP        | DEFAULT current_timestamp                          |
+| failed_login_count | INTEGER          | Incremented on each failed login, reset on success |
+| locked_until       | TIMESTAMP        | Nullable — account locked until this time when set |
 
 ### `sessions`
 
-| Column     | Type           | Notes                          |
-| ---------- | -------------- | ------------------------------ |
-| id         | UUID PK        | `gen_random_uuid()` — used as cookie value |
-| account_id | UUID FK        | References `accounts(id)` ON DELETE CASCADE |
-| created_at | TIMESTAMP      | DEFAULT current_timestamp      |
-| expires_at | TIMESTAMP      | Set to `NOW() + 30 days` at creation |
+| Column     | Type      | Notes                                       |
+| ---------- | --------- | ------------------------------------------- |
+| id         | UUID PK   | `gen_random_uuid()` — used as cookie value  |
+| account_id | UUID FK   | References `accounts(id)` ON DELETE CASCADE |
+| created_at | TIMESTAMP | DEFAULT current_timestamp                   |
+| expires_at | TIMESTAMP | Set to `NOW() + 30 days` at creation        |
 
 ### `projects.owner_account_id`
 
@@ -159,13 +159,13 @@ The `session_id` cookie is set with:
 session_id=<UUID>; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000[; Secure]
 ```
 
-| Attribute     | Value       | Why                                                      |
-| ------------- | ----------- | -------------------------------------------------------- |
-| `HttpOnly`    | always      | Cookie invisible to JavaScript — blocks XSS theft       |
-| `SameSite`    | `Lax`       | Sent on top-level navigations; blocks CSRF mutations     |
-| `Path`        | `/`         | Available to all routes                                  |
-| `Max-Age`     | `2592000`   | 30 days (matches DB `expires_at`)                        |
-| `Secure`      | conditional | Only set when `COOKIE_SECURE=true` env var is present    |
+| Attribute  | Value       | Why                                                   |
+| ---------- | ----------- | ----------------------------------------------------- |
+| `HttpOnly` | always      | Cookie invisible to JavaScript — blocks XSS theft     |
+| `SameSite` | `Lax`       | Sent on top-level navigations; blocks CSRF mutations  |
+| `Path`     | `/`         | Available to all routes                               |
+| `Max-Age`  | `2592000`   | 30 days (matches DB `expires_at`)                     |
+| `Secure`   | conditional | Only set when `COOKIE_SECURE=true` env var is present |
 
 > **Production note**: Set `COOKIE_SECURE=true` in docker-compose environment to enable the `Secure` flag. Without it the cookie is sent over HTTP — harmless behind TLS termination, but risky in non-HTTPS environments.
 
@@ -175,15 +175,16 @@ session_id=<UUID>; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000[; Secure]
 
 ### Project endpoints
 
-| Scenario | Behaviour |
-|---|---|
-| `owner_account_id IS NULL` | Any request (authenticated or not) can read/write |
-| `owner_account_id IS NOT NULL`, valid session matches owner | Allowed |
-| `owner_account_id IS NOT NULL`, session missing or wrong account | `Forbidden` |
+| Scenario                                                         | Behaviour                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------- |
+| `owner_account_id IS NULL`                                       | Any request (authenticated or not) can read/write |
+| `owner_account_id IS NOT NULL`, valid session matches owner      | Allowed                                           |
+| `owner_account_id IS NOT NULL`, session missing or wrong account | `Forbidden`                                       |
 
 This is enforced in [packages/api/src/projects/projects_controller.rs](../packages/api/src/projects/projects_controller.rs) on every GET, PUT, and DELETE handler.
 
 `GET /api/v1/projects` returns:
+
 - **Authenticated**: projects where `owner_account_id = current_account_id`
 - **Unauthenticated**: projects where `owner_account_id IS NULL`
 
@@ -208,18 +209,18 @@ Routes `/login` and `/register` render [packages/ui/src/auth/login.rs](../packag
 
 ## Key Files
 
-| File | Role |
-|---|---|
-| [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs) | register / login / logout / me endpoints, cookie creation |
-| [packages/api/src/auth/auth_repository.rs](../packages/api/src/auth/auth_repository.rs) | DB queries: create/get account, create/get/delete session |
-| [packages/api/src/utils.rs](../packages/api/src/utils.rs) | `get_current_account_id()` — reusable session validation |
-| [packages/api/src/projects/projects_controller.rs](../packages/api/src/projects/projects_controller.rs) | Project ownership enforcement |
-| [packages/shared/src/lib.rs](../packages/shared/src/lib.rs) | `Account`, `RegisterPayload`, `LoginPayload` DTOs |
-| [migrations/20260220115825_create_accounts.up.sql](../migrations/20260220115825_create_accounts.up.sql) | accounts table |
-| [migrations/20260220115826_create_sessions.up.sql](../migrations/20260220115826_create_sessions.up.sql) | sessions table |
-| [migrations/20260220115827_project_owner_account_id.up.sql](../migrations/20260220115827_project_owner_account_id.up.sql) | owner_account_id column |
-| [migrations/20260308000000_account_lockout.up.sql](../migrations/20260308000000_account_lockout.up.sql) | failed_login_count + locked_until columns |
-| [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf) | auth_limit rate zone + location block |
+| File                                                                                                                      | Role                                                      |
+| ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs)                                   | register / login / logout / me endpoints, cookie creation |
+| [packages/api/src/auth/auth_repository.rs](../packages/api/src/auth/auth_repository.rs)                                   | DB queries: create/get account, create/get/delete session |
+| [packages/api/src/utils.rs](../packages/api/src/utils.rs)                                                                 | `get_current_account_id()` — reusable session validation  |
+| [packages/api/src/projects/projects_controller.rs](../packages/api/src/projects/projects_controller.rs)                   | Project ownership enforcement                             |
+| [packages/shared/src/lib.rs](../packages/shared/src/lib.rs)                                                               | `Account`, `RegisterPayload`, `LoginPayload` DTOs         |
+| [migrations/20260220115825_create_accounts.up.sql](../migrations/20260220115825_create_accounts.up.sql)                   | accounts table                                            |
+| [migrations/20260220115826_create_sessions.up.sql](../migrations/20260220115826_create_sessions.up.sql)                   | sessions table                                            |
+| [migrations/20260220115827_project_owner_account_id.up.sql](../migrations/20260220115827_project_owner_account_id.up.sql) | owner_account_id column                                   |
+| [migrations/20260308000000_account_lockout.up.sql](../migrations/20260308000000_account_lockout.up.sql)                   | failed_login_count + locked_until columns                 |
+| [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf)                                                 | auth_limit rate zone + location block                     |
 
 ---
 
@@ -227,16 +228,15 @@ Routes `/login` and `/register` render [packages/ui/src/auth/login.rs](../packag
 
 Items not yet implemented, ordered by severity:
 
-| Gap | Severity | Notes |
-|---|---|---|
-| Expense / payment / user endpoints have no auth | Critical | Anyone with a project UUID can mutate its expenses |
-| ~~No rate limiting on auth endpoints~~ | ~~High~~ | Implemented — nginx `auth_limit` zone (5 req/min/IP) |
-| ~~No account lockout after repeated failures~~ | ~~High~~ | Implemented — 5 failures → 15-min lockout in DB |
-| `Secure` cookie flag off by default | Medium | Requires `COOKIE_SECURE=true` env var to enable |
-| No server-side password strength validation | Medium | Only frontend `minlength=8`, easily bypassed via API |
-| No email verification | Medium | Accounts created with unverified email addresses |
-| No session cleanup job | Low | Expired sessions accumulate; add `DELETE FROM sessions WHERE expires_at < NOW()` cron |
-| Manual cookie parsing | Low | `logout` and `get_current_account_id` hand-parse the `Cookie` header; use the `cookie` crate |
-| Dead `LoginPayload.status` field | Low | `LoginPayload` contains a `status: ProjectStatus` field that is never used |
-| No frontend route guards | Low | Routes are accessible in the browser regardless of auth state |
-| No audit logging | Low | No record of login / logout / failed attempts |
+| Gap                                             | Severity | Notes                                                                                        |
+| ----------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| Expense / payment / user endpoints have no auth | Critical | Anyone with a project UUID can mutate its expenses                                           |
+| ~~No rate limiting on auth endpoints~~          | ~~High~~ | Implemented — nginx `auth_limit` zone (5 req/min/IP)                                         |
+| ~~No account lockout after repeated failures~~  | ~~High~~ | Implemented — 5 failures → 15-min lockout in DB                                              |
+| `Secure` cookie flag off by default             | Medium   | Requires `COOKIE_SECURE=true` env var to enable                                              |
+| No server-side password strength validation     | Medium   | Only frontend `minlength=8`, easily bypassed via API                                         |
+| No email verification                           | Medium   | Accounts created with unverified email addresses                                             |
+| No session cleanup job                          | Low      | Expired sessions accumulate; add `DELETE FROM sessions WHERE expires_at < NOW()` cron        |
+| Manual cookie parsing                           | Low      | `logout` and `get_current_account_id` hand-parse the `Cookie` header; use the `cookie` crate |
+| No frontend route guards                        | Low      | Routes are accessible in the browser regardless of auth state                                |
+| No audit logging                                | Low      | No record of login / logout / failed attempts                                                |

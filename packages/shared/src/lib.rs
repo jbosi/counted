@@ -29,6 +29,7 @@ pub struct ProjectDto {
     pub created_at: NaiveDateTime,
     pub currency: String,
     pub description: Option<String>,
+    pub status: ProjectStatus,
     pub owner_account_id: Option<Uuid>,
 }
 
@@ -57,7 +58,6 @@ pub struct RegisterPayload {
 pub struct LoginPayload {
     pub email: String,
     pub password: String,
-    pub status: ProjectStatus,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

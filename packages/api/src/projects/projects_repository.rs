@@ -18,7 +18,7 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
         .context("Failed get project with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(project)
+    Ok(projects)
 }
 
 #[cfg(feature = "server")]

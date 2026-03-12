@@ -9,6 +9,7 @@ import { CountedLocalStorageContext } from '../../contexts/localStorageContext';
 import { useTotalDebts } from '../../hooks/useExpenses';
 import { useProjects } from '../../hooks/useProjects';
 import { SettingsIcon } from '../../shared/icons/settingsIcon';
+import { UserIcon } from '../../shared/icons/userIcon';
 import { EmptyMagnifyingGlassIllustration } from '../../shared/illustrations/emptyMagnifyingGlassIllustration';
 import { closeDialog, openDialog } from '../../utils/open-dialog';
 import { ProjectItem } from './projectItem';
@@ -44,15 +45,9 @@ export function Projects() {
 		<div className="container overflow-auto app-container p-4">
 			<AppHeader title="Counted">
 				<div className="flex items-center gap-2">
-					{account ? (
-						<Link to="/account" className="btn btn-ghost btn-sm">
-							{account.displayName}
-						</Link>
-					) : account === null ? (
-						<Link to="/login" className="btn btn-primary btn-sm">
-							Connexion
-						</Link>
-					) : null}
+					<Link to={account === null ? '/login' : '/account'} className="btn btn-ghost btn-circle">
+						<UserIcon />
+					</Link>
 					<Dropdown id="AppHeaderId" icon={<SettingsIcon />}>
 						<li>
 							<label className="label cursor-pointer justify-between gap-2 px-4">
@@ -68,6 +63,7 @@ export function Projects() {
 					</Dropdown>
 				</div>
 			</AppHeader>
+			<div>{account && account.displayName}</div>
 			<div className="stats shadow overflow-visible">
 				<div className="stat">
 					<div className="stat-title">Nombre de Projets</div>

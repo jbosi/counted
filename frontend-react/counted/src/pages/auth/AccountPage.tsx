@@ -26,7 +26,7 @@ export function AccountPage() {
 			<div className="card bg-base-100 shadow-xl mt-4">
 				<div className="card-body space-y-4">
 					<div>
-						<p className="text-sm text-base-content/60">Nom affiché</p>
+						<p className="text-sm text-base-content/60">Nom</p>
 						<p className="font-semibold text-lg">{account.displayName}</p>
 					</div>
 					<div>

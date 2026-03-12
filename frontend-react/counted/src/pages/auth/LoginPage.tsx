@@ -3,6 +3,7 @@ import { useContext, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { z } from 'zod';
+import { AppHeader } from '../../components/appHeader';
 import { AuthContext } from '../../contexts/authContext';
 import { useLogin } from '../../hooks/useAuth';
 
@@ -34,10 +35,10 @@ export function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-4">
-			<div className="card bg-base-100 shadow-xl w-full max-w-sm">
+		<div className="container overflow-auto app-container p-4">
+			<div className="card bg-base-100 shadow-xl w-full h-full">
 				<div className="card-body">
-					<h2 className="card-title text-2xl font-bold justify-center mb-2">Connexion</h2>
+					<AppHeader title="Connexion" backButtonRoute="/" />
 
 					<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 						<div className="form-control">

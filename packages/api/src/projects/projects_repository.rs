@@ -52,7 +52,7 @@ pub async fn get_projects_by_ids(payload: BatchProject) -> Result<Vec<ProjectDto
     let pool: Pool<Postgres> = get_db().await;
 
     let projects: Vec<ProjectDto> = sqlx::query_as(
-        "SELECT id, name, created_at, currency, description, owner_account_id, status as \"status: ProjectStatus\" FROM projects WHERE id = ANY($1)",
+        "SELECT id, name, created_at, currency, description, owner_account_id, status FROM projects WHERE id = ANY($1)",
     )
     .bind(&payload.ids[..])
     .fetch_all(&pool)
@@ -111,11 +111,12 @@ pub async fn update_project_by_id(
     }
 
     let update_project: ProjectDto = sqlx::query_as(
-        "UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status as \"status: ProjectStatus\", owner_account_id",
+        "UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status, owner_account_id",
     )
     .bind(&new_project.name)
     .bind(&new_project.description)
     .bind(&new_project.currency)
+    .bind(&new_project.status)
     .bind(new_project.id)
     .fetch_one(&pool)
     .await

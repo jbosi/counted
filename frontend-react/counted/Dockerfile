@@ -1,5 +1,5 @@
 # Stage 1: Build the React app
-FROM node:22-bookworm-slim as build
+FROM node:25.2-bookworm-slim as build
 WORKDIR /app
 
 # Copy dependency files first for better caching
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve the app using NGINX
-FROM nginx:1.27-alpine
+FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

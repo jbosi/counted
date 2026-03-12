@@ -2,8 +2,8 @@ FROM node:24-bookworm-slim as node
 FROM debian:13
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get upgrade -y && \
-	apt-get install -y --no-install-recommends \
+RUN apt-get update && apt upgrade -y
+RUN apt-get install -y --no-install-recommends \
 	# base system. psmisc for killall. openssh-client for git over SSH.
 	bash curl wget psmisc ca-certificates lsb-release openssh-client \
 	# dev tools. dnsutils for dig. bsdmainutils for hexdump.
@@ -12,9 +12,9 @@ RUN apt-get update && apt-get upgrade -y && \
 	# Rust toolchain
 	rustup libfindbin-libs-perl lld mold gcc g++ musl musl-dev musl-tools libc6-dev cmake clang libclang-dev \
 	openssl libssl-dev \
+
 	# useful data. mailcap for mimetypes. tzdata for timezones.
-	mailcap tzdata && \
-	rm -rf /var/lib/apt/lists/*
+	mailcap tzdata
 
 
 # setup node

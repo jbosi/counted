@@ -10,10 +10,9 @@ use sqlx::{PgConnection, Postgres, QueryBuilder};
 
 #[cfg(feature = "server")]
 pub async fn get_users(executor: &mut PgConnection) -> Result<Vec<User>, ServerFnError> {
-    let users: Vec<User> = sqlx::query_as("SELECT id, name, balance, created_at FROM users")
+    let users: Vec<User> = sqlx::query_as!(User, "SELECT id, name, balance, created_at FROM users")
         .fetch_all(&mut *executor)
         .await
-        .context("Failed to fetch users from database")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
@@ -103,13 +102,14 @@ pub async fn add_user(executor: &mut PgConnection, user: CreatableUser) -> Resul
             .context("Failed to insert user into database")
             .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    sqlx::query("INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)")
-        .bind(user_id)
-        .bind(user.project_id)
-        .execute(&mut *executor)
-        .await
-        .context("Failed to associate user with project")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    sqlx::query!(
+        "INSERT INTO user_projects(user_id, project_id) VALUES ($1, $2)",
+        user_id,
+        user.project_id
+    )
+    .execute(&mut *executor)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(user_id)
 }
@@ -120,11 +120,9 @@ pub async fn get_users_by_project_id(
     project_id: Uuid,
 ) -> Result<Vec<User>, ServerFnError> {
     let user_ids: Vec<i32> =
-        sqlx::query_scalar("SELECT user_id FROM user_projects WHERE project_id = $1")
-            .bind(project_id)
+        sqlx::query_scalar!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
             .fetch_all(&mut *executor)
             .await
-            .context("Failed to fetch user IDs for project")
             .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     if user_ids.is_empty() {

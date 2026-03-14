@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE accounts\n         SET\n           failed_login_count = failed_login_count + 1,\n           locked_until = CASE\n             WHEN failed_login_count + 1 >= 5 THEN NOW() + INTERVAL '15 minutes'\n             ELSE locked_until\n           END\n         WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "afb2a855c8c86c5bd74d062959d5ac6501cb97c3216d4fc8562b933ca0f62970"
+}

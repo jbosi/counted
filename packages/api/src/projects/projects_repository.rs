@@ -10,14 +10,16 @@ pub async fn get_project(
     executor: &mut PgConnection,
     project_id: Uuid,
 ) -> Result<ProjectDto, ServerFnError> {
-    let projects: ProjectDto = sqlx::query_as("SELECT id, name, created_at, currency, description, status, owner_account_id FROM projects WHERE id = $1")
-        .bind(project_id)
-        .fetch_one(&mut *executor)
-        .await
-        .context("Failed get project with specified id")
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+    let project: ProjectDto = sqlx::query_as!(
+        ProjectDto,
+        r#"SELECT id, name, created_at, currency, description, status as "status: ProjectStatus", owner_account_id FROM projects WHERE id = $1"#,
+        project_id
+    )
+    .fetch_one(&mut *executor)
+    .await
+    .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    Ok(projects)
+    Ok(project)
 }
 
 #[cfg(feature = "server")]
@@ -26,21 +28,21 @@ pub async fn get_projects(
     account_id: Option<Uuid>,
 ) -> Result<Vec<ProjectDto>, ServerFnError> {
     let projects: Vec<ProjectDto> = match account_id {
-        Some(id) => sqlx::query_as(
-            "SELECT id, name, created_at, currency, description, owner_account_id, status FROM projects WHERE owner_account_id = $1",
+        Some(id) => sqlx::query_as!(
+            ProjectDto,
+            r#"SELECT id, name, created_at, currency, description, owner_account_id, status as "status: ProjectStatus" FROM projects WHERE owner_account_id = $1"#,
+            id
         )
-        .bind(id)
         .fetch_all(&mut *executor)
         .await
-        .context("Failed to get projects for account")
         .map_err(|e| ServerFnError::new(e.to_string()))?,
 
-        None => sqlx::query_as(
-            "SELECT id, name, created_at, currency, description, owner_account_id, status FROM projects WHERE owner_account_id IS NULL",
+        None => sqlx::query_as!(
+            ProjectDto,
+            r#"SELECT id, name, created_at, currency, description, owner_account_id, status as "status: ProjectStatus" FROM projects WHERE owner_account_id IS NULL"#
         )
         .fetch_all(&mut *executor)
         .await
-        .context("Failed to get anonymous projects")
         .map_err(|e| ServerFnError::new(e.to_string()))?,
     };
 
@@ -52,13 +54,13 @@ pub async fn get_projects_by_ids(
     executor: &mut PgConnection,
     payload: BatchProject,
 ) -> Result<Vec<ProjectDto>, ServerFnError> {
-    let projects: Vec<ProjectDto> = sqlx::query_as(
-        "SELECT id, name, created_at, currency, description, owner_account_id, status FROM projects WHERE id = ANY($1)",
+    let projects: Vec<ProjectDto> = sqlx::query_as!(
+        ProjectDto,
+        r#"SELECT id, name, created_at, currency, description, owner_account_id, status as "status: ProjectStatus" FROM projects WHERE id = ANY($1)"#,
+        &payload.ids[..]
     )
-    .bind(&payload.ids[..])
     .fetch_all(&mut *executor)
     .await
-    .context("Failed to get projects")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(projects)
@@ -70,16 +72,15 @@ pub async fn add_project(
     project: CreatableProject,
     owner_account_id: Option<Uuid>,
 ) -> Result<Uuid, ServerFnError> {
-    let project_id: Uuid = sqlx::query_scalar(
+    let project_id: Uuid = sqlx::query_scalar!(
         "INSERT INTO projects(name, description, currency, owner_account_id) VALUES ($1, $2, $3, $4) RETURNING id",
+        project.name,
+        project.description,
+        "EUR",
+        owner_account_id
     )
-    .bind(&project.name)
-    .bind(&project.description)
-    .bind("EUR")
-    .bind(owner_account_id)
     .fetch_one(&mut *executor)
     .await
-    .context("Failed to add project")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(project_id)
@@ -109,17 +110,17 @@ pub async fn update_project_by_id(
         new_project.status = editable_project.status.unwrap();
     }
 
-    let update_project: ProjectDto = sqlx::query_as(
-        "UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status, owner_account_id",
+    let update_project: ProjectDto = sqlx::query_as!(
+        ProjectDto,
+        r#"UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status as "status: ProjectStatus", owner_account_id"#,
+        new_project.name,
+        new_project.description,
+        new_project.currency,
+        new_project.status as ProjectStatus,
+        new_project.id
     )
-    .bind(&new_project.name)
-    .bind(&new_project.description)
-    .bind(&new_project.currency)
-    .bind(&new_project.status)
-    .bind(new_project.id)
     .fetch_one(&mut *executor)
     .await
-    .context("Failed to update project")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(update_project)
@@ -135,7 +136,6 @@ pub async fn delete_project_by_id(
     sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)
         .execute(&mut *executor)
         .await
-        .context("Failed to delete project with specified id")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(())

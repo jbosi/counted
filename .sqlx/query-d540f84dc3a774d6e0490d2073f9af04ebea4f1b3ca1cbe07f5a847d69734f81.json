@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO projects(name, description, currency) VALUES ($1, $2, $3) RETURNING id",
+  "query": "INSERT INTO accounts (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id",
   "describe": {
     "columns": [
       {
@@ -20,5 +20,5 @@
       false
     ]
   },
-  "hash": "e23d6e0b02894e4162520a4d985e9bcc5fe0e07e6ac0c895683d3e08638eee3f"
+  "hash": "d540f84dc3a774d6e0490d2073f9af04ebea4f1b3ca1cbe07f5a847d69734f81"
 }

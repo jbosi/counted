@@ -13,7 +13,7 @@ pub async fn get_users(executor: &mut PgConnection) -> Result<Vec<User>, ServerF
     let users: Vec<User> = sqlx::query_as!(User, "SELECT id, name, balance, created_at FROM users")
         .fetch_all(&mut *executor)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(format!("Failed to get users: {}", e)))?;
 
     Ok(users)
 }
@@ -109,7 +109,7 @@ pub async fn add_user(executor: &mut PgConnection, user: CreatableUser) -> Resul
     )
     .execute(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to associate user with project: {}", e)))?;
 
     Ok(user_id)
 }
@@ -123,7 +123,7 @@ pub async fn get_users_by_project_id(
         sqlx::query_scalar!("SELECT user_id FROM user_projects WHERE project_id = $1", project_id)
             .fetch_all(&mut *executor)
             .await
-            .map_err(|e| ServerFnError::new(e.to_string()))?;
+            .map_err(|e| ServerFnError::new(format!("Failed to get user ids by project: {}", e)))?;
 
     if user_ids.is_empty() {
         return Ok(Vec::new());

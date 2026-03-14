@@ -33,7 +33,7 @@ pub async fn create_account(
     )
     .fetch_one(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to create account: {}", e)))?;
 
     Ok(id)
 }
@@ -50,7 +50,7 @@ pub async fn find_account_by_email(
     )
     .fetch_optional(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to find account by email: {}", e)))?;
 
     Ok(account)
 }
@@ -67,7 +67,7 @@ pub async fn get_account_by_id(
     )
     .fetch_optional(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to get account by id: {}", e)))?;
 
     Ok(account)
 }
@@ -90,7 +90,7 @@ pub async fn increment_failed_login(
     )
     .execute(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to increment failed login count: {}", e)))?;
 
     Ok(())
 }
@@ -106,7 +106,7 @@ pub async fn reset_failed_login(
     )
     .execute(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to reset failed login count: {}", e)))?;
 
     Ok(())
 }
@@ -124,7 +124,7 @@ pub async fn create_session(
     )
     .fetch_one(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to create session: {}", e)))?;
 
     Ok(session_id)
 }
@@ -140,7 +140,7 @@ pub async fn get_session_account_id(
     )
     .fetch_optional(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to get session: {}", e)))?;
 
     Ok(account_id)
 }
@@ -153,7 +153,7 @@ pub async fn delete_session(
     sqlx::query!("DELETE FROM sessions WHERE id = $1", session_id)
         .execute(&mut *executor)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(format!("Failed to delete session: {}", e)))?;
 
     Ok(())
 }

@@ -17,7 +17,7 @@ pub async fn get_project(
     )
     .fetch_one(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to get project: {}", e)))?;
 
     Ok(project)
 }
@@ -35,7 +35,7 @@ pub async fn get_projects(
         )
         .fetch_all(&mut *executor)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?,
+        .map_err(|e| ServerFnError::new(format!("Failed to get projects by account: {}", e)))?,
 
         None => sqlx::query_as!(
             ProjectDto,
@@ -43,7 +43,7 @@ pub async fn get_projects(
         )
         .fetch_all(&mut *executor)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?,
+        .map_err(|e| ServerFnError::new(format!("Failed to get unowned projects: {}", e)))?,
     };
 
     Ok(projects)
@@ -61,7 +61,7 @@ pub async fn get_projects_by_ids(
     )
     .fetch_all(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to get projects by ids: {}", e)))?;
 
     Ok(projects)
 }
@@ -81,7 +81,7 @@ pub async fn add_project(
     )
     .fetch_one(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to add project: {}", e)))?;
 
     Ok(project_id)
 }
@@ -121,7 +121,7 @@ pub async fn update_project_by_id(
     )
     .fetch_one(&mut *executor)
     .await
-    .map_err(|e| ServerFnError::new(e.to_string()))?;
+    .map_err(|e| ServerFnError::new(format!("Failed to update project: {}", e)))?;
 
     Ok(update_project)
 }
@@ -136,7 +136,7 @@ pub async fn delete_project_by_id(
     sqlx::query!("DELETE FROM projects WHERE id = $1", project_id)
         .execute(&mut *executor)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(format!("Failed to delete project: {}", e)))?;
 
     Ok(())
 }

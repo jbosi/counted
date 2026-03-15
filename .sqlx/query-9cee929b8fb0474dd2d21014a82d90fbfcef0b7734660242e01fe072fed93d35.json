@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, created_at, currency, description, owner_account_id, status as \"status: ProjectStatus\" FROM projects WHERE owner_account_id = $1",
+  "query": "SELECT DISTINCT p.id, p.name, p.created_at, p.currency, p.description, p.owner_account_id,\n                      p.status as \"status: ProjectStatus\"\n               FROM projects p\n               LEFT JOIN account_projects ap ON ap.project_id = p.id AND ap.account_id = $1\n               WHERE p.owner_account_id = $1 OR ap.account_id = $1",
   "describe": {
     "columns": [
       {
@@ -65,5 +65,5 @@
       false
     ]
   },
-  "hash": "f688f3ca9391c93baccf1843aa6c55eda6f1045ed83f64aea9b793e56be75799"
+  "hash": "9cee929b8fb0474dd2d21014a82d90fbfcef0b7734660242e01fe072fed93d35"
 }

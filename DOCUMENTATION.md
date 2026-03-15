@@ -150,6 +150,14 @@ All queries use **non-macro sqlx** (`sqlx::query(...)`, `sqlx::query_as::<_, T>(
 
 Pool initialisation reads `DATABASE_URL` from the environment at startup.
 
+**After any migration or query change**, regenerate the sqlx offline cache:
+
+```bash
+cargo sqlx prepare --workspace -- --all-features
+```
+
+This updates the `.sqlx/` directory (committed to the repo) so the build works without a live database in CI and offline environments.
+
 ### 3.6 Real-Time Updates (SSE)
 
 It is not used and maybe never used :

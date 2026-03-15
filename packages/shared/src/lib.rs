@@ -84,6 +84,23 @@ pub struct BatchProject {
     pub ids: Vec<Uuid>,
 }
 
+// -------- ACCOUNT PROJECT ---------
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "server", derive(FromRow))]
+pub struct AccountProject {
+    pub project_id: Uuid,
+    pub user_id: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UpsertAccountProject {
+    pub project_id: Uuid,
+    pub user_id: Option<i32>,
+}
+
 // -------- USER ---------
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

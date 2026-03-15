@@ -1,4 +1,5 @@
 //! This crate contains all shared fullstack server functions.
+pub mod account_projects;
 pub mod auth;
 mod db;
 pub mod expenses;

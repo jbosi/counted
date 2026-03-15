@@ -3,6 +3,12 @@ pub fn round_currency(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
 }
 
+#[cfg(feature = "server")]
+pub fn sha256_hex(input: &str) -> String {
+    use sha2::{Digest, Sha256};
+    format!("{:x}", Sha256::digest(input.as_bytes()))
+}
+
 /// Extract the current account_id from the session cookie.
 /// Returns None if no valid session is found.
 #[cfg(feature = "server")]

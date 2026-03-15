@@ -42,6 +42,7 @@ pub fn AddUserModal(mut props: AddUserModalProps) -> Element {
                                 let creatable_user: CreatableUser = CreatableUser {
                                     name: user_name(),
                                     project_id: props.id,
+                                    invited_email: None,
                                 };
                             });
                         },

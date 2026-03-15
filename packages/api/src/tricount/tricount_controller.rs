@@ -67,7 +67,11 @@ pub async fn import_tricount(
 
     let creatable_users: Vec<CreatableUser> = members
         .iter()
-        .map(|m| CreatableUser { name: m.alias.display_name.clone(), project_id })
+        .map(|m| CreatableUser {
+            name: m.alias.display_name.clone(),
+            project_id,
+            invited_email: None,
+        })
         .collect();
 
     let created_users = users_repository::add_users(&mut *tx, creatable_users).await?;
@@ -147,7 +151,8 @@ pub async fn import_tricount(
         };
 
         // Create expense in DB
-        let expense_id = expenses_repository::add_expense(&mut *tx, creatable_expense.clone()).await?;
+        let expense_id =
+            expenses_repository::add_expense(&mut *tx, creatable_expense.clone()).await?;
 
         // Create payments (mirrors expenses_controller::add_expense logic)
         let mut payments: Vec<NewPayment> = Vec::new();

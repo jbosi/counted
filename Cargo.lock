@@ -71,6 +71,7 @@ dependencies = [
  "rsa",
  "serde",
  "serde_json",
+ "sha2",
  "shared",
  "sqlx",
  "tokio",

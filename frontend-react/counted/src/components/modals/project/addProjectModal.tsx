@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { AuthContext } from '../../../contexts/authContext';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { useAddProject } from '../../../hooks/useProjects';
 import { useAddUsers } from '../../../hooks/useUsers';
@@ -8,9 +9,11 @@ import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
 import type { AddProjectModalProps, ProjectModalForm } from './models/projectModal.model';
 import { ProjectModalContent } from './projectModalContent';
 import { useNavigate } from 'react-router';
+import { EMAIL_REX } from '../../../consts/emailRegex';
 
 export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjectModalProps) {
 	const navigate = useNavigate();
+	const { account } = useContext(AuthContext);
 	const { saveProjectEntry } = useContext(CountedLocalStorageContext);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 	const useFormReturn = useForm<ProjectModalForm>({
@@ -29,8 +32,15 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 	);
 
 	const onSubmit = async (data: ProjectModalForm): Promise<void> => {
+		const isAuthenticated = account != null;
 		const createdProject = await addProject.mutateAsync({ name: data.projectName, description: data.projectDescription });
-		const createdUsers = await addUsers.mutateAsync(data.users.map((u) => ({ name: u.name, projectId: createdProject?.id ?? '' })));
+		const createdUsers = await addUsers.mutateAsync(
+			data.users.map((u) => ({
+				name: u.name,
+				projectId: createdProject?.id ?? '',
+				invitedEmail: isAuthenticated && EMAIL_REX.test(u.name) ? u.name : undefined,
+			})),
+		);
 
 		const selectedUserId = createdUsers?.find((u) => u.name === selectedUserName)?.id;
 		if (selectedUserId != null) {

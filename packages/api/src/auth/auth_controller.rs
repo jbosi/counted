@@ -4,11 +4,13 @@ use dioxus::prelude::*;
 use shared::{Account, LoginPayload, RegisterPayload};
 
 #[cfg(feature = "server")]
+use crate::account_projects::account_projects_repository;
+#[cfg(feature = "server")]
 use crate::auth::auth_repository;
 #[cfg(feature = "server")]
 use crate::db::get_db;
 #[cfg(feature = "server")]
-use crate::utils::get_current_account_id;
+use crate::utils::{get_current_account_id, sha256_hex};
 #[cfg(feature = "server")]
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -64,6 +66,8 @@ pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, S
     let account = auth_repository::get_account_by_id(&mut *tx, account_id)
         .await?
         .ok_or_else(|| ServerFnError::new("Account not found after creation"))?;
+
+    resolve_pending_invitations(&mut *tx, account_id, &email, &account.display_name).await?;
 
     tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -121,6 +125,13 @@ pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerF
             e
         })?;
     create_session_and_set_cookie(&mut *tx, account_with_hash.id).await?;
+    resolve_pending_invitations(
+        &mut *tx,
+        account_with_hash.id,
+        &account_with_hash.email,
+        &account_with_hash.display_name,
+    )
+    .await?;
 
     tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -187,6 +198,46 @@ pub async fn me() -> Result<Option<Account>, ServerFnError> {
     tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(account)
+}
+
+/// Resolve any pending invitations for this email: update user names and create account_projects entries.
+#[cfg(feature = "server")]
+async fn resolve_pending_invitations(
+    executor: &mut PgConnection,
+    account_id: Uuid,
+    email: &str,
+    display_name: &str,
+) -> Result<(), ServerFnError> {
+    let email_hash = sha256_hex(email); // caller must pass already-lowercased email
+
+    let rows: Vec<(i32, Uuid)> = sqlx::query_as(
+        "SELECT u.id, up.project_id FROM users u \
+         JOIN user_projects up ON up.user_id = u.id \
+         WHERE u.email_hash = $1",
+    )
+    .bind(&email_hash)
+    .fetch_all(&mut *executor)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Failed to resolve pending invitations: {}", e)))?;
+
+    for (user_id, project_id) in rows {
+        sqlx::query("UPDATE users SET name = $1 WHERE id = $2")
+            .bind(display_name)
+            .bind(user_id)
+            .execute(&mut *executor)
+            .await
+            .map_err(|e| ServerFnError::new(format!("Failed to update invited user name: {}", e)))?;
+
+        account_projects_repository::upsert_account_project(
+            &mut *executor,
+            account_id,
+            project_id,
+            Some(user_id),
+        )
+        .await?;
+    }
+
+    Ok(())
 }
 
 /// Create a session in the DB and set the HttpOnly session cookie on the response.

@@ -29,5 +29,7 @@ pub async fn get_current_account_id() -> Option<uuid::Uuid> {
 
     let session_id: uuid::Uuid = session_id_str.parse().ok()?;
 
-    crate::auth::auth_repository::get_session_account_id(session_id).await.ok()?
+    let pool = crate::db::get_db().await;
+    let mut conn = pool.acquire().await.ok()?;
+    crate::auth::auth_repository::get_session_account_id(&mut *conn, session_id).await.ok()?
 }

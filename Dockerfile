@@ -13,6 +13,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/app/target \
     cargo chef cook --release --recipe-path recipe.json
 COPY . .
+ENV SQLX_OFFLINE=true
 
 # Create the final bundle folder. Bundle with release build profile to enable optimizations.
 # Note: We don't cache /app/target here because we need to copy the build output in the next stage

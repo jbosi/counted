@@ -4,22 +4,21 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
-use crate::db::get_db;
-use crate::utils::round_currency;
-#[cfg(feature = "server")]
 use crate::{
     expenses::expenses_repository::get_expenses_by_project_id,
     payments::balances::get_reimbursement_suggestions,
 };
+use crate::utils::round_currency;
 use shared::{Expense, ExpenseType, NewPayment, Payment};
 
 #[cfg(feature = "server")]
-use sqlx::{Pool, Postgres};
+use sqlx::PgConnection;
 
 #[cfg(feature = "server")]
-pub async fn add_payments(creatable_payments: Vec<NewPayment>) -> Result<(), ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn add_payments(
+    executor: &mut PgConnection,
+    creatable_payments: Vec<NewPayment>,
+) -> Result<(), ServerFnError> {
     let expense_ids: Vec<i32> = creatable_payments.iter().map(|p| p.expense_id).collect();
     let user_ids: Vec<i32> = creatable_payments.iter().map(|p| p.user_id).collect();
     let is_debts: Vec<bool> = creatable_payments.iter().map(|p| p.is_debt).collect();
@@ -44,7 +43,7 @@ pub async fn add_payments(creatable_payments: Vec<NewPayment>) -> Result<(), Ser
     .bind(&user_ids)
     .bind(&is_debts)
     .bind(&amounts)
-    .fetch_all(&pool)
+    .fetch_all(&mut *executor)
     .await
     .context("Failed add payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -53,9 +52,10 @@ pub async fn add_payments(creatable_payments: Vec<NewPayment>) -> Result<(), Ser
 }
 
 #[cfg(feature = "server")]
-pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn get_payments_by_expense_id(
+    executor: &mut PgConnection,
+    expense_id: i32,
+) -> Result<Vec<Payment>, ServerFnError> {
     let payments: Vec<Payment> = sqlx::query_as!(
         Payment,
         "SELECT id, expense_id, user_id, is_debt, amount, created_at \
@@ -63,7 +63,7 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
         WHERE expense_id = $1",
         expense_id
     )
-    .fetch_all(&pool)
+    .fetch_all(&mut *executor)
     .await
     .context("Failed get payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -72,9 +72,10 @@ pub async fn get_payments_by_expense_id(expense_id: i32) -> Result<Vec<Payment>,
 }
 
 #[cfg(feature = "server")]
-pub async fn get_payments_by_user_id(user_id: i32) -> Result<Vec<Payment>, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn get_payments_by_user_id(
+    executor: &mut PgConnection,
+    user_id: i32,
+) -> Result<Vec<Payment>, ServerFnError> {
     let payments: Vec<Payment> = sqlx::query_as!(
         Payment,
         "SELECT id, expense_id, user_id, is_debt, amount, created_at \
@@ -82,7 +83,7 @@ pub async fn get_payments_by_user_id(user_id: i32) -> Result<Vec<Payment>, Serve
         WHERE user_id = $1",
         user_id
     )
-    .fetch_all(&pool)
+    .fetch_all(&mut *executor)
     .await
     .context("Failed get payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -92,10 +93,9 @@ pub async fn get_payments_by_user_id(user_id: i32) -> Result<Vec<Payment>, Serve
 
 #[cfg(feature = "server")]
 pub async fn get_payments_by_expense_ids(
+    executor: &mut PgConnection,
     expense_ids: Vec<i32>,
 ) -> Result<Vec<Payment>, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
     let payments: Vec<Payment> = sqlx::query_as!(
         Payment,
         "SELECT id, expense_id, user_id, is_debt, amount, created_at \
@@ -103,7 +103,7 @@ pub async fn get_payments_by_expense_ids(
         WHERE expense_id = ANY($1)",
         &expense_ids[..] // a bug of the parameter typechecking code requires all array parameters to be slices
     )
-    .fetch_all(&pool)
+    .fetch_all(&mut *executor)
     .await
     .context("Failed get payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -112,11 +112,12 @@ pub async fn get_payments_by_expense_ids(
 }
 
 #[cfg(feature = "server")]
-pub async fn delete_payments_by_expense_id(expense_id: i32) -> Result<(), ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn delete_payments_by_expense_id(
+    executor: &mut PgConnection,
+    expense_id: i32,
+) -> Result<(), ServerFnError> {
     sqlx::query!("DELETE FROM payments WHERE expense_id = $1", expense_id)
-        .execute(&pool)
+        .execute(&mut *executor)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -125,12 +126,12 @@ pub async fn delete_payments_by_expense_id(expense_id: i32) -> Result<(), Server
 
 #[cfg(feature = "server")]
 pub async fn get_summary_by_project_id(
+    executor: &mut PgConnection,
     project_id: Uuid,
 ) -> Result<shared::UserSummary, ServerFnError> {
     use shared::UserBalance;
-    let pool: Pool<Postgres> = get_db().await;
 
-    let expenses: Vec<Expense> = get_expenses_by_project_id(project_id)
+    let expenses: Vec<Expense> = get_expenses_by_project_id(&mut *executor, project_id)
         .await
         .context("Failed get expenses")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -144,7 +145,7 @@ pub async fn get_summary_by_project_id(
         WHERE expense_id = ANY($1)",
         &expense_ids[..] // a bug of the parameter typechecking code requires all array parameters to be slices
     )
-    .fetch_all(&pool)
+    .fetch_all(&mut *executor)
     .await
     .context("Failed get payments")
     .map_err(|e| ServerFnError::new(e.to_string()))?;

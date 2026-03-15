@@ -6,6 +6,8 @@ use shared::{Account, LoginPayload, RegisterPayload};
 #[cfg(feature = "server")]
 use crate::auth::auth_repository;
 #[cfg(feature = "server")]
+use crate::db::get_db;
+#[cfg(feature = "server")]
 use crate::utils::get_current_account_id;
 #[cfg(feature = "server")]
 use argon2::{
@@ -18,6 +20,8 @@ use axum::http::header::{HeaderValue, SET_COOKIE};
 use chrono::{Duration, Utc};
 #[cfg(feature = "server")]
 use dioxus_fullstack::FullstackContext;
+#[cfg(feature = "server")]
+use sqlx::PgConnection;
 #[cfg(feature = "server")]
 use uuid::Uuid;
 
@@ -33,7 +37,10 @@ pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, S
 
     let email = payload.email.to_lowercase();
 
-    if auth_repository::find_account_by_email(&email).await?.is_some() {
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    if auth_repository::find_account_by_email(&mut *tx, &email).await?.is_some() {
         return Err(ServerFnError::new("Registration failed"));
     }
 
@@ -49,14 +56,16 @@ pub async fn register(Json(payload): Json<RegisterPayload>) -> Result<Account, S
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let account_id =
-        auth_repository::create_account(&email, &password_hash, &payload.display_name)
+        auth_repository::create_account(&mut *tx, &email, &password_hash, &payload.display_name)
             .await?;
 
-    create_session_and_set_cookie(account_id).await?;
+    create_session_and_set_cookie(&mut *tx, account_id).await?;
 
-    let account = auth_repository::get_account_by_id(account_id)
+    let account = auth_repository::get_account_by_id(&mut *tx, account_id)
         .await?
         .ok_or_else(|| ServerFnError::new("Account not found after creation"))?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(account)
 }
@@ -69,7 +78,10 @@ pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerF
 
     let email = payload.email.to_lowercase();
 
-    let account_with_hash = auth_repository::find_account_by_email(&email)
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let account_with_hash = auth_repository::find_account_by_email(&mut *tx, &email)
         .await?
         .ok_or_else(|| ServerFnError::new("Invalid email or password"))?;
 
@@ -92,22 +104,25 @@ pub async fn login(Json(payload): Json<LoginPayload>) -> Result<Account, ServerF
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     if verified.is_err() {
-        auth_repository::increment_failed_login(account_with_hash.id)
+        auth_repository::increment_failed_login(&mut *tx, account_with_hash.id)
             .await
             .map_err(|e| {
                 eprintln!("ERROR: Failed to increment failed_login_count: {}", e);
                 e
             })?;
+        tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
         return Err(ServerFnError::new("Invalid email or password"));
     }
 
-    auth_repository::reset_failed_login(account_with_hash.id)
+    auth_repository::reset_failed_login(&mut *tx, account_with_hash.id)
         .await
         .map_err(|e| {
             eprintln!("ERROR: Failed to reset failed_login_count: {}", e);
             e
         })?;
-    create_session_and_set_cookie(account_with_hash.id).await?;
+    create_session_and_set_cookie(&mut *tx, account_with_hash.id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(Account {
         id: account_with_hash.id,
@@ -139,7 +154,10 @@ pub async fn logout() -> Result<(), ServerFnError> {
     };
 
     if let Some(session_id) = session_id_opt {
-        let _ = auth_repository::delete_session(session_id).await;
+        let pool = get_db().await;
+        let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+        let _ = auth_repository::delete_session(&mut *tx, session_id).await;
+        let _ = tx.commit().await;
     }
 
     let secure_attr =
@@ -160,14 +178,25 @@ pub async fn me() -> Result<Option<Account>, ServerFnError> {
     let Some(account_id) = get_current_account_id().await else {
         return Ok(None);
     };
-    Ok(auth_repository::get_account_by_id(account_id).await?)
+
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let account = auth_repository::get_account_by_id(&mut *tx, account_id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    Ok(account)
 }
 
 /// Create a session in the DB and set the HttpOnly session cookie on the response.
 #[cfg(feature = "server")]
-async fn create_session_and_set_cookie(account_id: Uuid) -> Result<Uuid, ServerFnError> {
+async fn create_session_and_set_cookie(
+    executor: &mut PgConnection,
+    account_id: Uuid,
+) -> Result<Uuid, ServerFnError> {
     let expires_at = (Utc::now() + Duration::days(30)).naive_utc();
-    let session_id = auth_repository::create_session(account_id, expires_at).await?;
+    let session_id = auth_repository::create_session(executor, account_id, expires_at).await?;
 
     let secure_attr =
         if std::env::var("COOKIE_SECURE").as_deref() == Ok("false") { "" } else { "; Secure" };

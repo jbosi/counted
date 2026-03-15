@@ -3,6 +3,8 @@ use dioxus::{fullstack::Json, prelude::*};
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
+use crate::db::get_db;
+#[cfg(feature = "server")]
 use crate::expenses::expenses_repository;
 #[cfg(feature = "server")]
 use crate::payments::payments_repository;
@@ -12,7 +14,10 @@ use shared::{CreatableExpense, EditableExpense, Expense, NewPayment, UserAmount}
 pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expense, ServerFnError> {
     validate_expense(&expense.name, &expense.payers, &expense.debtors)?;
 
-    let created_expense_id = expenses_repository::add_expense(expense.clone()).await?;
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let created_expense_id = expenses_repository::add_expense(&mut *tx, expense.clone()).await?;
 
     let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(
         expense.payers.clone(),
@@ -20,7 +25,9 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
         created_expense_id,
     );
 
-    payments_repository::add_payments(creatable_payments).await?;
+    payments_repository::add_payments(&mut *tx, creatable_payments).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let created_expense = Expense {
         id: created_expense_id,
@@ -41,9 +48,12 @@ pub async fn add_expense(Json(expense): Json<CreatableExpense>) -> Result<Expens
 pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expense, ServerFnError> {
     validate_expense(&expense.name, &expense.payers, &expense.debtors)?;
 
-    expenses_repository::edit_expense(expense.clone()).await?;
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    payments_repository::delete_payments_by_expense_id(expense.id).await?;
+    expenses_repository::edit_expense(&mut *tx, expense.clone()).await?;
+
+    payments_repository::delete_payments_by_expense_id(&mut *tx, expense.id).await?;
 
     let creatable_payments: Vec<NewPayment> = forge_creatable_payments_from_expense(
         expense.payers.clone(),
@@ -51,7 +61,9 @@ pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expens
         expense.id,
     );
 
-    payments_repository::add_payments(creatable_payments).await?;
+    payments_repository::add_payments(&mut *tx, creatable_payments).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     let updated_expense = Expense {
         id: expense.id,
@@ -70,23 +82,38 @@ pub async fn edit_expense(Json(expense): Json<EditableExpense>) -> Result<Expens
 
 #[get("/api/v1/projects/{project_id}/expenses")]
 pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
-    let expenses = expenses_repository::get_expenses_by_project_id(project_id).await?;
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let expenses = expenses_repository::get_expenses_by_project_id(&mut *tx, project_id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expenses)
 }
 
 #[get("/api/v1/expenses/{expense_id}")]
 pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
-    let expense = expenses_repository::get_expense_by_id(expense_id).await?;
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    let expense = expenses_repository::get_expense_by_id(&mut *tx, expense_id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(expense)
 }
 
 #[delete("/api/v1/expenses/{expense_id}")]
 pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
-    payments_repository::delete_payments_by_expense_id(expense_id).await?;
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    expenses_repository::delete_expense(expense_id).await?;
+    payments_repository::delete_payments_by_expense_id(&mut *tx, expense_id).await?;
+
+    expenses_repository::delete_expense(&mut *tx, expense_id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(())
 }

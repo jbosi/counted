@@ -14,6 +14,8 @@ use shared::{
 #[cfg(feature = "server")]
 use super::tricount_client;
 #[cfg(feature = "server")]
+use crate::db::get_db;
+#[cfg(feature = "server")]
 use crate::expenses::expenses_repository;
 #[cfg(feature = "server")]
 use crate::payments::payments_repository;
@@ -42,11 +44,15 @@ pub async fn import_tricount(
 ) -> Result<TricountImportResponse, ServerFnError> {
     let key = tricount_client::extract_tricount_key(&payload.tricount_key);
 
-    // Fetch from Tricount API
+    // Fetch from Tricount API (outside transaction — network call)
     let registry = tricount_client::fetch_tricount(&key).await?;
+
+    let pool = get_db().await;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     // Create project
     let project_id = projects_repository::add_project(
+        &mut *tx,
         CreatableProject {
             name: registry.title.clone(),
             description: Some("Imported from Tricount".to_string()),
@@ -64,7 +70,7 @@ pub async fn import_tricount(
         .map(|m| CreatableUser { name: m.alias.display_name.clone(), project_id })
         .collect();
 
-    let created_users = users_repository::add_users(creatable_users).await?;
+    let created_users = users_repository::add_users(&mut *tx, creatable_users).await?;
 
     // Build UUID -> user_id mapping
     let uuid_to_user_id: HashMap<String, i32> = members
@@ -141,7 +147,7 @@ pub async fn import_tricount(
         };
 
         // Create expense in DB
-        let expense_id = expenses_repository::add_expense(creatable_expense.clone()).await?;
+        let expense_id = expenses_repository::add_expense(&mut *tx, creatable_expense.clone()).await?;
 
         // Create payments (mirrors expenses_controller::add_expense logic)
         let mut payments: Vec<NewPayment> = Vec::new();
@@ -167,11 +173,13 @@ pub async fn import_tricount(
             }
         }
 
-        payments_repository::add_payments(payments).await?;
+        payments_repository::add_payments(&mut *tx, payments).await?;
         expenses_count += 1;
     }
 
-    let project = projects_repository::get_project(project_id).await?;
+    let project = projects_repository::get_project(&mut *tx, project_id).await?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(TricountImportResponse { project, users: created_users, expenses_count })
 }

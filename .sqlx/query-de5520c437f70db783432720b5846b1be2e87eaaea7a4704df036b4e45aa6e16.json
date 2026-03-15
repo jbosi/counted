@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, created_at, currency, description, status as \"status: ProjectStatus\" FROM projects WHERE id = ANY($1)",
+  "query": "UPDATE projects SET name = $1, description = $2, currency = $3, status = $4 WHERE id = $5 RETURNING id, name, created_at, currency, description, status as \"status: ProjectStatus\", owner_account_id",
   "describe": {
     "columns": [
       {
@@ -43,11 +43,31 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "owner_account_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
       "Left": [
-        "UuidArray"
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "project_status",
+            "kind": {
+              "Enum": [
+                "ongoing",
+                "closed",
+                "archived"
+              ]
+            }
+          }
+        },
+        "Uuid"
       ]
     },
     "nullable": [
@@ -56,8 +76,9 @@
       false,
       false,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "19849f47c2208ccd0c1a588f68ce5dab6d0cf7e1b49256436adb11dd243d6670"
+  "hash": "de5520c437f70db783432720b5846b1be2e87eaaea7a4704df036b4e45aa6e16"
 }

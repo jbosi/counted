@@ -2,16 +2,15 @@ use dioxus::prelude::*;
 use uuid::Uuid;
 
 #[cfg(feature = "server")]
-use crate::db::get_db;
-#[cfg(feature = "server")]
 use shared::{CreatableExpense, EditableExpense, Expense, ExpenseType};
 #[cfg(feature = "server")]
-use sqlx::{Pool, Postgres};
+use sqlx::PgConnection;
 
 #[cfg(feature = "server")]
-pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn add_expense(
+    executor: &mut PgConnection,
+    expense: CreatableExpense,
+) -> Result<i32, ServerFnError> {
     let created_expense_id: i32 = sqlx::query_scalar!(
         r"
             INSERT INTO expenses
@@ -40,7 +39,7 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
         expense.clone().description,
         expense.clone().date
     )
-    .fetch_one(&pool)
+    .fetch_one(&mut *executor)
     .await
     .context("Failed to create expense")
     .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -49,9 +48,10 @@ pub async fn add_expense(expense: CreatableExpense) -> Result<i32, ServerFnError
 }
 
 #[cfg(feature = "server")]
-pub async fn edit_expense(expense: EditableExpense) -> Result<(), ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn edit_expense(
+    executor: &mut PgConnection,
+    expense: EditableExpense,
+) -> Result<(), ServerFnError> {
     sqlx::query!(
         r#"
         UPDATE expenses
@@ -74,7 +74,7 @@ pub async fn edit_expense(expense: EditableExpense) -> Result<(), ServerFnError>
         expense.date,
         expense.id
     )
-    .execute(&pool)
+    .execute(&mut *executor)
     .await
     .map_err(|e| ServerFnError::new(e.to_string()))?;
 
@@ -82,15 +82,17 @@ pub async fn edit_expense(expense: EditableExpense) -> Result<(), ServerFnError>
 }
 
 #[cfg(feature = "server")]
-pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
+pub async fn get_expenses_by_project_id(
+    executor: &mut PgConnection,
+    project_id: Uuid,
+) -> Result<Vec<Expense>, ServerFnError> {
     let expenses: Vec<Expense> = sqlx::query_as!(
         Expense,
         "SELECT id, author_id, project_id, created_at, date, amount, description, name, expense_type as \"expense_type: ExpenseType\" \
         FROM expenses \
         WHERE project_id = $1",
         project_id)
-        .fetch_all(&pool)
+        .fetch_all(&mut *executor)
         .await
         .context("Failed to get expenses")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -99,12 +101,14 @@ pub async fn get_expenses_by_project_id(project_id: Uuid) -> Result<Vec<Expense>
 }
 
 #[cfg(feature = "server")]
-pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
+pub async fn get_expense_by_id(
+    executor: &mut PgConnection,
+    expense_id: i32,
+) -> Result<Expense, ServerFnError> {
     let expense: Expense = sqlx::query_as!(
         Expense,
         "SELECT id, author_id, project_id, created_at, date, amount, description, name, expense_type as \"expense_type: ExpenseType\" FROM expenses WHERE id = $1", expense_id)
-        .fetch_one(&pool)
+        .fetch_one(&mut *executor)
         .await
         .context("Failed to get expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
@@ -113,11 +117,12 @@ pub async fn get_expense_by_id(expense_id: i32) -> Result<Expense, ServerFnError
 }
 
 #[cfg(feature = "server")]
-pub async fn delete_expense(expense_id: i32) -> Result<(), ServerFnError> {
-    let pool: Pool<Postgres> = get_db().await;
-
+pub async fn delete_expense(
+    executor: &mut PgConnection,
+    expense_id: i32,
+) -> Result<(), ServerFnError> {
     sqlx::query!("DELETE FROM expenses WHERE id = $1", expense_id)
-        .execute(&pool)
+        .execute(&mut *executor)
         .await
         .context("Failed to delete expense")
         .map_err(|e| ServerFnError::new(e.to_string()))?;

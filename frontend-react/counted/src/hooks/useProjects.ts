@@ -3,7 +3,6 @@ import { useContext } from 'react';
 import { CountedLocalStorageContext } from '../contexts/localStorageContext';
 import { projectsService } from '../services/projectsService';
 import type { CreatableProject, EditableProject, ProjectDto, ProjectStatus } from '../types/projects.model';
-import { addToLocalStorage, removeFromLocalStorage } from './useLocalStorage';
 
 export function useProjects(projectsIds: string[]) {
 	return useQuery({
@@ -23,14 +22,14 @@ export function useProject(projectId: string) {
 }
 
 export function useAddProject() {
-	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { saveProjectEntry } = useContext(CountedLocalStorageContext);
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (creatableProject: CreatableProject) => projectsService.createProjectAsync(creatableProject),
 		onSuccess: (data) => {
 			queryClient.setQueryData(['projects'], (old: ProjectDto[]) => [...(old ?? []), data]);
-			addToLocalStorage(countedLocalStorage, { projectId: data.id, userId: null }, setCountedLocalStorage);
+			saveProjectEntry({ projectId: data.id, userId: null });
 		},
 	});
 }
@@ -60,13 +59,13 @@ export function useUpdateProjectStatus(projectId: string) {
 
 export function useDeleteProject() {
 	const queryClient = useQueryClient();
-	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { removeProjectEntry } = useContext(CountedLocalStorageContext);
 
 	return useMutation({
 		mutationFn: (projectId: string) => projectsService.deleteProjectAsync(projectId),
 		onSuccess: (_, projectIdDeleted) => {
 			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
-			removeFromLocalStorage(countedLocalStorage, projectIdDeleted, setCountedLocalStorage);
+			removeProjectEntry(projectIdDeleted);
 		},
 	});
 }

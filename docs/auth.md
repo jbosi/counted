@@ -39,6 +39,18 @@ Design decisions are documented in [DOCUMENTATION.md §9](../DOCUMENTATION.md#9-
 
 Nullable `UUID` FK referencing `accounts(id)` ON DELETE SET NULL. When null, the project is URL-accessible to anyone (legacy mode). When set, only the owning account can access it.
 
+### `account_projects`
+
+Persists the `{ projectId, userId }` associations for authenticated users, replacing the anonymous `localStorage`-based mechanism.
+
+| Column     | Type    | Notes                                          |
+| ---------- | ------- | ---------------------------------------------- |
+| account_id | UUID FK | References `accounts(id)` ON DELETE CASCADE    |
+| project_id | UUID FK | References `projects(id)` ON DELETE CASCADE    |
+| user_id    | INTEGER | Nullable — the participant this account claims |
+
+Composite PK on `(account_id, project_id)`. Rows are upserted so `user_id` can be updated after initial project access. Anonymous users continue using `localStorage`; authenticated users use this table instead.
+
 ---
 
 ## Registration Flow
@@ -159,13 +171,13 @@ The `session_id` cookie is set with:
 session_id=<UUID>; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000[; Secure]
 ```
 
-| Attribute  | Value       | Why                                                   |
-| ---------- | ----------- | ----------------------------------------------------- |
-| `HttpOnly` | always      | Cookie invisible to JavaScript — blocks XSS theft     |
-| `SameSite` | `Lax`       | Sent on top-level navigations; blocks CSRF mutations  |
-| `Path`     | `/`         | Available to all routes                               |
-| `Max-Age`  | `2592000`   | 30 days (matches DB `expires_at`)                     |
-| `Secure`   | default ON  | Omitted only when `COOKIE_SECURE=false` env var is set |
+| Attribute  | Value      | Why                                                    |
+| ---------- | ---------- | ------------------------------------------------------ |
+| `HttpOnly` | always     | Cookie invisible to JavaScript — blocks XSS theft      |
+| `SameSite` | `Lax`      | Sent on top-level navigations; blocks CSRF mutations   |
+| `Path`     | `/`        | Available to all routes                                |
+| `Max-Age`  | `2592000`  | 30 days (matches DB `expires_at`)                      |
+| `Secure`   | default ON | Omitted only when `COOKIE_SECURE=false` env var is set |
 
 > **Local dev note**: Set `COOKIE_SECURE=false` in the devcontainer environment (already configured in `.devcontainer/docker-compose.yml`) to disable the `Secure` flag for HTTP-only local dev. Production gets `Secure` by default.
 
@@ -187,6 +199,10 @@ This is enforced in [packages/api/src/projects/projects_controller.rs](../packag
 
 - **Authenticated**: projects where `owner_account_id = current_account_id`
 - **Unauthenticated**: projects where `owner_account_id IS NULL`
+
+### `account_projects` endpoints
+
+`GET/POST/DELETE /api/v1/account/projects` — all require a valid session; return `Forbidden` otherwise.
 
 ### Other endpoints (expenses, payments, users)
 
@@ -213,11 +229,13 @@ Routes `/login` and `/register` render [packages/ui/src/auth/login.rs](../packag
 
 On app mount, `GET /api/v1/auth/me` is called via `useEffect` in `App.tsx`. The result is stored in `AuthContext`:
 
-| Value | Meaning |
-| --- | --- |
-| `undefined` | Loading (request in flight) |
-| `null` | Unauthenticated |
-| `Account` | Authenticated |
+| Value     | Meaning                   |
+| --------- | ------------------------- |
+| undefined | Loading (request in flight) |
+| null      | Unauthenticated           |
+| Account   | Authenticated             |
+
+When `account` resolves as non-null, `GET /api/v1/account/projects` is fetched and the result replaces the `CountedLocalStorageContext` state (no localStorage write). This drives the project dashboard and the "which participant am I" identity for each project.
 
 **Key files:**
 
@@ -236,25 +254,30 @@ On app mount, `GET /api/v1/auth/me` is called via `useEffect` in `App.tsx`. The 
 **Redirect guards**: `/login` and `/register` redirect to `/` if `account` is already set.
 
 **Mutations behaviour:**
-- Login / Register: set `account` in context, invalidate `['projects']` query
+- Login / Register: set `account` in context → triggers load of `account_projects` from DB → replaces `CountedLocalStorageContext` state, invalidates `['projects']` query
 - Logout: set `account` to `null`, call `queryClient.clear()` to wipe all cached data
 
 ---
 
 ## Key Files
 
-| File                                                                                                                      | Role                                                      |
-| ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs)                                   | register / login / logout / me endpoints, cookie creation |
-| [packages/api/src/auth/auth_repository.rs](../packages/api/src/auth/auth_repository.rs)                                   | DB queries: create/get account, create/get/delete session |
-| [packages/api/src/utils.rs](../packages/api/src/utils.rs)                                                                 | `get_current_account_id()` — reusable session validation  |
-| [packages/api/src/projects/projects_controller.rs](../packages/api/src/projects/projects_controller.rs)                   | Project ownership enforcement                             |
-| [packages/shared/src/lib.rs](../packages/shared/src/lib.rs)                                                               | `Account`, `RegisterPayload`, `LoginPayload` DTOs         |
-| [migrations/20260220115825_create_accounts.up.sql](../migrations/20260220115825_create_accounts.up.sql)                   | accounts table                                            |
-| [migrations/20260220115826_create_sessions.up.sql](../migrations/20260220115826_create_sessions.up.sql)                   | sessions table                                            |
-| [migrations/20260220115827_project_owner_account_id.up.sql](../migrations/20260220115827_project_owner_account_id.up.sql) | owner_account_id column                                   |
-| [migrations/20260308000000_account_lockout.up.sql](../migrations/20260308000000_account_lockout.up.sql)                   | failed_login_count + locked_until columns                 |
-| [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf)                                                 | auth_limit rate zone + location block                     |
+| File | Role |
+| ---- | ---- |
+| [packages/api/src/auth/auth_controller.rs](../packages/api/src/auth/auth_controller.rs) | register / login / logout / me endpoints, cookie creation |
+| [packages/api/src/auth/auth_repository.rs](../packages/api/src/auth/auth_repository.rs) | DB queries: create/get account, create/get/delete session |
+| [packages/api/src/account_projects/](../packages/api/src/account_projects/) | controller + repository for `/api/v1/account/projects` |
+| [packages/api/src/utils.rs](../packages/api/src/utils.rs) | `get_current_account_id()` — reusable session validation |
+| [packages/api/src/projects/projects_controller.rs](../packages/api/src/projects/projects_controller.rs) | Project ownership enforcement |
+| [packages/shared/src/lib.rs](../packages/shared/src/lib.rs) | `Account`, `RegisterPayload`, `LoginPayload`, `AccountProject` DTOs |
+| [migrations/20260220115825_create_accounts.up.sql](../migrations/20260220115825_create_accounts.up.sql) | accounts table |
+| [migrations/20260220115826_create_sessions.up.sql](../migrations/20260220115826_create_sessions.up.sql) | sessions table |
+| [migrations/20260220115827_project_owner_account_id.up.sql](../migrations/20260220115827_project_owner_account_id.up.sql) | owner_account_id column |
+| [migrations/20260308000000_account_lockout.up.sql](../migrations/20260308000000_account_lockout.up.sql) | failed_login_count + locked_until columns |
+| [migrations/20260315000000_account_projects.up.sql](../migrations/20260315000000_account_projects.up.sql) | account_projects table |
+| [frontend-react/counted/src/services/accountProjectsService.ts](../frontend-react/counted/src/services/accountProjectsService.ts) | React fetch wrappers for account_projects endpoints |
+| [frontend-react/counted/src/hooks/useLocalStorage.ts](../frontend-react/counted/src/hooks/useLocalStorage.ts) | `saveProjectEntry` — auth-aware upsert (API or localStorage) |
+| [frontend-react/counted/src/App.tsx](../frontend-react/counted/src/App.tsx) | Loads account_projects on login; wires `saveProjectEntry`/`removeProjectEntry` into context |
+| [frontend-react/counted/nginx.conf](../frontend-react/counted/nginx.conf) | auth_limit rate zone + location block |
 
 ---
 
@@ -262,19 +285,21 @@ On app mount, `GET /api/v1/auth/me` is called via `useEffect` in `App.tsx`. The 
 
 Items not yet implemented, ordered by severity:
 
-| Gap                                             | Severity | Notes                                                                                        |
-| ----------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
-| Expense / payment / user endpoints have no auth | Design   | Intentional — project UUID is the access token for anonymous projects (URL-sharing model)    |
-| ~~No rate limiting on auth endpoints~~          | ~~High~~ | Implemented — nginx `auth_limit` zone (5 req/min/IP)                                         |
-| ~~No account lockout after repeated failures~~  | ~~High~~ | Implemented — 5 failures → 15-min lockout in DB                                              |
-| ~~Email enumeration via `/register`~~           | ~~High~~ | Fixed — generic `"Registration failed"` error regardless of email existence                  |
-| ~~No input length validation~~                  | ~~High~~ | Fixed — email ≤ 254, password ≤ 128, display_name ≤ 100 enforced server-side                |
-| ~~Argon2 blocking async thread~~                | ~~Critical~~ | Fixed — Argon2 runs in `tokio::task::spawn_blocking`                                     |
-| ~~`Secure` cookie flag off by default~~         | ~~Medium~~ | Fixed — `Secure` is ON by default; opt-out via `COOKIE_SECURE=false` for local dev        |
-| ~~No email normalization~~                      | ~~Medium~~ | Fixed — emails lowercased before storage and lookup                                        |
-| No server-side password strength validation     | Medium   | Only frontend `minlength=8`, easily bypassed via API                                         |
-| No email verification                           | Medium   | Accounts created with unverified email addresses                                             |
-| No session cleanup job                          | Low      | Expired sessions accumulate; add `DELETE FROM sessions WHERE expires_at < NOW()` cron        |
-| Manual cookie parsing                           | Low      | `logout` and `get_current_account_id` hand-parse the `Cookie` header; use the `cookie` crate |
-| No frontend route guards                        | Low      | Routes are accessible in the browser regardless of auth state                                |
-| No audit logging                                | Low      | No record of login / logout / failed attempts                                                |
+| Gap                                             | Severity     | Notes                                                                                         |
+| ----------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------- |
+| Expense / payment / user endpoints have no auth | Design       | Intentional — project UUID is the access token for anonymous projects (URL-sharing model)     |
+| Anonymous → authenticated migration             | Low          | Projects in localStorage are not imported into `account_projects` on first login              |
+| ~~No rate limiting on auth endpoints~~          | ~~High~~     | Implemented — nginx `auth_limit` zone (5 req/min/IP)                                          |
+| ~~No account lockout after repeated failures~~  | ~~High~~     | Implemented — 5 failures → 15-min lockout in DB                                               |
+| ~~Email enumeration via `/register`~~           | ~~High~~     | Fixed — generic `"Registration failed"` error regardless of email existence                   |
+| ~~No input length validation~~                  | ~~High~~     | Fixed — email ≤ 254, password ≤ 128, display_name ≤ 100 enforced server-side                 |
+| ~~Argon2 blocking async thread~~                | ~~Critical~~ | Fixed — Argon2 runs in `tokio::task::spawn_blocking`                                          |
+| ~~`Secure` cookie flag off by default~~         | ~~Medium~~   | Fixed — `Secure` is ON by default; opt-out via `COOKIE_SECURE=false` for local dev            |
+| ~~No email normalization~~                      | ~~Medium~~   | Fixed — emails lowercased before storage and lookup                                           |
+| ~~No cross-device project/userId persistence~~  | ~~Medium~~   | Fixed — `account_projects` table; authenticated users no longer depend on localStorage        |
+| No server-side password strength validation     | Medium       | Only frontend `minlength=8`, easily bypassed via API                                          |
+| No email verification                           | Medium       | Accounts created with unverified email addresses                                              |
+| No session cleanup job                          | Low          | Expired sessions accumulate; add `DELETE FROM sessions WHERE expires_at < NOW()` cron         |
+| Manual cookie parsing                           | Low          | `logout` and `get_current_account_id` hand-parse the `Cookie` header; use the `cookie` crate |
+| No frontend route guards                        | Low          | Routes are accessible in the browser regardless of auth state                                 |
+| No audit logging                                | Low          | No record of login / logout / failed attempts                                                 |

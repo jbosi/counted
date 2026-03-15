@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
-import { addToLocalStorage } from '../../../hooks/useLocalStorage';
 import { useAddProject } from '../../../hooks/useProjects';
 import { useAddUsers } from '../../../hooks/useUsers';
 import { PROJECT_FORM_SCHEMA } from './helpers/projectModal.helper';
@@ -12,7 +11,7 @@ import { useNavigate } from 'react-router';
 
 export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjectModalProps) {
 	const navigate = useNavigate();
-	const { countedLocalStorage, setCountedLocalStorage } = useContext(CountedLocalStorageContext);
+	const { saveProjectEntry } = useContext(CountedLocalStorageContext);
 	const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 	const useFormReturn = useForm<ProjectModalForm>({
 		resolver: zodResolver(PROJECT_FORM_SCHEMA),
@@ -24,9 +23,9 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 
 	const setCurrentUserForProject = useCallback(
 		(userId: number, projectId: string) => {
-			addToLocalStorage(countedLocalStorage, { projectId, userId }, setCountedLocalStorage);
+			saveProjectEntry({ projectId, userId });
 		},
-		[countedLocalStorage, setCountedLocalStorage],
+		[saveProjectEntry],
 	);
 
 	const onSubmit = async (data: ProjectModalForm): Promise<void> => {
@@ -35,7 +34,7 @@ export function AddProjectModal({ dialogRef, modalId, closeDialogFn }: AddProjec
 
 		const selectedUserId = createdUsers?.find((u) => u.name === selectedUserName)?.id;
 		if (selectedUserId != null) {
-			setCurrentUserForProject(selectedUserId, createdProject.id);
+			await setCurrentUserForProject(selectedUserId, createdProject.id);
 		}
 
 		closeDialogFn();

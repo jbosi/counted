@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type CountedLocalStorage, type CountedLocalStorageProject, COUNTED_LOCAL_STORAGE_KEY } from '../types/localStorage.model';
-import { addToLocalStorage, removeFromLocalStorage, useAddToLocalStorage, useInitializeLocalStorage } from './useLocalStorage';
+import { addToLocalStorage, removeFromLocalStorage, saveProjectEntry, useAddToLocalStorage, useInitializeLocalStorage } from './useLocalStorage';
 
 describe('useLocalStorage', () => {
 	beforeEach(() => {
@@ -179,6 +179,69 @@ describe('useLocalStorage', () => {
 					renderHook(() => useInitializeLocalStorage(setCountedLocalStorage));
 				});
 			}).toThrow();
+		});
+	});
+
+	describe('saveProjectEntry', () => {
+		it('should skip if exact duplicate already in storage', async () => {
+			const setCountedLocalStorage = vi.fn();
+			const upsertFn = vi.fn();
+			const storage: CountedLocalStorage = { projects: [{ projectId: 'p1', userId: 1 }] };
+
+			await saveProjectEntry(true, { projectId: 'p1', userId: 1 }, storage, setCountedLocalStorage, upsertFn);
+
+			expect(upsertFn).not.toHaveBeenCalled();
+			expect(setCountedLocalStorage).not.toHaveBeenCalled();
+		});
+
+		it('should skip if trying to set userId=null when existing userId is set', async () => {
+			const setCountedLocalStorage = vi.fn();
+			const upsertFn = vi.fn();
+			const storage: CountedLocalStorage = { projects: [{ projectId: 'p1', userId: 5 }] };
+
+			await saveProjectEntry(true, { projectId: 'p1', userId: null }, storage, setCountedLocalStorage, upsertFn);
+
+			expect(upsertFn).not.toHaveBeenCalled();
+			expect(setCountedLocalStorage).not.toHaveBeenCalled();
+		});
+
+		it('auth path: calls upsertFn and updates state without writing to localStorage', async () => {
+			const setCountedLocalStorage = vi.fn();
+			const upsertFn = vi.fn().mockResolvedValue(undefined);
+			const storage: CountedLocalStorage = { projects: [] };
+
+			await saveProjectEntry(true, { projectId: 'p1', userId: 42 }, storage, setCountedLocalStorage, upsertFn);
+
+			expect(upsertFn).toHaveBeenCalledWith('p1', 42);
+			expect(setCountedLocalStorage).toHaveBeenCalled();
+			expect(localStorage.getItem(COUNTED_LOCAL_STORAGE_KEY)).toBeNull();
+		});
+
+		it('auth path: updates state correctly by replacing existing entry for same projectId', async () => {
+			const setCountedLocalStorage = vi.fn();
+			const upsertFn = vi.fn().mockResolvedValue(undefined);
+			const storage: CountedLocalStorage = { projects: [{ projectId: 'p1', userId: null }] };
+
+			await saveProjectEntry(true, { projectId: 'p1', userId: 7 }, storage, setCountedLocalStorage, upsertFn);
+
+			expect(upsertFn).toHaveBeenCalledWith('p1', 7);
+			const updater = setCountedLocalStorage.mock.calls[0][0];
+			const result = updater({ projects: [{ projectId: 'p1', userId: null }] });
+			expect(result.projects).toEqual([{ projectId: 'p1', userId: 7 }]);
+		});
+
+		it('anonymous path: delegates to addToLocalStorage (writes to localStorage)', async () => {
+			const setCountedLocalStorage = vi.fn();
+			const upsertFn = vi.fn();
+			const storage: CountedLocalStorage = { projects: [] };
+
+			await saveProjectEntry(false, { projectId: 'p1', userId: 3 }, storage, setCountedLocalStorage, upsertFn);
+
+			expect(upsertFn).not.toHaveBeenCalled();
+			const storedData = localStorage.getItem(COUNTED_LOCAL_STORAGE_KEY);
+			expect(storedData).not.toBeNull();
+			const parsed: CountedLocalStorage = JSON.parse(storedData!);
+			expect(parsed.projects).toContainEqual({ projectId: 'p1', userId: 3 });
 		});
 	});
 

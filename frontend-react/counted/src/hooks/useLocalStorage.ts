@@ -1,6 +1,32 @@
 import { type Dispatch, type SetStateAction, useEffect, useEffectEvent } from 'react';
 import { type CountedLocalStorage, type CountedLocalStorageProject, COUNTED_LOCAL_STORAGE_KEY } from '../types/localStorage.model';
 
+/**
+ * Auth-aware upsert. When `isAuthenticated` is true, calls `upsertFn` and updates
+ * in-memory state only (no localStorage write). When false, falls back to addToLocalStorage.
+ * Applies the same idempotency guards as addToLocalStorage.
+ */
+export async function saveProjectEntry(
+	isAuthenticated: boolean,
+	entry: CountedLocalStorageProject,
+	countedLocalStorage: CountedLocalStorage | undefined,
+	setCountedLocalStorage: Dispatch<SetStateAction<CountedLocalStorage | undefined>>,
+	upsertFn: (projectId: string, userId: number | null) => Promise<void>,
+): Promise<void> {
+	const existing = countedLocalStorage?.projects.find((p) => p.projectId === entry.projectId);
+	if (existing?.userId === entry.userId) return;
+	if (existing?.userId != null && entry.userId == null) return;
+
+	if (isAuthenticated) {
+		await upsertFn(entry.projectId, entry.userId);
+		setCountedLocalStorage((prev) => ({
+			projects: [...(prev?.projects.filter((p) => p.projectId !== entry.projectId) ?? []), entry],
+		}));
+	} else {
+		addToLocalStorage(countedLocalStorage, entry, setCountedLocalStorage);
+	}
+}
+
 export function useAddToLocalStorage(
 	existingStorage: CountedLocalStorage | undefined,
 	projectToAdd: CountedLocalStorageProject,

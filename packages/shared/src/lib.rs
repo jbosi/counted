@@ -124,6 +124,7 @@ pub enum CreatableUserBatch {
 pub struct CreatableUser {
     pub name: String,
     pub project_id: Uuid,
+    pub invited_email: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

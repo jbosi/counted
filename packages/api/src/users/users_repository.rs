@@ -9,6 +9,11 @@ use shared::{CreatableUser, User};
 use sqlx::{PgConnection, Postgres, QueryBuilder};
 
 #[cfg(feature = "server")]
+use crate::account_projects::account_projects_repository;
+#[cfg(feature = "server")]
+use crate::utils::sha256_hex;
+
+#[cfg(feature = "server")]
 pub async fn get_users(executor: &mut PgConnection) -> Result<Vec<User>, ServerFnError> {
     let users: Vec<User> = sqlx::query_as!(User, "SELECT id, name, balance, created_at FROM users")
         .fetch_all(&mut *executor)
@@ -48,21 +53,30 @@ pub async fn add_users(
     executor: &mut PgConnection,
     creatable_users: Vec<CreatableUser>,
 ) -> Result<Vec<User>, ServerFnError> {
-    // TODO: handle different project_ids or force only one project_id
     if creatable_users.is_empty() {
         return Ok(vec![]);
-        // Err(ServerFnError::new("No users supplied"))
     }
 
     let project_id = creatable_users[0].project_id;
 
-    // ADD into user table
+    // Collect email data before QueryBuilder consumes ownership
+    let email_hashes: Vec<Option<String>> = creatable_users
+        .iter()
+        .map(|u| u.invited_email.as_ref().map(|e| sha256_hex(&e.to_lowercase())))
+        .collect();
+    let emails_lower: Vec<Option<String>> = creatable_users
+        .iter()
+        .map(|u| u.invited_email.as_ref().map(|e| e.to_lowercase()))
+        .collect();
+
+    // INSERT into users table with email_hash
     let mut users_query_builder: QueryBuilder<Postgres> =
-        QueryBuilder::new("INSERT INTO users (name) ");
+        QueryBuilder::new("INSERT INTO users (name, email_hash) ");
 
     users_query_builder
-        .push_values(creatable_users, |mut query_builder, user| {
-            query_builder.push_bind(user.name);
+        .push_values(creatable_users.iter(), |mut qb, user| {
+            let hash = user.invited_email.as_ref().map(|e| sha256_hex(&e.to_lowercase()));
+            qb.push_bind(user.name.clone()).push_bind(hash);
         })
         .push(" RETURNING id, name, balance, created_at");
 
@@ -74,7 +88,7 @@ pub async fn add_users(
         .context("Failed to add users")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
-    // ADD into user_projects table
+    // INSERT into user_projects table
     let mut user_projects_query_builder: QueryBuilder<Postgres> =
         QueryBuilder::new("INSERT INTO user_projects(user_id, project_id) ");
 
@@ -89,6 +103,36 @@ pub async fn add_users(
         .await
         .context("Failed to associate user with project")
         .map_err(|e| ServerFnError::new(e.to_string()))?;
+
+    // For each invited email: immediate account lookup + name update + account_projects upsert
+    for ((user, hash_opt), email_opt) in users.iter().zip(email_hashes.iter()).zip(emails_lower.iter()) {
+        if hash_opt.is_some() {
+            if let Some(ref email) = email_opt {
+                let account: Option<(Uuid, String)> =
+                    sqlx::query_as("SELECT id, display_name FROM accounts WHERE lower(email) = $1")
+                        .bind(email)
+                        .fetch_optional(&mut *executor)
+                        .await
+                        .map_err(|e| ServerFnError::new(format!("Failed to lookup account: {}", e)))?;
+
+                if let Some((account_id, display_name)) = account {
+                    sqlx::query!("UPDATE users SET name = $1 WHERE id = $2", display_name, user.id)
+                        .execute(&mut *executor)
+                        .await
+                        .map_err(|e| ServerFnError::new(format!("Failed to update user name: {}", e)))?;
+
+                    account_projects_repository::upsert_account_project(
+                        &mut *executor,
+                        account_id,
+                        project_id,
+                        Some(user.id),
+                    )
+                    .await?;
+                }
+                // Silent if not found — no error, no enumeration
+            }
+        }
+    }
 
     Ok(users)
 }
@@ -146,4 +190,32 @@ pub async fn get_users_by_project_id(
         .map_err(|e| ServerFnError::new(e.to_string()))?;
 
     Ok(users)
+}
+
+#[cfg(all(test, feature = "server"))]
+mod tests {
+    use crate::utils::sha256_hex;
+
+    #[test]
+    fn sha256_is_deterministic() {
+        assert_eq!(sha256_hex("alice@example.com"), sha256_hex("alice@example.com"));
+    }
+
+    #[test]
+    fn sha256_different_inputs_differ() {
+        assert_ne!(sha256_hex("alice@example.com"), sha256_hex("bob@example.com"));
+    }
+
+    #[test]
+    fn sha256_case_sensitivity() {
+        // Callers must lowercase before calling — different cases produce different hashes
+        assert_ne!(sha256_hex("Alice@Example.com"), sha256_hex("alice@example.com"));
+    }
+
+    #[test]
+    fn sha256_output_format() {
+        let hash = sha256_hex("alice@example.com");
+        assert_eq!(hash.len(), 64); // 32 bytes = 64 hex chars
+        assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+    }
 }

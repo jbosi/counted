@@ -7,4 +7,5 @@ export interface User {
 
 export interface CreatableUser extends Pick<User, 'name'> {
 	projectId: string;
+	invitedEmail?: string;
 }

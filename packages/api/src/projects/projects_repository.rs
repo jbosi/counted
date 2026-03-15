@@ -30,7 +30,11 @@ pub async fn get_projects(
     let projects: Vec<ProjectDto> = match account_id {
         Some(id) => sqlx::query_as!(
             ProjectDto,
-            r#"SELECT id, name, created_at, currency, description, owner_account_id, status as "status: ProjectStatus" FROM projects WHERE owner_account_id = $1"#,
+            r#"SELECT DISTINCT p.id, p.name, p.created_at, p.currency, p.description, p.owner_account_id,
+                      p.status as "status: ProjectStatus"
+               FROM projects p
+               LEFT JOIN account_projects ap ON ap.project_id = p.id AND ap.account_id = $1
+               WHERE p.owner_account_id = $1 OR ap.account_id = $1"#,
             id
         )
         .fetch_all(&mut *executor)
@@ -47,6 +51,25 @@ pub async fn get_projects(
     };
 
     Ok(projects)
+}
+
+#[cfg(feature = "server")]
+pub async fn has_account_access(
+    executor: &mut PgConnection,
+    account_id: Uuid,
+    project_id: Uuid,
+) -> Result<bool, ServerFnError> {
+    let exists: bool = sqlx::query_scalar!(
+        "SELECT EXISTS(SELECT 1 FROM account_projects WHERE account_id = $1 AND project_id = $2)",
+        account_id,
+        project_id
+    )
+    .fetch_one(&mut *executor)
+    .await
+    .map_err(|e| ServerFnError::new(format!("Failed to check account access: {}", e)))?
+    .unwrap_or(false);
+
+    Ok(exists)
 }
 
 #[cfg(feature = "server")]

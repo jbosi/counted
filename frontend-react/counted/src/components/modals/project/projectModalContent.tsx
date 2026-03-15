@@ -1,6 +1,7 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useCallback, useContext, useState, type ChangeEvent, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { useFieldArray, type UseFormReturn } from 'react-hook-form';
+import { AuthContext } from '../../../contexts/authContext';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { TrashIcon } from '../../../shared/icons/trashIcon';
 import { UserIcon } from '../../../shared/icons/userIcon';
@@ -9,6 +10,7 @@ import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-fro
 import { ErrorValidationCallout } from '../../errorCallout';
 import type { ProjectModalForm } from './models/projectModal.model';
 import { ModalFooter } from '../shared/modalFooter';
+import { EMAIL_REX } from '../../../consts/emailRegex';
 
 export interface ProjectModalContentProps {
 	modalId: string;
@@ -35,6 +37,7 @@ export function ProjectModalContent({
 	closeDialogFn,
 	useFormReturn,
 }: ProjectModalContentProps) {
+	const { account } = useContext(AuthContext);
 	const { countedLocalStorage } = useContext(CountedLocalStorageContext);
 	const errors = useFormReturn.formState.errors;
 	const { error, isPending, isError } = mutationHook;
@@ -90,6 +93,7 @@ export function ProjectModalContent({
 									<label className="input w-full">
 										<UserIcon />
 										<input type="text" placeholder="Clark Kent" onChange={handleAddUser} value={newUserName} />
+										{account != null && EMAIL_REX.test(newUserName) && <span className="badge badge-soft badge-info text-xs">@ invite</span>}
 									</label>
 								</div>
 								<button
@@ -114,6 +118,7 @@ export function ProjectModalContent({
 												<TrashIcon />
 											</button>
 											<span className="self-center text-left text-sm">{field.name}</span>
+											{account != null && EMAIL_REX.test(field.name) && <span className="badge badge-soft badge-info badge-xs self-center">@</span>}
 											{isUserSelected(field, projectId) ? (
 												<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
 											) : (

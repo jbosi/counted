@@ -25,7 +25,14 @@ pub async fn get_project(project_id: Uuid) -> Result<ProjectDto, ServerFnError> 
     #[cfg(feature = "server")]
     if let Some(owner_id) = project.owner_account_id {
         let current = get_current_account_id().await;
-        if current != Some(owner_id) {
+        let is_owner = current == Some(owner_id);
+        let is_invited = match current {
+            Some(account_id) => {
+                projects_repository::has_account_access(&mut *tx, account_id, project_id).await?
+            }
+            None => false,
+        };
+        if !is_owner && !is_invited {
             return Err(ServerFnError::new("Forbidden"));
         }
     }
@@ -69,7 +76,14 @@ pub async fn get_projects_by_ids(
     #[cfg(feature = "server")]
     for project in &projects {
         if let Some(owner_id) = project.owner_account_id {
-            if account_id != Some(owner_id) {
+            let is_owner = account_id == Some(owner_id);
+            let is_invited = match account_id {
+                Some(aid) => {
+                    projects_repository::has_account_access(&mut *tx, aid, project.id).await?
+                }
+                None => false,
+            };
+            if !is_owner && !is_invited {
                 return Err(ServerFnError::new("Forbidden"));
             }
         }

@@ -27,6 +27,14 @@ export async function saveProjectEntry(
 	}
 }
 
+export function computeProjectsToSync(
+	localProjects: CountedLocalStorageProject[],
+	serverProjects: CountedLocalStorageProject[],
+): CountedLocalStorageProject[] {
+	const serverIds = new Set(serverProjects.map((p) => p.projectId));
+	return localProjects.filter((p) => !serverIds.has(p.projectId));
+}
+
 export function useAddToLocalStorage(
 	existingStorage: CountedLocalStorage | undefined,
 	projectToAdd: CountedLocalStorageProject,

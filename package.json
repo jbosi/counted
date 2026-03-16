@@ -7,7 +7,9 @@
     "daisyui": "^5.0.43"
   },
   "scripts": {
-		"back": "dx serve --package web",
-		"front": "cd ./frontend-react/counted && npm run dev"
-	}
+    "back": "dx serve --package web",
+    "back:test": "cargo test",
+    "front": "cd ./frontend-react/counted && npm run dev",
+    "front:test": "cd ./frontend-react/counted && npm run test"
+  }
 }

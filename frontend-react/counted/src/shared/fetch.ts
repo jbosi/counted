@@ -1,6 +1,6 @@
 export const httpClient = {
-	async get(url: string) {
-		return sendRequest(url, 'GET');
+	async get(url: string, signal?: AbortSignal) {
+		return sendRequest(url, 'GET', undefined, signal);
 	},
 
 	async put(url: string, payload: unknown) {
@@ -20,8 +20,8 @@ export const httpClient = {
 	},
 };
 
-const sendRequest = async (url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH', payload?: unknown) => {
-	const res = await fetch(url, { body: JSON.stringify(payload), method, headers: [['Content-Type', 'application/json']] });
+const sendRequest = async (url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH', payload?: unknown, signal?: AbortSignal) => {
+	const res = await fetch(url, { body: JSON.stringify(payload), method, headers: [['Content-Type', 'application/json']], signal });
 
 	if (!res.ok) {
 		let message = `Request failed with status ${res.status}`;

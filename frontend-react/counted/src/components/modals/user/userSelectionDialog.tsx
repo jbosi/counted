@@ -1,6 +1,7 @@
 import { useCallback, useContext, useState, type RefObject } from 'react';
 import type { FieldErrors, FieldValues } from 'react-hook-form';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
+import { UserIcon } from '../../../shared/icons/userIcon';
 import type { CreatableUser, User } from '../../../types/users.model';
 import { getProjectUserIdFromLocalstorage } from '../../../utils/get-project-from-localstorage';
 import { ErrorValidationCallout } from '../../errorCallout';
@@ -20,12 +21,12 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 	const [errors, setErrors] = useState<FieldErrors<FieldValues> | undefined>(undefined);
 
 	const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
+		e.preventDefault();
 		const selectedUserId = users?.find((u) => u.name === selectedUserName)?.id;
 		if (selectedUserId != null) {
 			await saveProjectEntry({ projectId, userId: selectedUserId });
 		} else {
 			setErrors({ userSelection: { message: 'one user must be selected', type: 'error' } });
-			e.preventDefault();
 			return;
 		}
 
@@ -54,12 +55,16 @@ export function UserSelectionDialog({ dialogRef, modalId, users, projectId, clos
 							{users?.map((u, index) => {
 								return (
 									<li key={index} className="userSelectionDialog-userList">
-										<span className="self-center text-left text-sm">{u.name}</span>
 										{isUserSelected(u, projectId) ? (
-											<div className="badge badge-soft badge-accent self-center justify-self-center">Moi</div>
+											<div className="indicator max-w-64 w-full">
+												<span className="indicator-item badge badge-primary">
+													<UserIcon />
+												</span>
+												<span className="text-sm text-primary max-w-64 w-full inline-grid rounded-sm p-1.25 border-2">{u.name}</span>
+											</div>
 										) : (
-											<button className="btn btn-outline btn-xs self-center" type="button" onClick={() => setSelectedUserName(u.name)}>
-												C'est moi !
+											<button className="btn btn-outline btn-sm self-center btn-wide" type="button" onClick={() => setSelectedUserName(u.name)}>
+												{u.name}
 											</button>
 										)}
 									</li>

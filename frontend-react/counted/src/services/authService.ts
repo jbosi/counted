@@ -20,7 +20,7 @@ export const authService = {
 		if (!res.ok) throw new Error('Logout failed');
 	},
 
-	async me(): Promise<Account | null> {
-		return httpClient.get(`${API_BASE}/me`);
+	async me(signal?: AbortSignal): Promise<Account | null> {
+		return httpClient.get(`${API_BASE}/me`, signal);
 	},
 };

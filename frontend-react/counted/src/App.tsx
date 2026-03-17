@@ -8,7 +8,7 @@ import './App.css';
 import { ErrorFallback } from './components/errorFallback';
 import { AuthContext } from './contexts/authContext';
 import { CountedLocalStorageContext } from './contexts/localStorageContext';
-import { removeFromLocalStorage, saveProjectEntry as saveProjectEntryFn, useInitializeLocalStorage } from './hooks/useLocalStorage';
+import { computeProjectsToSync, removeFromLocalStorage, saveProjectEntry as saveProjectEntryFn, useInitializeLocalStorage } from './hooks/useLocalStorage';
 import { ProjectLayout } from './layouts/projectLayout';
 import { AccountPage } from './pages/auth/AccountPage';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -21,7 +21,9 @@ import { authService } from './services/authService';
 import type { Account } from './types/auth.model';
 import { type CountedLocalStorage, type CountedLocalStorageProject } from './types/localStorage.model';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+	defaultOptions: { queries: { staleTime: 10_000 } },
+});
 
 const router = createBrowserRouter([
 	{
@@ -65,20 +67,39 @@ function App() {
 	useInitializeLocalStorage(setCountedLocalStorage);
 
 	useEffect(() => {
+		const controller = new AbortController();
 		authService
-			.me()
+			.me(controller.signal)
 			.then((a) => setAccount(a ?? null))
-			.catch(() => setAccount(null));
+			.catch(() => {
+				if (!controller.signal.aborted) setAccount(null);
+			});
+		return () => controller.abort();
 	}, []);
 
-	// When account resolves as authenticated, load project associations from DB
+	// When account resolves as authenticated, load project associations from DB and sync any
+	// anonymous localStorage projects that aren't on the server yet.
 	useEffect(() => {
 		if (!account) return;
-		accountProjectsService.getAll().then((entries) => {
-			setCountedLocalStorage({ projects: entries });
-			queryClient.invalidateQueries({ queryKey: ['projects'] });
-		});
-	}, [account]);
+		const controller = new AbortController();
+		const localProjects = countedLocalStorage?.projects ?? [];
+		accountProjectsService
+			.getAll(controller.signal)
+			.then(async (serverEntries) => {
+				if (controller.signal.aborted) {
+					return;
+				}
+				const toSync = computeProjectsToSync(localProjects, serverEntries);
+				const acceptedIds = new Set(await accountProjectsService.upsertBatch(toSync));
+				if (controller.signal.aborted) {
+					return;
+				}
+				const synced = toSync.filter((p) => acceptedIds.has(p.projectId));
+				setCountedLocalStorage({ projects: [...serverEntries, ...synced] });
+			})
+			.catch(() => {});
+		return () => controller.abort();
+	}, [account]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const saveProjectEntry = useCallback(
 		(entry: CountedLocalStorageProject) =>

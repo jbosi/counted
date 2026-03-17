@@ -67,7 +67,7 @@ export function Projects() {
 			<div className="stats shadow overflow-visible">
 				<div className="stat">
 					<div className="stat-title">Nombre de Projets</div>
-					<div className="stat-value">{countedLocalStorage?.projects?.length ?? 0}</div>
+					<div className="stat-value">{projects?.length ?? 0}</div>
 				</div>
 				<div className="stat">
 					<div className="stat-title">Total de mes dettes</div>

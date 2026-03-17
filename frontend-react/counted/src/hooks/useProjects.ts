@@ -5,11 +5,12 @@ import { projectsService } from '../services/projectsService';
 import type { CreatableProject, EditableProject, ProjectDto, ProjectStatus } from '../types/projects.model';
 
 export function useProjects(projectsIds: string[]) {
+	const sortedIds = projectsIds.slice().sort();
 	return useQuery({
-		queryKey: ['projects'],
-		queryFn: () => projectsService.getByProjectIds(projectsIds.filter((p) => p != null)),
+		queryKey: ['projects', ...sortedIds],
+		queryFn: () => projectsService.getByProjectIds(sortedIds),
 		refetchOnWindowFocus: false,
-		enabled: projectsIds?.length > 0,
+		enabled: sortedIds.length > 0,
 	});
 }
 
@@ -28,7 +29,7 @@ export function useAddProject() {
 	return useMutation({
 		mutationFn: (creatableProject: CreatableProject) => projectsService.createProjectAsync(creatableProject),
 		onSuccess: (data) => {
-			queryClient.setQueryData(['projects'], (old: ProjectDto[]) => [...(old ?? []), data]);
+			queryClient.setQueriesData({ queryKey: ['projects'] }, (old: ProjectDto[] | undefined) => [...(old ?? []), data]);
 			saveProjectEntry({ projectId: data.id, userId: null });
 		},
 	});
@@ -40,7 +41,7 @@ export function useEditProject() {
 	return useMutation({
 		mutationFn: (editableUser: EditableProject) => projectsService.editProjectAsync(editableUser),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+			queryClient.invalidateQueries({ queryKey: ['projects'] });
 		},
 	});
 }
@@ -51,21 +52,19 @@ export function useUpdateProjectStatus(projectId: string) {
 	return useMutation({
 		mutationFn: (status: ProjectStatus) => projectsService.editProjectAsync({ id: projectId, status }),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
+			queryClient.invalidateQueries({ queryKey: ['projects'] });
 			queryClient.invalidateQueries({ queryKey: [`project-${projectId}`] });
 		},
 	});
 }
 
 export function useDeleteProject() {
-	const queryClient = useQueryClient();
 	const { removeProjectEntry } = useContext(CountedLocalStorageContext);
 
 	return useMutation({
 		mutationFn: (projectId: string) => projectsService.deleteProjectAsync(projectId),
 		onSuccess: (_, projectIdDeleted) => {
-			queryClient.invalidateQueries({ queryKey: ['projects'], exact: true });
-			removeProjectEntry(projectIdDeleted);
+			removeProjectEntry(projectIdDeleted); // key change via countedLocalStorage drives the refetch
 		},
 	});
 }

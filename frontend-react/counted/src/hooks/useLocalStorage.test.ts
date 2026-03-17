@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { type CountedLocalStorage, type CountedLocalStorageProject, COUNTED_LOCAL_STORAGE_KEY } from '../types/localStorage.model';
-import { addToLocalStorage, removeFromLocalStorage, saveProjectEntry, useAddToLocalStorage, useInitializeLocalStorage } from './useLocalStorage';
+import { addToLocalStorage, computeProjectsToSync, removeFromLocalStorage, saveProjectEntry, useAddToLocalStorage, useInitializeLocalStorage } from './useLocalStorage';
 
 describe('useLocalStorage', () => {
 	beforeEach(() => {
@@ -298,6 +298,41 @@ describe('useLocalStorage', () => {
 			const storedData = localStorage.getItem(COUNTED_LOCAL_STORAGE_KEY);
 			const parsed: CountedLocalStorage = JSON.parse(storedData!);
 			expect(parsed.projects).toHaveLength(0);
+		});
+	});
+
+	describe('computeProjectsToSync', () => {
+		it('returns projects in local but not on server', () => {
+			const local: CountedLocalStorageProject[] = [
+				{ projectId: 'p1', userId: 1 },
+				{ projectId: 'p2', userId: 2 },
+			];
+			const server: CountedLocalStorageProject[] = [{ projectId: 'p2', userId: 2 }];
+			expect(computeProjectsToSync(local, server)).toEqual([{ projectId: 'p1', userId: 1 }]);
+		});
+
+		it('returns empty array when all local projects are on server', () => {
+			const local: CountedLocalStorageProject[] = [{ projectId: 'p1', userId: 1 }];
+			const server: CountedLocalStorageProject[] = [{ projectId: 'p1', userId: 1 }];
+			expect(computeProjectsToSync(local, server)).toEqual([]);
+		});
+
+		it('returns all local projects when server has none', () => {
+			const local: CountedLocalStorageProject[] = [
+				{ projectId: 'p1', userId: 1 },
+				{ projectId: 'p2', userId: null },
+			];
+			expect(computeProjectsToSync(local, [])).toEqual(local);
+		});
+
+		it('returns empty array when local is empty', () => {
+			const server: CountedLocalStorageProject[] = [{ projectId: 'p1', userId: 1 }];
+			expect(computeProjectsToSync([], server)).toEqual([]);
+		});
+
+		it('preserves userId (including null) from local entries', () => {
+			const local: CountedLocalStorageProject[] = [{ projectId: 'p1', userId: null }];
+			expect(computeProjectsToSync(local, [])).toEqual([{ projectId: 'p1', userId: null }]);
 		});
 	});
 });

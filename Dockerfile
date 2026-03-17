@@ -15,6 +15,10 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 COPY . .
 ENV SQLX_OFFLINE=true
 
+# Install Node deps for Tailwind DaisyUI plugin (used by dx bundle's built-in Tailwind runner)
+COPY package.json package-lock.json* ./
+RUN npm ci --ignore-scripts
+
 # Create the final bundle folder. Bundle with release build profile to enable optimizations.
 # Note: We don't cache /app/target here because we need to copy the build output in the next stage
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

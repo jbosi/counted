@@ -3586,6 +3586,7 @@ dependencies = [
  "tracing",
  "ui",
  "uuid",
+ "web-sys",
 ]
 
 [[package]]

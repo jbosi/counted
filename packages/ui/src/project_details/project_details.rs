@@ -1,0 +1,269 @@
+use api::expenses::expenses_controller::get_expenses_by_project_id;
+use api::payments::payments_controller::{get_payments_by_project_id, get_summary_by_project_id};
+use api::projects::projects_controller::get_project;
+use api::users::users_controller::get_users_by_project_id;
+use dioxus::prelude::*;
+use shared::{ExpenseType, ProjectStatus, User};
+use uuid::Uuid;
+
+use crate::common::{initials, user_color_class, Avatar, LocalStorageState};
+use crate::project_details::{BalanceTab, ExpensesTab, ReimbursementsTab};
+use crate::route::Route;
+
+#[derive(PartialEq, Clone)]
+enum Tab {
+    Expenses,
+    Balance,
+    Reimbursements,
+}
+
+#[component]
+pub fn ProjectDetails(project_id: Uuid) -> Element {
+    let nav = use_navigator();
+    let ls_ctx = use_context::<Signal<LocalStorageState>>();
+    let mut active_tab = use_signal(|| Tab::Expenses);
+
+    let stored_user_id = move || {
+        ls_ctx()
+            .projects
+            .iter()
+            .find(|p| p.project_id == project_id)
+            .and_then(|p| p.user_id)
+    };
+
+    let project  = use_resource(move || async move { get_project(project_id).await });
+    let users    = use_resource(move || async move { get_users_by_project_id(project_id).await });
+    let expenses = use_resource(move || async move { get_expenses_by_project_id(project_id).await });
+    let payments = use_resource(move || async move { get_payments_by_project_id(project_id).await });
+    let summary  = use_resource(move || async move { get_summary_by_project_id(project_id).await });
+
+    rsx! {
+        div { class: "container overflow-auto p-4 max-w-md w-full mx-auto flex flex-col gap-4 pb-24",
+
+            // Header — waits for project
+            match &*project.read() {
+                None => rsx! {
+                    div { class: "flex justify-center py-4",
+                        span { class: "loading loading-spinner loading-md" }
+                    }
+                },
+                Some(Err(e)) => rsx! {
+                    div { class: "alert alert-error", "{e}" }
+                },
+                Some(Ok(p)) => {
+                    let project_name = p.name.clone();
+                    let is_archived = p.status == ProjectStatus::Archived;
+                    rsx! {
+                        div { class: "navbar px-0",
+                            div { class: "navbar-start",
+                                button {
+                                    r#type: "button",
+                                    class: "btn btn-ghost btn-circle",
+                                    onclick: move |_| { nav.push(Route::ProjectsList {}); },
+                                    svg {
+                                        class: "w-5 h-5",
+                                        fill: "none",
+                                        stroke: "currentColor",
+                                        "stroke-width": "2",
+                                        view_box: "0 0 24 24",
+                                        path { d: "M15 18l-6-6 6-6" }
+                                    }
+                                }
+                            }
+                            div { class: "navbar-center",
+                                h1 { class: "text-xl font-bold truncate max-w-[180px]", "{project_name}" }
+                            }
+                            div { class: "navbar-end",
+                                details { class: "dropdown dropdown-end",
+                                    summary { class: "btn btn-ghost btn-circle",
+                                        svg {
+                                            class: "w-5 h-5",
+                                            fill: "none",
+                                            stroke: "currentColor",
+                                            "stroke-width": "2",
+                                            view_box: "0 0 24 24",
+                                            circle { cx: "12", cy: "12", r: "1" }
+                                            circle { cx: "19", cy: "12", r: "1" }
+                                            circle { cx: "5", cy: "12", r: "1" }
+                                        }
+                                    }
+                                    ul { class: "menu dropdown-content bg-base-100 rounded-box w-48 shadow z-10 p-2",
+                                        li { a { class: "btn-disabled opacity-50", "Modifier" } }
+                                        if !is_archived {
+                                            li { a { class: "btn-disabled opacity-50", "Archiver" } }
+                                        }
+                                        li { a { class: "btn-disabled opacity-50 text-error", "Supprimer" } }
+                                        li { a { class: "btn-disabled opacity-50", "Copier le lien" } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Users + summary — waits for users + expenses + payments
+            match (&*users.read(), &*expenses.read(), &*payments.read()) {
+                (Some(Ok(user_list)), Some(Ok(expense_list)), Some(Ok(payment_list))) => {
+                    let currency = project.read()
+                        .as_ref()
+                        .and_then(|r| r.as_ref().ok())
+                        .map(|p| p.currency.clone())
+                        .unwrap_or_else(|| "EUR".to_string());
+
+                    // Global total
+                    let global_total: f64 = expense_list.iter()
+                        .filter(|e| e.expense_type != ExpenseType::Transfer)
+                        .fold(0.0, |acc, e| match e.expense_type {
+                            ExpenseType::Expense => acc + e.amount,
+                            ExpenseType::Gain    => acc - e.amount,
+                            _                    => acc,
+                        });
+
+                    let uid = stored_user_id();
+                    let user_list_c = user_list.clone();
+                    let expense_list_c = expense_list.clone();
+                    let payment_list_c = payment_list.clone();
+                    let currency_c = currency.clone();
+
+                    rsx! {
+                        // Which user are you — read-only banner when not yet selected
+                        if uid.is_none() {
+                            div { class: "alert alert-info text-sm",
+                                svg {
+                                    class: "w-4 h-4 shrink-0",
+                                    fill: "none",
+                                    stroke: "currentColor",
+                                    "stroke-width": "2",
+                                    view_box: "0 0 24 24",
+                                    circle { cx: "12", cy: "12", r: "10" }
+                                    path { d: "M12 16v-4M12 8h.01" }
+                                }
+                                span { "Sélection de votre profil disponible prochainement" }
+                            }
+                        }
+
+                        // Participants
+                        div { class: "flex justify-center",
+                            AvatarRow { users: user_list_c.clone() }
+                        }
+
+                        // Summary card
+                        div { class: "card bg-base-100 shadow-sm",
+                            div { class: "card-body p-4",
+                                div { class: "flex justify-between items-center",
+                                    span { class: "text-sm text-base-content/60", "Total des dépenses" }
+                                    span { class: "font-bold", "{global_total:.2} {currency_c}" }
+                                }
+                            }
+                        }
+
+                        // Tab bar
+                        div { role: "tablist", class: "tabs tabs-box bg-base-300",
+                            button {
+                                role: "tab",
+                                class: if *active_tab.read() == Tab::Expenses { "tab tab-active text-xs" } else { "tab text-xs" },
+                                onclick: move |_| active_tab.set(Tab::Expenses),
+                                "Dépenses"
+                            }
+                            button {
+                                role: "tab",
+                                class: if *active_tab.read() == Tab::Balance { "tab tab-active text-xs" } else { "tab text-xs" },
+                                onclick: move |_| active_tab.set(Tab::Balance),
+                                "Équilibre"
+                            }
+                            button {
+                                role: "tab",
+                                class: if *active_tab.read() == Tab::Reimbursements { "tab tab-active text-xs" } else { "tab text-xs" },
+                                onclick: move |_| active_tab.set(Tab::Reimbursements),
+                                "Remboursements"
+                            }
+                        }
+
+                        // Tab content
+                        match *active_tab.read() {
+                            Tab::Expenses => rsx! {
+                                ExpensesTab {
+                                    expenses: expense_list_c,
+                                    payments: payment_list_c,
+                                    stored_user_id: uid,
+                                    project_id,
+                                    currency: currency.clone(),
+                                }
+                            },
+                            Tab::Balance => {
+                                match &*summary.read() {
+                                    None => rsx! { div { class: "flex justify-center py-8", span { class: "loading loading-spinner loading-md" } } },
+                                    Some(Err(e)) => rsx! { div { class: "alert alert-error", "{e}" } },
+                                    Some(Ok(s)) => rsx! {
+                                        BalanceTab {
+                                            summary: s.clone(),
+                                            users: user_list_c.clone(),
+                                            currency: currency.clone(),
+                                        }
+                                    },
+                                }
+                            },
+                            Tab::Reimbursements => {
+                                match &*summary.read() {
+                                    None => rsx! { div { class: "flex justify-center py-8", span { class: "loading loading-spinner loading-md" } } },
+                                    Some(Err(e)) => rsx! { div { class: "alert alert-error", "{e}" } },
+                                    Some(Ok(s)) => rsx! {
+                                        ReimbursementsTab {
+                                            suggestions: s.reimbursement_suggestions.clone(),
+                                            users: user_list_c.clone(),
+                                            currency: currency.clone(),
+                                        }
+                                    },
+                                }
+                            },
+                        }
+                    }
+                }
+                (Some(Err(e)), _, _) | (_, Some(Err(e)), _) | (_, _, Some(Err(e))) => rsx! {
+                    div { class: "alert alert-error", "{e}" }
+                },
+                _ => rsx! {
+                    div { class: "flex justify-center py-8",
+                        span { class: "loading loading-spinner loading-md" }
+                    }
+                },
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// AvatarRow — shows up to 4 user avatars
+// ---------------------------------------------------------------------------
+
+#[derive(PartialEq, Props, Clone)]
+struct AvatarRowProps {
+    users: Vec<User>,
+}
+
+#[component]
+fn AvatarRow(props: AvatarRowProps) -> Element {
+    const MAX: usize = 4;
+    let shown: Vec<&User> = props.users.iter().take(MAX).collect();
+    let overflow = props.users.len().saturating_sub(MAX);
+
+    rsx! {
+        div { class: "avatar-group -space-x-3",
+            for user in shown {
+                Avatar {
+                    initials: initials(&user.name),
+                    size: 10,
+                    color_class: user_color_class(user.id).to_string(),
+                }
+            }
+            if overflow > 0 {
+                div { class: "avatar avatar-placeholder",
+                    div { class: "bg-neutral-focus text-neutral-content w-10 rounded-full",
+                        span { class: "text-xs", "+{overflow}" }
+                    }
+                }
+            }
+        }
+    }
+}

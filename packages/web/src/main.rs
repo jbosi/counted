@@ -1,6 +1,7 @@
 use api::auth::auth_controller::me;
 use dioxus::prelude::*;
 use shared::Account;
+use ui::common::{read_from_ls, LocalStorageState};
 use ui::route::Route;
 
 use shared::sse::EventSSE;
@@ -29,6 +30,8 @@ fn main() {
 fn app() -> Element {
     // Global auth state — populated on mount by calling /api/v1/auth/me
     let auth: Signal<Option<Account>> = use_context_provider(|| Signal::new(None));
+    // Persistent project/user associations from localStorage
+    let _ls: Signal<LocalStorageState> = use_context_provider(|| Signal::new(read_from_ls()));
 
     use_effect(move || {
         let mut auth = auth;

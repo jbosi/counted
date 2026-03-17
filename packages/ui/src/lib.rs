@@ -2,4 +2,7 @@
 
 pub mod auth;
 pub mod common;
+pub mod payments;
+pub mod project_details;
+pub mod projects;
 pub mod route;

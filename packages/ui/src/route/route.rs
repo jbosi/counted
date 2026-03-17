@@ -1,9 +1,6 @@
 use crate::auth::login::Login;
 use crate::auth::register::Register;
 use crate::common::Navbar;
-use crate::expenses::Expenses;
-use crate::payments::Payments;
-use crate::projects::Projects;
 use dioxus::prelude::*;
 use uuid::Uuid;
 
@@ -12,11 +9,8 @@ use uuid::Uuid;
 pub enum Route {
     #[layout(WebNavbar)]
     #[route("/")]
-    Projects {},
     #[route("/projects/:project_id")]
-    Expenses { project_id: Uuid },
     #[route("/projects/:project_id/expenses/:expense_id")]
-    Payments { project_id: Uuid, expense_id: i32 },
     #[route("/login")]
     Login {},
     #[route("/register")]
@@ -29,7 +23,6 @@ pub enum Route {
 pub fn WebNavbar() -> Element {
     rsx! {
         Navbar {
-            Link { to: Route::Projects {}, "Projects" }
         }
 
         Outlet::<Route> {}

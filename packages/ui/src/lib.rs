@@ -2,9 +2,4 @@
 
 pub mod auth;
 pub mod common;
-pub mod expenses;
-pub mod modals;
-pub mod payments;
-pub mod projects;
 pub mod route;
-mod utils;

@@ -12,14 +12,13 @@ function formatDate(dateStr: string): string {
 
 function groupExpensesByDate(expenses: Expense[]): [string, Expense[]][] {
 	const map = new Map<string, Expense[]>();
-	for (const expense of expenses) {
+	const sortedExpense = expenses.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	for (const expense of sortedExpense) {
 		const key = expense.date.split('T')[0];
-
 		if (!map.has(key)) {
 			map.set(key, []);
 		}
-
-		map.get(key)!.push(expense);
+		map.get(key)?.push(expense);
 	}
 	return [...map.entries()].sort(([a], [b]) => b.localeCompare(a));
 }

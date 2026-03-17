@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
-use shared::{Expense, ExpenseType, Payment};
+use shared::{Expense, ExpenseType, Payment, User};
 use std::collections::{BTreeMap, HashSet};
 use uuid::Uuid;
 
+use crate::project_details::AddExpenseModal;
 use crate::route::Route;
 
 fn expense_type_label(t: &ExpenseType) -> &'static str {
@@ -20,6 +21,8 @@ pub struct ExpensesTabProps {
     pub stored_user_id: Option<i32>,
     pub project_id: Uuid,
     pub currency: String,
+    pub users: Vec<User>,
+    pub on_expense_created: EventHandler<()>,
 }
 
 #[component]
@@ -27,6 +30,7 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
     let nav = use_navigator();
     let mut show_my_payments = use_signal(|| false);
     let mut show_my_debts = use_signal(|| false);
+    let mut show_add_expense = use_signal(|| false);
 
     let filtered_expenses = move || -> Vec<Expense> {
         let uid = match props.stored_user_id {
@@ -154,12 +158,13 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
                 }
             }
 
-            // FAB — disabled until Add Expense modal is implemented
+            // FAB
             div { class: "fixed bottom-6 right-6",
                 button {
                     r#type: "button",
-                    class: "btn btn-circle btn-lg btn-primary btn-disabled shadow-lg",
+                    class: "btn btn-circle btn-lg btn-primary shadow-lg",
                     "aria-label": "Ajouter une dépense",
+                    onclick: move |_| { show_add_expense.set(true); },
                     svg {
                         class: "w-6 h-6",
                         fill: "none",
@@ -168,6 +173,19 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
                         view_box: "0 0 24 24",
                         path { d: "M12 5v14M5 12h14" }
                     }
+                }
+            }
+
+            if show_add_expense() {
+                AddExpenseModal {
+                    on_close: move |_| show_add_expense.set(false),
+                    on_created: move |_| {
+                        show_add_expense.set(false);
+                        props.on_expense_created.call(());
+                    },
+                    project_id: props.project_id,
+                    users: props.users.clone(),
+                    stored_user_id: props.stored_user_id,
                 }
             }
         }

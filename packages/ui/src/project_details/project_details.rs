@@ -31,11 +31,11 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
             .and_then(|p| p.user_id)
     };
 
-    let project  = use_resource(move || async move { get_project(project_id).await });
-    let users    = use_resource(move || async move { get_users_by_project_id(project_id).await });
-    let expenses = use_resource(move || async move { get_expenses_by_project_id(project_id).await });
-    let payments = use_resource(move || async move { get_payments_by_project_id(project_id).await });
-    let summary  = use_resource(move || async move { get_summary_by_project_id(project_id).await });
+    let project      = use_resource(move || async move { get_project(project_id).await });
+    let users        = use_resource(move || async move { get_users_by_project_id(project_id).await });
+    let mut expenses = use_resource(move || async move { get_expenses_by_project_id(project_id).await });
+    let mut payments = use_resource(move || async move { get_payments_by_project_id(project_id).await });
+    let mut summary  = use_resource(move || async move { get_summary_by_project_id(project_id).await });
 
     rsx! {
         div { class: "container overflow-auto p-4 max-w-md w-full mx-auto flex flex-col gap-4 pb-24",
@@ -189,6 +189,12 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
                                     stored_user_id: uid,
                                     project_id,
                                     currency: currency.clone(),
+                                    users: user_list_c.clone(),
+                                    on_expense_created: move |_| {
+                                        expenses.restart();
+                                        payments.restart();
+                                        summary.restart();
+                                    },
                                 }
                             },
                             Tab::Balance => {

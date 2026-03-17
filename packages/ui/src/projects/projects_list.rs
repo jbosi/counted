@@ -9,6 +9,7 @@ use uuid::Uuid;
 use crate::common::{
     initials, upsert_project, user_color_class, write_to_ls, Avatar, LocalStorageState,
 };
+use crate::projects::AddProjectModal;
 use crate::route::Route;
 
 #[component]
@@ -17,6 +18,7 @@ pub fn ProjectsList() -> Element {
     let auth_ctx = use_context::<Signal<Option<Account>>>();
     let ls_ctx = use_context::<Signal<LocalStorageState>>();
     let mut show_archived = use_signal(|| false);
+    let mut show_add_project = use_signal(|| false);
 
     // On mount: if authenticated, sync server projects into localStorage
     use_effect(move || {
@@ -173,12 +175,13 @@ pub fn ProjectsList() -> Element {
                 }
             }
 
-            // FAB — disabled until Add Project modal is implemented
+            // FAB
             div { class: "fixed bottom-6 right-6",
                 button {
                     r#type: "button",
-                    class: "btn btn-circle btn-lg btn-primary btn-disabled shadow-lg",
+                    class: "btn btn-circle btn-lg btn-primary shadow-lg",
                     "aria-label": "Ajouter un projet",
+                    onclick: move |_| { show_add_project.set(true); },
                     svg {
                         class: "w-6 h-6",
                         fill: "none",
@@ -187,6 +190,12 @@ pub fn ProjectsList() -> Element {
                         view_box: "0 0 24 24",
                         path { d: "M12 5v14M5 12h14" }
                     }
+                }
+            }
+
+            if show_add_project() {
+                AddProjectModal {
+                    on_close: move |_| show_add_project.set(false),
                 }
             }
         }

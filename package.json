@@ -8,7 +8,7 @@
   },
   "scripts": {
     "android": "dx serve --platform android --package mobile",
-    "android:build": "dx bundle --platform android --package mobile",
+    "android:build": "dx bundle --platform android --package mobile --target aarch64-linux-android",
     "back": "dx serve --package web",
     "back:test": "cargo test",
     "front": "cd ./frontend-react/counted && npm run dev",

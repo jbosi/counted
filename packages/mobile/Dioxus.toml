@@ -5,8 +5,5 @@ default_platform = "android"
 [bundle]
 identifier = "fr.counted.app"
 publisher = "Counted"
-icon = ["assets/favicon.ico"]
+icon = ["assets/counted.png"]
 
-[bundle.android]
-min_sdk_version = 24
-target_sdk_version = 33

@@ -10,6 +10,8 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     dioxus::logger::initialize_default();
+    #[cfg(not(feature = "server"))]
+    dioxus::fullstack::set_server_url("https://counted.fr");
     dioxus::launch(app);
 }
 

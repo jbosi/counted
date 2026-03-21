@@ -9,6 +9,7 @@ use uuid::Uuid;
 use crate::common::{
     initials, upsert_project, user_color_class, write_to_ls, Avatar, LocalStorageState,
 };
+use crate::icons::{SettingsIcon, UserIcon};
 use crate::projects::AddProjectModal;
 use crate::route::Route;
 
@@ -59,50 +60,22 @@ pub fn ProjectsList() -> Element {
                 }
                 div { class: "navbar-end flex gap-1",
                     // User icon
-                    if auth_ctx().is_some() {
-                        button {
-                            r#type: "button",
-                            class: "btn btn-ghost btn-circle",
-                            onclick: move |_| { nav.push(Route::Account {}); },
-                            svg {
-                                class: "w-5 h-5",
-                                fill: "none",
-                                stroke: "currentColor",
-                                "stroke-width": "2",
-                                view_box: "0 0 24 24",
-                                path { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }
-                                circle { cx: "12", cy: "7", r: "4" }
+                    button {
+                        r#type: "button",
+                        class: "btn btn-ghost btn-circle",
+                        onclick: move |_| {
+                            if auth_ctx().is_some() {
+                                nav.push(Route::Account {});
+                            } else {
+                                nav.push(Route::Login {});
                             }
-                        }
-                    } else {
-                        button {
-                            r#type: "button",
-                            class: "btn btn-ghost btn-circle",
-                            onclick: move |_| { nav.push(Route::Login {}); },
-                            svg {
-                                class: "w-5 h-5",
-                                fill: "none",
-                                stroke: "currentColor",
-                                "stroke-width": "2",
-                                view_box: "0 0 24 24",
-                                path { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }
-                                circle { cx: "12", cy: "7", r: "4" }
-                            }
-                        }
+                        },
+                        UserIcon {}
                     }
+
                     // Settings dropdown
                     details { class: "dropdown dropdown-end",
-                        summary { class: "btn btn-ghost btn-circle",
-                            svg {
-                                class: "w-5 h-5",
-                                fill: "none",
-                                stroke: "currentColor",
-                                "stroke-width": "2",
-                                view_box: "0 0 24 24",
-                                circle { cx: "12", cy: "12", r: "3" }
-                                path { d: "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" }
-                            }
-                        }
+                        summary { class: "btn btn-ghost btn-circle", SettingsIcon {} }
                         ul { class: "menu dropdown-content bg-base-100 rounded-box w-56 shadow z-10 p-2",
                             li {
                                 label { class: "flex items-center gap-3 cursor-pointer",
@@ -136,41 +109,42 @@ pub fn ProjectsList() -> Element {
             // Project list
             match &*projects.read() {
                 None => rsx! {
-                    div { class: "flex justify-center py-8",
-                        span { class: "loading loading-spinner loading-md" }
-                    }
-                },
+                div { class: "flex justify-center py-8",
+                    span { class: "loading loading-spinner loading-md" }
+                }
+            },
                 Some(Err(e)) => rsx! {
-                    div { class: "alert alert-error", "{e}" }
-                },
+                div { class: "alert alert-error", "{e}" }
+            },
                 Some(Ok(list)) => {
-                    let filtered: Vec<ProjectDto> = list.iter()
+                    let filtered: Vec<ProjectDto> = list
+                        .iter()
                         .filter(|p| show_archived() || p.status != ProjectStatus::Archived)
                         .cloned()
                         .collect();
                     if filtered.is_empty() {
                         rsx! {
-                            div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
-                                svg {
-                                    class: "w-12 h-12",
-                                    fill: "none",
-                                    stroke: "currentColor",
-                                    "stroke-width": "1.5",
-                                    view_box: "0 0 24 24",
-                                    path { d: "M9 13h6m-3-3v6m-9 1V7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }
-                                }
-                                span { class: "font-semibold", "Aucun projet" }
-                                span { class: "text-sm text-center", "Créez un projet en cliquant sur le bouton ci-dessous" }
-                            }
-                        }
+                div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
+                    svg {
+                        class: "w-12 h-12",
+                        fill: "none",
+                        stroke: "currentColor",
+                        "stroke-width": "1.5",
+                        view_box: "0 0 24 24",
+                        path { d: "M9 13h6m-3-3v6m-9 1V7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }
+                    }
+                    span { class: "font-semibold", "Aucun projet" }
+                    span { class: "text-sm text-center", "Créez un projet en cliquant sur le bouton ci-dessous" }
+                }
+            }
                     } else {
                         rsx! {
-                            div { class: "flex flex-col gap-3",
-                                for project in filtered {
-                                    ProjectCard { project: project.clone() }
-                                }
-                            }
-                        }
+                div { class: "flex flex-col gap-3",
+                    for project in filtered {
+                        ProjectCard { project: project.clone() }
+                    }
+                }
+            }
                     }
                 }
             }
@@ -181,7 +155,9 @@ pub fn ProjectsList() -> Element {
                     r#type: "button",
                     class: "btn btn-circle btn-lg btn-primary shadow-lg",
                     "aria-label": "Ajouter un projet",
-                    onclick: move |_| { show_add_project.set(true); },
+                    onclick: move |_| {
+                        show_add_project.set(true);
+                    },
                     svg {
                         class: "w-6 h-6",
                         fill: "none",
@@ -194,9 +170,7 @@ pub fn ProjectsList() -> Element {
             }
 
             if show_add_project() {
-                AddProjectModal {
-                    on_close: move |_| show_add_project.set(false),
-                }
+                AddProjectModal { on_close: move |_| show_add_project.set(false) }
             }
         }
     }
@@ -222,27 +196,37 @@ fn ProjectCard(props: ProjectCardProps) -> Element {
     rsx! {
         div {
             class: "card bg-base-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow",
-            onclick: move |_| { nav.push(Route::ProjectDetails { project_id }); },
+            onclick: move |_| {
+                nav.push(Route::ProjectDetails {
+                    project_id,
+                });
+            },
             div { class: "card-body p-4 gap-2",
                 div { class: "flex items-start justify-between gap-2",
                     div { class: "flex flex-col gap-1 min-w-0",
                         h2 { class: "card-title text-base truncate", "{project.name}" }
                         if let Some(desc) = &project.description {
                             if !desc.is_empty() {
-                                p { class: "text-xs text-base-content/60 truncate", "{desc}" }
+                                p { class: "text-xs text-base-content/60 truncate",
+                                    "{desc}"
+                                }
                             }
                         }
                     }
-                    span { class: "text-xs font-mono text-base-content/50 shrink-0", "{project.currency}" }
+                    span { class: "text-xs font-mono text-base-content/50 shrink-0",
+                        "{project.currency}"
+                    }
                 }
                 div { class: "flex items-center justify-between",
                     StatusBadge { status: project.status.clone() }
                     // Avatar group
                     match &*users.read() {
                         Some(Ok(user_list)) if !user_list.is_empty() => {
-                            rsx! { AvatarGroup { users: user_list.clone() } }
+                            rsx! {
+                        AvatarGroup { users: user_list.clone() }
+                    }
                         }
-                        _ => rsx! {}
+                        _ => rsx! {},
                     }
                 }
             }
@@ -262,8 +246,8 @@ struct StatusBadgeProps {
 #[component]
 fn StatusBadge(props: StatusBadgeProps) -> Element {
     let (dot_class, label) = match props.status {
-        ProjectStatus::Ongoing  => ("status-success", "En cours"),
-        ProjectStatus::Closed   => ("status-warning", "Clôturé"),
+        ProjectStatus::Ongoing => ("status-success", "En cours"),
+        ProjectStatus::Closed => ("status-warning", "Clôturé"),
         ProjectStatus::Archived => ("status-neutral", "Archivé"),
     };
     rsx! {

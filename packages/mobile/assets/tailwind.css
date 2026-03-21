@@ -1767,6 +1767,9 @@
   .h-12 {
     height: calc(var(--spacing) * 12);
   }
+  .h-\[1em\] {
+    height: 1em;
+  }
   .min-h-screen {
     min-height: 100vh;
   }

@@ -4,7 +4,7 @@ use shared::Account;
 use ui::common::{read_from_ls, LocalStorageState};
 use ui::route::Route;
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
+const FAVICON: Asset = asset!("/assets/counted.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 

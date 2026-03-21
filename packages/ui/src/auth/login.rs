@@ -3,6 +3,8 @@ use dioxus::fullstack::Json;
 use dioxus::prelude::*;
 use shared::{Account, LoginPayload};
 
+use crate::{common::AppHeader, route::Route};
+
 #[component]
 pub fn Login() -> Element {
     let mut email = use_signal(String::new);
@@ -37,7 +39,7 @@ pub fn Login() -> Element {
 
     rsx! {
         div { class: "container p-4 max-w-sm mx-auto flex flex-col gap-6 mt-16",
-            h1 { class: "text-3xl font-light text-center", "Sign in" }
+            AppHeader { title: "Sign in", back_button_route: Route::ProjectsList {} }
 
             if let Some(err) = error_msg() {
                 div { class: "alert alert-error", "{err}" }
@@ -68,13 +70,24 @@ pub fn Login() -> Element {
                     class: "btn btn-primary",
                     r#type: "submit",
                     disabled: loading(),
-                    if loading() { "Signing in…" } else { "Sign in" }
+                    if loading() {
+                        "Signing in…"
+                    } else {
+                        "Sign in"
+                    }
                 }
             }
 
             p { class: "text-center text-sm",
                 "No account? "
-                a { class: "link link-primary", href: "/register", "Register" }
+                a {
+                    class: "link link-primary",
+                    onclick: move |e| {
+                        e.prevent_default();
+                        nav.push(Route::Register {});
+                    },
+                    "Register"
+                }
             }
         }
     }

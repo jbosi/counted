@@ -1,5 +1,4 @@
 use crate::auth::{account::Account, login::Login, register::Register};
-use crate::common::Navbar;
 use crate::payments::PaymentPage;
 use crate::project_details::ProjectDetails;
 use crate::projects::ProjectsList;
@@ -9,7 +8,6 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
-    #[layout(WebNavbar)]
     #[route("/")]
     ProjectsList {},
     #[route("/projects/:project_id")]
@@ -22,14 +20,4 @@ pub enum Route {
     Register {},
     #[route("/account")]
     Account {},
-}
-
-/// A web-specific Router around the shared `Navbar` component
-/// which allows us to use the web-specific `Route` enum.
-#[component]
-pub fn WebNavbar() -> Element {
-    rsx! {
-        Navbar {}
-        Outlet::<Route> {}
-    }
 }

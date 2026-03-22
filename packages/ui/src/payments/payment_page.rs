@@ -5,7 +5,8 @@ use dioxus::prelude::*;
 use shared::ExpenseType;
 use uuid::Uuid;
 
-use crate::common::{initials, user_color_class, Avatar};
+use crate::common::{initials, read_from_ls, user_color_class, Avatar};
+use crate::project_details::EditExpenseModal;
 use crate::route::Route;
 
 fn payers_title(t: &ExpenseType) -> &'static str {
@@ -27,10 +28,14 @@ fn debtors_title(t: &ExpenseType) -> &'static str {
 #[component]
 pub fn PaymentPage(project_id: Uuid, expense_id: i32) -> Element {
     let nav = use_navigator();
+    let mut show_edit = use_signal(|| false);
 
-    let expense  = use_resource(move || async move { get_expense_by_id(expense_id).await });
-    let payments = use_resource(move || async move { get_payments_by_expense_id(expense_id).await });
-    let users    = use_resource(move || async move { get_users_by_project_id(project_id).await });
+    let ls = read_from_ls();
+    let stored_user_id = ls.projects.iter().find(|p| p.project_id == project_id).and_then(|p| p.user_id);
+
+    let mut expense  = use_resource(move || async move { get_expense_by_id(expense_id).await });
+    let mut payments = use_resource(move || async move { get_payments_by_expense_id(expense_id).await });
+    let users        = use_resource(move || async move { get_users_by_project_id(project_id).await });
 
     rsx! {
         div { class: "container overflow-auto p-4 max-w-md w-full mx-auto flex flex-col gap-4",
@@ -39,12 +44,12 @@ pub fn PaymentPage(project_id: Uuid, expense_id: i32) -> Element {
                 (Some(Ok(exp)), Some(Ok(pmts)), Some(Ok(user_list))) => {
                     let payers:  Vec<_> = pmts.iter().filter(|p| !p.is_debt).collect();
                     let debtors: Vec<_> = pmts.iter().filter(|p|  p.is_debt).collect();
-                    let currency = project_id; // unused variable trick — we actually need the project
-                    // Fetch currency from expense.project_id (same project_id from route)
-                    let _ = currency;
                     let expense_type = exp.expense_type.clone();
                     let exp_name = exp.name.clone();
                     let exp_date = exp.date;
+                    let exp_clone = exp.clone();
+                    let pmts_clone = pmts.clone();
+                    let users_clone = user_list.clone();
 
                     rsx! {
                         // Header
@@ -83,8 +88,8 @@ pub fn PaymentPage(project_id: Uuid, expense_id: i32) -> Element {
                                         }
                                     }
                                     ul { class: "menu dropdown-content bg-base-100 rounded-box w-40 shadow z-10 p-2",
-                                        li { a { class: "btn-disabled opacity-50", "Modifier" } }
-                                        li { a { class: "btn-disabled opacity-50 text-error", "Supprimer" } }
+                                        li { a { onclick: move |_| show_edit.set(true), "Modifier" } }
+                                        li { a { class: "opacity-50", "Supprimer" } }
                                     }
                                 }
                             }
@@ -137,6 +142,22 @@ pub fn PaymentPage(project_id: Uuid, expense_id: i32) -> Element {
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        if show_edit() {
+                            EditExpenseModal {
+                                on_close: move |_| show_edit.set(false),
+                                on_edited: move |_| {
+                                    show_edit.set(false);
+                                    expense.restart();
+                                    payments.restart();
+                                },
+                                expense: exp_clone,
+                                payments: pmts_clone,
+                                users: users_clone,
+                                project_id,
+                                stored_user_id,
                             }
                         }
                     }

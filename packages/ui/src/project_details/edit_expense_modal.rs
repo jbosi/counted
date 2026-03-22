@@ -1,8 +1,8 @@
-use api::expenses::expenses_controller::add_expense;
+use api::expenses::expenses_controller::edit_expense;
 use chrono::NaiveDate;
 use dioxus::fullstack::Json;
 use dioxus::prelude::*;
-use shared::{CreatableExpense, ExpenseType, User, UserAmount};
+use shared::{EditableExpense, Expense, ExpenseType, Payment, User, UserAmount};
 use uuid::Uuid;
 
 #[derive(Clone, PartialEq)]
@@ -88,49 +88,76 @@ fn debtors_label(t: &ExpenseType) -> &'static str {
 }
 
 #[derive(Props, Clone, PartialEq)]
-pub struct AddExpenseModalProps {
+pub struct EditExpenseModalProps {
     pub on_close: EventHandler<()>,
-    pub on_created: EventHandler<()>,
-    pub project_id: Uuid,
+    pub on_edited: EventHandler<()>,
+    pub expense: Expense,
+    pub payments: Vec<Payment>,
     pub users: Vec<User>,
+    pub project_id: Uuid,
     pub stored_user_id: Option<i32>,
 }
 
 #[component]
-pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
-    let mut expense_name = use_signal(String::new);
-    let today = chrono::Utc::now()
-        .naive_utc()
-        .date()
-        .format("%Y-%m-%d")
-        .to_string();
-    let mut date_str = use_signal(move || today);
-    let mut total_amount = use_signal(|| 0.0f64);
-    let mut expense_type = use_signal(|| ExpenseType::Expense);
+pub fn EditExpenseModal(props: EditExpenseModalProps) -> Element {
+    let expense_id = props.expense.id;
+    let expense_author_id = props.expense.author_id;
+
+    let init_name = props.expense.name.clone();
+    let mut expense_name = use_signal(move || init_name);
+
+    let init_date = props.expense.date.format("%Y-%m-%d").to_string();
+    let mut date_str = use_signal(move || init_date);
+
+    let init_amount = props.expense.amount;
+    let mut total_amount = use_signal(move || init_amount);
+
+    let init_type = props.expense.expense_type.clone();
+    let mut expense_type = use_signal(move || init_type);
+
     let mut payers_share_mode = use_signal(|| false);
     let mut debtors_share_mode = use_signal(|| false);
 
-    let init_payers = props.users.clone();
+    let init_payments_p = props.payments.clone();
+    let init_users_p = props.users.clone();
     let mut payers: Signal<Vec<UserEntry>> = use_signal(move || {
-        init_payers
+        init_users_p
             .iter()
-            .map(|u| UserEntry { user: u.clone(), checked: false, amount: 0.0, shares: 0 })
+            .map(|u| {
+                let payment = init_payments_p.iter().find(|p| !p.is_debt && p.user_id == u.id);
+                UserEntry {
+                    user: u.clone(),
+                    checked: payment.is_some(),
+                    amount: payment.map(|p| p.amount).unwrap_or(0.0),
+                    shares: if payment.is_some() { 1 } else { 0 },
+                }
+            })
             .collect()
     });
-    let init_debtors = props.users.clone();
+
+    let init_payments_d = props.payments.clone();
+    let init_users_d = props.users.clone();
     let mut debtors: Signal<Vec<UserEntry>> = use_signal(move || {
-        init_debtors
+        init_users_d
             .iter()
-            .map(|u| UserEntry { user: u.clone(), checked: true, amount: 0.0, shares: 1 })
+            .map(|u| {
+                let payment = init_payments_d.iter().find(|p| p.is_debt && p.user_id == u.id);
+                UserEntry {
+                    user: u.clone(),
+                    checked: payment.is_some(),
+                    amount: payment.map(|p| p.amount).unwrap_or(0.0),
+                    shares: if payment.is_some() { 1 } else { 0 },
+                }
+            })
             .collect()
     });
+
     let mut error_msg: Signal<Option<String>> = use_signal(|| None);
     let mut loading = use_signal(|| false);
 
     let project_id = props.project_id;
     let stored_user_id = props.stored_user_id;
-    let users_for_author = props.users.clone();
-    let on_created = props.on_created.clone();
+    let on_edited = props.on_edited.clone();
     let on_close_submit = props.on_close.clone();
 
     let on_submit = move |e: FormEvent| {
@@ -171,17 +198,17 @@ pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
                 return;
             }
         };
-        let author_id = stored_user_id
-            .unwrap_or_else(|| users_for_author.first().map(|u| u.id).unwrap_or(0));
+        let author_id = stored_user_id.unwrap_or(expense_author_id);
         let etype = expense_type();
 
         loading.set(true);
         error_msg.set(None);
 
-        let on_created = on_created.clone();
+        let on_edited = on_edited.clone();
         let on_close_submit = on_close_submit.clone();
         spawn(async move {
-            match add_expense(Json(CreatableExpense {
+            match edit_expense(Json(EditableExpense {
+                id: expense_id,
                 name: name_val,
                 amount: total,
                 expense_type: etype,
@@ -195,7 +222,7 @@ pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
             .await
             {
                 Ok(_) => {
-                    on_created.call(());
+                    on_edited.call(());
                     on_close_submit.call(());
                 }
                 Err(e) => {
@@ -220,7 +247,7 @@ pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
                     "✕"
                 }
 
-                h3 { class: "font-bold text-lg mb-4", "Ajouter une dépense" }
+                h3 { class: "font-bold text-lg mb-4", "Modifier la dépense" }
 
                 if let Some(err) = error_msg() {
                     div { class: "alert alert-error text-sm mb-3", "{err}" }
@@ -609,7 +636,7 @@ pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
                             r#type: "submit",
                             class: "btn btn-primary",
                             disabled: loading(),
-                            if loading() { "Ajout…" } else { "Ajouter" }
+                            if loading() { "Enregistrement…" } else { "Enregistrer" }
                         }
                     }
                 }

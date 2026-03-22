@@ -14,6 +14,12 @@ pub struct LocalStorageProject {
     pub user_id: Option<i32>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn storage_file() -> std::path::PathBuf {
+    let dir = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+    std::path::PathBuf::from(dir).join("counted_local_storage.json")
+}
+
 pub fn read_from_ls() -> LocalStorageState {
     #[cfg(target_arch = "wasm32")]
     {
@@ -25,7 +31,12 @@ pub fn read_from_ls() -> LocalStorageState {
         return result.unwrap_or_default();
     }
     #[cfg(not(target_arch = "wasm32"))]
-    LocalStorageState::default()
+    {
+        std::fs::read_to_string(storage_file())
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
+    }
 }
 
 pub fn write_to_ls(state: &LocalStorageState) {
@@ -39,7 +50,11 @@ pub fn write_to_ls(state: &LocalStorageState) {
         })();
     }
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = state;
+    {
+        if let Ok(json) = serde_json::to_string(state) {
+            let _ = std::fs::write(storage_file(), json);
+        }
+    }
 }
 
 /// Upsert a project entry. Does not overwrite an existing user_id with None.

@@ -7,3 +7,6 @@ identifier = "fr.counted.app"
 publisher = "Counted"
 icon = ["assets/counted.png"]
 
+[bundle.ios]
+deployment_target = "16.0"
+

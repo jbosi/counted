@@ -16,6 +16,7 @@ COPY . .
 ENV SQLX_OFFLINE=true
 
 # Install Node deps for Tailwind DaisyUI plugin (used by dx bundle's built-in Tailwind runner)
+RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts
 

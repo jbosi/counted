@@ -30,7 +30,7 @@ jobs:
       - name: Install Dioxus CLI
         run: |
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall dioxus-cli --version "0.7.2" --locked -y --no-confirm
+          cargo binstall dioxus-cli --version "0.7.2" --locked -y
 
       - name: Build iOS bundle
         env:

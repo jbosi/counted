@@ -47,9 +47,9 @@ jobs:
       - name: Calculate version
         id: version
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "version=${LAST_TAG#v}" >> $GITHUB_OUTPUT
-          echo "tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          VERSION=$(grep '^version' packages/mobile/Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload IPA to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -66,13 +66,18 @@ jobs:
           SIZE: ${{ env.IPA_SIZE }}
         run: |
           python3 - <<'EOF'
-          import json, os
+          import json, os, sys
 
           with open("altstore-source.json") as f:
               source = json.load(f)
 
+          version = os.environ["VERSION"]
+          if any(v.get("version") == version for v in source["apps"][0]["versions"]):
+              print(f"Version {version} already in source, skipping.")
+              sys.exit(0)
+
           new_version = {
-              "version": os.environ["VERSION"],
+              "version": version,
               "buildVersion": "1",
               "date": os.environ["DATE"],
               "downloadURL": os.environ["IPA_URL"],
@@ -92,7 +97,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SHA=$(gh api repos/${{ github.repository }}/contents/altstore-source.json --jq '.sha')
-          CONTENT=$(base64 -i altstore-source.json)
+          CONTENT=$(base64 -i altstore-source.json | tr -d '\n')
           gh api repos/${{ github.repository }}/contents/altstore-source.json \
             -X PUT \
             -f message="chore: update altstore-source.json for v${{ steps.version.outputs.version }}" \

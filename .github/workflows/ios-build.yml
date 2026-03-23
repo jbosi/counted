@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Xcode archive (unsigned)
         run: |
-          XCWORKSPACE=$(find target/dx/mobile -name "*.xcworkspace" | head -1)
+          XCWORKSPACE=$(find target/dx/mobile/release/ios -name "*.xcworkspace" | head -1)
           xcodebuild \
             -workspace "$XCWORKSPACE" \
             -scheme Counted \

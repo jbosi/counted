@@ -8,6 +8,7 @@ pub struct ReimbursementsTabProps {
     pub suggestions: Vec<ReimbursementSuggestion>,
     pub users: Vec<User>,
     pub currency: String,
+    pub on_reimburse: EventHandler<ReimbursementSuggestion>,
 }
 
 #[component]
@@ -45,6 +46,7 @@ pub fn ReimbursementsTab(props: ReimbursementsTabProps) -> Element {
                     let payer_color = payer.map(|u| user_color_class(u.id)).unwrap_or("bg-neutral");
                     let amount = suggestion.amount;
                     let curr = currency.clone();
+                    let suggestion_clone = suggestion.clone();
                     rsx! {
                         li { class: "bg-base-100 rounded-lg shadow-sm p-4 flex items-center gap-3",
                             // Avatars with arrow
@@ -69,11 +71,12 @@ pub fn ReimbursementsTab(props: ReimbursementsTabProps) -> Element {
                                     "{amount:.2} {curr}"
                                 }
                             }
-                            // Record button — disabled until Add Expense modal is implemented
+                            // Record button
                             button {
                                 r#type: "button",
-                                class: "btn btn-circle btn-sm btn-ghost btn-disabled",
+                                class: "btn btn-circle btn-sm btn-ghost",
                                 title: "Enregistrer le remboursement",
+                                onclick: move |_| props.on_reimburse.call(suggestion_clone.clone()),
                                 svg {
                                     class: "w-4 h-4",
                                     fill: "none",

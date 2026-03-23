@@ -41,29 +41,13 @@ npm run ios:build
 
 This produces an Xcode project under `target/dx/mobile/`.
 
-### 2. Archive (unsigned)
+### 2. Package as IPA
+
+`dx bundle` produces a pre-built `.app` directly — no Xcode project is generated.
 
 ```bash
-XCWORKSPACE=$(find target/dx/mobile -name "*.xcworkspace" | head -1)
-
-xcodebuild \
-  -workspace "$XCWORKSPACE" \
-  -scheme Counted \
-  -configuration Release \
-  -sdk iphoneos \
-  -archivePath build/Counted.xcarchive \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGN_IDENTITY="" \
-  PROVISIONING_PROFILE="" \
-  archive
-```
-
-### 3. Package as IPA
-
-```bash
-APP=$(find build/Counted.xcarchive -name "*.app" | head -1)
 mkdir -p Payload
-cp -r "$APP" Payload/Counted.app
+cp -r target/dx/mobile/release/ios/Mobile.app Payload/Counted.app
 zip -r Counted.ipa Payload/
 ```
 

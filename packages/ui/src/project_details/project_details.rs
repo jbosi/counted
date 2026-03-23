@@ -3,11 +3,11 @@ use api::payments::payments_controller::{get_payments_by_project_id, get_summary
 use api::projects::projects_controller::get_project;
 use api::users::users_controller::get_users_by_project_id;
 use dioxus::prelude::*;
-use shared::{ExpenseType, ProjectStatus, User};
+use shared::{ExpenseType, ProjectStatus, ReimbursementSuggestion, User};
 use uuid::Uuid;
 
 use crate::common::{initials, user_color_class, AppHeader, Avatar, LocalStorageState};
-use crate::project_details::{BalanceTab, ExpensesTab, ReimbursementsTab};
+use crate::project_details::{AddExpenseModal, BalanceTab, ExpensesTab, ReimbursementsTab};
 use crate::route::Route;
 
 #[derive(PartialEq, Clone)]
@@ -22,6 +22,9 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
     let nav = use_navigator();
     let ls_ctx = use_context::<Signal<LocalStorageState>>();
     let mut active_tab = use_signal(|| Tab::Expenses);
+    let mut show_transfer_modal = use_signal(|| false);
+    // (name, amount, payer_user_id [=debtor in suggestion], debtor_user_id [=payer in suggestion])
+    let mut transfer_preset: Signal<Option<(String, f64, i32, i32)>> = use_signal(|| None);
 
     let stored_user_id = move || {
         ls_ctx().projects.iter().find(|p| p.project_id == project_id).and_then(|p| p.user_id)
@@ -183,13 +186,48 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
                             Some(Err(e)) => rsx! {
                     div { class: "alert alert-error", "{e}" }
                 },
-                            Some(Ok(s)) => rsx! {
+                            Some(Ok(s)) => {
+                                let users_for_cb = user_list_c.clone();
+                                rsx! {
                     ReimbursementsTab {
                         suggestions: s.reimbursement_suggestions.clone(),
                         users: user_list_c.clone(),
                         currency: currency.clone(),
+                        on_reimburse: move |s: ReimbursementSuggestion| {
+                            let debtor = users_for_cb.iter().find(|u| u.id == s.user_id_debtor);
+                            let payer  = users_for_cb.iter().find(|u| u.id == s.user_id_payer);
+                            if let (Some(d), Some(p)) = (debtor, payer) {
+                                let name = format!("Remboursement {} vers {}", d.name, p.name);
+                                transfer_preset.set(Some((name, s.amount, s.user_id_debtor, s.user_id_payer)));
+                                show_transfer_modal.set(true);
+                            }
+                        },
                     }
-                },
+                }},
+                        }
+                    }
+                }
+
+                // Transfer modal opened from a reimbursement suggestion
+                if show_transfer_modal() {
+                    if let Some((name, amount, payer_id, debtor_id)) = transfer_preset() {
+                        AddExpenseModal {
+                            on_close: move |_| { show_transfer_modal.set(false); transfer_preset.set(None); },
+                            on_created: move |_| {
+                                show_transfer_modal.set(false);
+                                transfer_preset.set(None);
+                                expenses.restart();
+                                payments.restart();
+                                summary.restart();
+                            },
+                            project_id,
+                            users: user_list_c.clone(),
+                            stored_user_id: uid,
+                            initial_name: Some(name),
+                            initial_amount: Some(amount),
+                            initial_expense_type: Some(ExpenseType::Transfer),
+                            initial_payer_id: Some(payer_id),
+                            initial_debtor_id: Some(debtor_id),
                         }
                     }
                 }

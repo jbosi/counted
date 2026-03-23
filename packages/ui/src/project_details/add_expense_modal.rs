@@ -94,19 +94,31 @@ pub struct AddExpenseModalProps {
     pub project_id: Uuid,
     pub users: Vec<User>,
     pub stored_user_id: Option<i32>,
+    // Optional pre-fill (used when opening from a reimbursement suggestion)
+    pub initial_name: Option<String>,
+    pub initial_amount: Option<f64>,
+    pub initial_expense_type: Option<ExpenseType>,
+    pub initial_payer_id: Option<i32>,
+    pub initial_debtor_id: Option<i32>,
 }
 
 #[component]
 pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
-    let mut expense_name = use_signal(String::new);
+    let init_name = props.initial_name.clone().unwrap_or_default();
+    let init_amount = props.initial_amount.unwrap_or(0.0);
+    let init_type = props.initial_expense_type.clone().unwrap_or(ExpenseType::Expense);
+    let initial_payer_id = props.initial_payer_id;
+    let initial_debtor_id = props.initial_debtor_id;
+
+    let mut expense_name = use_signal(move || init_name);
     let today = chrono::Utc::now()
         .naive_utc()
         .date()
         .format("%Y-%m-%d")
         .to_string();
     let mut date_str = use_signal(move || today);
-    let mut total_amount = use_signal(|| 0.0f64);
-    let mut expense_type = use_signal(|| ExpenseType::Expense);
+    let mut total_amount = use_signal(move || init_amount);
+    let mut expense_type = use_signal(move || init_type);
     let mut payers_share_mode = use_signal(|| false);
     let mut debtors_share_mode = use_signal(|| false);
 
@@ -114,14 +126,34 @@ pub fn AddExpenseModal(props: AddExpenseModalProps) -> Element {
     let mut payers: Signal<Vec<UserEntry>> = use_signal(move || {
         init_payers
             .iter()
-            .map(|u| UserEntry { user: u.clone(), checked: false, amount: 0.0, shares: 0 })
+            .map(|u| {
+                let is_pre = initial_payer_id == Some(u.id);
+                UserEntry {
+                    user: u.clone(),
+                    checked: is_pre,
+                    amount: if is_pre { init_amount } else { 0.0 },
+                    shares: if is_pre { 1 } else { 0 },
+                }
+            })
             .collect()
     });
     let init_debtors = props.users.clone();
     let mut debtors: Signal<Vec<UserEntry>> = use_signal(move || {
         init_debtors
             .iter()
-            .map(|u| UserEntry { user: u.clone(), checked: true, amount: 0.0, shares: 1 })
+            .map(|u| {
+                if let Some(did) = initial_debtor_id {
+                    let is_pre = u.id == did;
+                    UserEntry {
+                        user: u.clone(),
+                        checked: is_pre,
+                        amount: if is_pre { init_amount } else { 0.0 },
+                        shares: if is_pre { 1 } else { 0 },
+                    }
+                } else {
+                    UserEntry { user: u.clone(), checked: true, amount: 0.0, shares: 1 }
+                }
+            })
             .collect()
     });
     let mut error_msg: Signal<Option<String>> = use_signal(|| None);

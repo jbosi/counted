@@ -14,7 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+
+      - name: Fetch tags
+        run: git fetch --tags --depth=1
 
       - name: Install Rust + iOS target
         uses: dtolnay/rust-toolchain@stable
@@ -25,41 +28,19 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install Dioxus CLI
-        run: cargo install dioxus-cli --version "0.7.2" --locked
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-releases.sh | bash
+          cargo binstall dioxus-cli --version "0.7.2" --locked -y --no-confirm
 
       - name: Build iOS bundle
         env:
           SQLX_OFFLINE: true
         run: dx bundle --platform ios --package mobile --release
 
-      - name: Debug bundle output
-        run: find target/dx -type f -o -type d | sort
-
-      - name: Cache Xcode DerivedData
-        uses: irgaly/xcode-cache@v1
-        with:
-          key: xcode-cache-${{ runner.os }}-${{ hashFiles('target/dx/mobile/release/ios/**') }}
-          restore-keys: xcode-cache-${{ runner.os }}-
-
-      - name: Build Xcode archive (unsigned)
-        run: |
-          XCWORKSPACE=$(find target/dx/mobile/release/ios -name "*.xcworkspace" | head -1)
-          xcodebuild \
-            -workspace "$XCWORKSPACE" \
-            -scheme Counted \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath build/Counted.xcarchive \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            PROVISIONING_PROFILE="" \
-            archive
-
       - name: Package unsigned IPA
         run: |
-          APP=$(find build/Counted.xcarchive -name "*.app" | head -1)
           mkdir -p Payload
-          cp -r "$APP" Payload/Counted.app
+          cp -r target/dx/mobile/release/ios/Mobile.app Payload/Counted.app
           zip -r Counted.ipa Payload/
           echo "IPA_SIZE=$(wc -c < Counted.ipa | tr -d ' ')" >> $GITHUB_ENV
 

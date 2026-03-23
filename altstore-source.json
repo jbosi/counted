@@ -13,7 +13,16 @@
       "localizedDescription": "Counted is an open-source expense-splitting app. Add participants, log expenses, and get minimal reimbursement suggestions.",
       "iconURL": "https://counted.fr/assets/counted.png",
       "category": "utilities",
-      "versions": []
+      "versions": [
+        {
+          "version": "0.1.0",
+          "buildVersion": "1",
+          "date": "2026-03-23T23:07:10+01:00",
+          "downloadURL": "https://github.com/jbosi/counted/releases/download/v0.1.0/Counted.ipa",
+          "size": 3749298,
+          "localizedDescription": "New release"
+        }
+      ]
     }
   ],
   "news": []

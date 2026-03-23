@@ -250,7 +250,7 @@ pub struct NewPayment {
     pub amount: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSummary {
     pub reimbursement_suggestions: Vec<ReimbursementSuggestion>,
@@ -270,7 +270,7 @@ pub struct UserBalanceComputation {
     pub remaining_amount: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReimbursementSuggestion {
     pub amount: f64,

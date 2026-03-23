@@ -1,2 +1,2 @@
-mod payments;
-pub use payments::Payments;
+mod payment_page;
+pub use payment_page::PaymentPage;

@@ -3586,6 +3586,7 @@ dependencies = [
  "tracing",
  "ui",
  "uuid",
+ "web-sys",
 ]
 
 [[package]]
@@ -6219,6 +6220,8 @@ dependencies = [
  "api",
  "chrono",
  "dioxus",
+ "serde",
+ "serde_json",
  "shared",
  "uuid",
  "web-sys",

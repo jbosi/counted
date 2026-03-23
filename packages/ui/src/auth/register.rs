@@ -3,6 +3,9 @@ use dioxus::fullstack::Json;
 use dioxus::prelude::*;
 use shared::{Account, RegisterPayload};
 
+use crate::common::AppHeader;
+use crate::route::Route;
+
 #[component]
 pub fn Register() -> Element {
     let mut email = use_signal(String::new);
@@ -45,7 +48,10 @@ pub fn Register() -> Element {
 
     rsx! {
         div { class: "container p-4 max-w-sm mx-auto flex flex-col gap-6 mt-16",
-            h1 { class: "text-3xl font-light text-center", "Create account" }
+            AppHeader {
+                title: "Create account",
+                back_button_route: Route::ProjectsList {},
+            }
 
             if let Some(err) = error_msg() {
                 div { class: "alert alert-error", "{err}" }
@@ -87,7 +93,11 @@ pub fn Register() -> Element {
                     class: "btn btn-primary",
                     r#type: "submit",
                     disabled: loading(),
-                    if loading() { "Creating account…" } else { "Register" }
+                    if loading() {
+                        "Creating account…"
+                    } else {
+                        "Register"
+                    }
                 }
             }
 

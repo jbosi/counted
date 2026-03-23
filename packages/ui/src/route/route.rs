@@ -1,37 +1,23 @@
-use crate::auth::login::Login;
-use crate::auth::register::Register;
-use crate::common::Navbar;
-use crate::expenses::Expenses;
-use crate::payments::Payments;
-use crate::projects::Projects;
+use crate::auth::{account::Account, login::Login, register::Register};
+use crate::payments::PaymentPage;
+use crate::project_details::ProjectDetails;
+use crate::projects::ProjectsList;
 use dioxus::prelude::*;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
-    #[layout(WebNavbar)]
     #[route("/")]
-    Projects {},
+    ProjectsList {},
     #[route("/projects/:project_id")]
-    Expenses { project_id: Uuid },
+    ProjectDetails { project_id: Uuid },
     #[route("/projects/:project_id/expenses/:expense_id")]
-    Payments { project_id: Uuid, expense_id: i32 },
+    PaymentPage { project_id: Uuid, expense_id: i32 },
     #[route("/login")]
     Login {},
     #[route("/register")]
     Register {},
-}
-
-/// A web-specific Router around the shared `Navbar` component
-/// which allows us to use the web-specific `Route` enum.
-#[component]
-pub fn WebNavbar() -> Element {
-    rsx! {
-        Navbar {
-            Link { to: Route::Projects {}, "Projects" }
-        }
-
-        Outlet::<Route> {}
-    }
+    #[route("/account")]
+    Account {},
 }

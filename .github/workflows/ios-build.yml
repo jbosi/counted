@@ -1,0 +1,104 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust + iOS target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Dioxus CLI
+        run: cargo install dioxus-cli --version "0.7.2" --locked
+
+      - name: Build iOS bundle
+        run: dx bundle --platform ios --package mobile --release
+
+      - name: Build Xcode archive (unsigned)
+        run: |
+          XCWORKSPACE=$(find target/dx/mobile -name "*.xcworkspace" | head -1)
+          xcodebuild \
+            -workspace "$XCWORKSPACE" \
+            -scheme Counted \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Counted.xcarchive \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE="" \
+            archive
+
+      - name: Package unsigned IPA
+        run: |
+          APP=$(find build/Counted.xcarchive -name "*.app" | head -1)
+          mkdir -p Payload
+          cp -r "$APP" Payload/Counted.app
+          zip -r Counted.ipa Payload/
+          echo "IPA_SIZE=$(wc -c < Counted.ipa | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Calculate version
+        id: version
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "version=${LAST_TAG#v}" >> $GITHUB_OUTPUT
+          echo "tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Upload IPA to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: Counted.ipa
+          fail_on_unmatched_files: true
+
+      - name: Update altstore-source.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DATE: ${{ github.event.head_commit.timestamp }}
+          IPA_URL: https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/Counted.ipa
+          SIZE: ${{ env.IPA_SIZE }}
+        run: |
+          python3 - <<'EOF'
+          import json, os
+
+          with open("altstore-source.json") as f:
+              source = json.load(f)
+
+          new_version = {
+              "version": os.environ["VERSION"],
+              "buildVersion": "1",
+              "date": os.environ["DATE"],
+              "downloadURL": os.environ["IPA_URL"],
+              "size": int(os.environ["SIZE"]),
+              "localizedDescription": "New release"
+          }
+
+          # Prepend — AltStore uses order to determine latest
+          source["apps"][0]["versions"].insert(0, new_version)
+
+          with open("altstore-source.json", "w") as f:
+              json.dump(source, f, indent=2)
+          EOF
+
+      - name: Commit updated altstore-source.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add altstore-source.json
+          git diff --staged --quiet || git commit -m "chore: update altstore-source.json for v${{ steps.version.outputs.version }}"
+          git push

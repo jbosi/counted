@@ -1,0 +1,20 @@
+{
+  "name": "Counted",
+  "identifier": "fr.counted.altstore-source",
+  "subtitle": "Split expenses with friends",
+  "description": "Counted is a collaborative expense-splitting app. Create projects, add participants, log expenses, and get minimal settlement suggestions.",
+  "iconURL": "https://counted.fr/assets/counted.png",
+  "apps": [
+    {
+      "name": "Counted",
+      "bundleIdentifier": "fr.counted.app",
+      "developerName": "Counted",
+      "subtitle": "Split expenses with friends",
+      "localizedDescription": "Counted is an open-source expense-splitting app. Add participants, log expenses, and get minimal reimbursement suggestions.",
+      "iconURL": "https://counted.fr/assets/counted.png",
+      "category": "utilities",
+      "versions": []
+    }
+  ],
+  "news": []
+}

@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@source "./src/**/*.rs";
+@source "../ui/src/**/*.rs";
+@plugin "daisyui" {
+  themes: cupcake --default;
+}

@@ -1,27 +1,42 @@
+use api::auth::auth_controller::me;
 use dioxus::prelude::*;
+use shared::Account;
+use ui::common::{read_from_ls, LocalStorageState};
 use ui::route::Route;
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
+const FAVICON: Asset = asset!("/assets/counted.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
+    dioxus::logger::initialize_default();
+    #[cfg(not(feature = "server"))]
+    dioxus::fullstack::set_server_url("https://counted.fr");
     dioxus::launch(app);
 }
 
 #[component]
 fn app() -> Element {
-    rsx! {
-        // Global app resources
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: MAIN_CSS }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+    let auth: Signal<Option<Account>> = use_context_provider(|| Signal::new(None));
+    let _ls: Signal<LocalStorageState> = use_context_provider(|| Signal::new(read_from_ls()));
 
-        main { class: "min-h-screen flex flex-col items-center",
-            link {
-                rel: "stylesheet",
-                href: "https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css",
+    use_effect(move || {
+        let mut auth = auth;
+        spawn(async move {
+            if let Ok(account) = me().await {
+                auth.set(account);
             }
+        });
+    });
+
+    rsx! {
+        document::Link { rel: "icon", href: FAVICON }
+        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+        document::Link { rel: "stylesheet", href: MAIN_CSS }
+
+        main {
+            "data-theme": "cupcake",
+            class: "min-h-screen flex flex-col items-center",
             Router::<Route> {}
         }
     }

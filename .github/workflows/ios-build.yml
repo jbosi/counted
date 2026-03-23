@@ -32,6 +32,15 @@ jobs:
           SQLX_OFFLINE: true
         run: dx bundle --platform ios --package mobile --release
 
+      - name: Debug bundle output
+        run: find target/dx -type f -o -type d | sort
+
+      - name: Cache Xcode DerivedData
+        uses: irgaly/xcode-cache@v1
+        with:
+          key: xcode-cache-${{ runner.os }}-${{ hashFiles('target/dx/mobile/release/ios/**') }}
+          restore-keys: xcode-cache-${{ runner.os }}-
+
       - name: Build Xcode archive (unsigned)
         run: |
           XCWORKSPACE=$(find target/dx/mobile/release/ios -name "*.xcworkspace" | head -1)

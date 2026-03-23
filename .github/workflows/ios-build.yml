@@ -28,6 +28,8 @@ jobs:
         run: cargo install dioxus-cli --version "0.7.2" --locked
 
       - name: Build iOS bundle
+        env:
+          SQLX_OFFLINE: true
         run: dx bundle --platform ios --package mobile --release
 
       - name: Build Xcode archive (unsigned)

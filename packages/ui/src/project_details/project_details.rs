@@ -7,6 +7,7 @@ use shared::{ExpenseType, ProjectStatus, ReimbursementSuggestion, User};
 use uuid::Uuid;
 
 use crate::common::{initials, user_color_class, AppHeader, Avatar, LocalStorageState};
+use crate::icons::UserIcon;
 use crate::project_details::{AddExpenseModal, BalanceTab, ExpensesTab, ReimbursementsTab};
 use crate::route::Route;
 
@@ -90,15 +91,7 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
                 // Which user are you — read-only banner when not yet selected
                 if uid.is_none() {
                     div { class: "alert alert-info text-sm",
-                        svg {
-                            class: "w-4 h-4 shrink-0",
-                            fill: "none",
-                            stroke: "currentColor",
-                            "stroke-width": "2",
-                            view_box: "0 0 24 24",
-                            circle { cx: "12", cy: "12", r: "10" }
-                            path { d: "M12 16v-4M12 8h.01" }
-                        }
+                        UserIcon {}
                         span { "Sélection de votre profil disponible prochainement" }
                     }
                 }
@@ -195,15 +188,17 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
                         currency: currency.clone(),
                         on_reimburse: move |s: ReimbursementSuggestion| {
                             let debtor = users_for_cb.iter().find(|u| u.id == s.user_id_debtor);
-                            let payer  = users_for_cb.iter().find(|u| u.id == s.user_id_payer);
+                            let payer = users_for_cb.iter().find(|u| u.id == s.user_id_payer);
                             if let (Some(d), Some(p)) = (debtor, payer) {
                                 let name = format!("Remboursement {} vers {}", d.name, p.name);
-                                transfer_preset.set(Some((name, s.amount, s.user_id_debtor, s.user_id_payer)));
+                                transfer_preset
+                                    .set(Some((name, s.amount, s.user_id_debtor, s.user_id_payer)));
                                 show_transfer_modal.set(true);
                             }
                         },
                     }
-                }},
+                }
+                            }
                         }
                     }
                 }
@@ -212,7 +207,10 @@ pub fn ProjectDetails(project_id: Uuid) -> Element {
                 if show_transfer_modal() {
                     if let Some((name, amount, payer_id, debtor_id)) = transfer_preset() {
                         AddExpenseModal {
-                            on_close: move |_| { show_transfer_modal.set(false); transfer_preset.set(None); },
+                            on_close: move |_| {
+                                show_transfer_modal.set(false);
+                                transfer_preset.set(None);
+                            },
                             on_created: move |_| {
                                 show_transfer_modal.set(false);
                                 transfer_preset.set(None);

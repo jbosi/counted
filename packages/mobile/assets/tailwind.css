@@ -7,6 +7,10 @@
     'Noto Color Emoji';
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
+    --color-neutral-200: oklch(92.2% 0 0);
+    --color-neutral-300: oklch(87% 0 0);
+    --color-neutral-400: oklch(70.8% 0 0);
+    --color-neutral-600: oklch(43.9% 0 0);
     --color-black: #000;
     --spacing: 0.25rem;
     --container-sm: 24rem;
@@ -21,9 +25,6 @@
     --text-lg--line-height: calc(1.75 / 1.125);
     --text-xl: 1.25rem;
     --text-xl--line-height: calc(1.75 / 1.25);
-    --text-3xl: 1.875rem;
-    --text-3xl--line-height: calc(2.25 / 1.875);
-    --font-weight-light: 300;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
@@ -1566,6 +1567,9 @@
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
   }
+  .ml-1 {
+    margin-left: calc(var(--spacing) * 1);
+  }
   .status {
     display: inline-block;
     aspect-ratio: 1 / 1;
@@ -1749,23 +1753,20 @@
   .flex {
     display: flex;
   }
+  .grid {
+    display: grid;
+  }
   .btn-circle {
     border-radius: calc(infinity * 1px);
     padding-inline: calc(0.25rem * 0);
     width: var(--size);
     height: var(--size);
   }
-  .h-4 {
-    height: calc(var(--spacing) * 4);
-  }
   .h-5 {
     height: calc(var(--spacing) * 5);
   }
   .h-6 {
     height: calc(var(--spacing) * 6);
-  }
-  .h-12 {
-    height: calc(var(--spacing) * 12);
   }
   .h-\[1em\] {
     height: 1em;
@@ -1775,9 +1776,6 @@
   }
   .loading-md {
     width: calc(var(--size-selector, 0.25rem) * 6);
-  }
-  .w-4 {
-    width: calc(var(--spacing) * 4);
   }
   .w-5 {
     width: calc(var(--spacing) * 5);
@@ -1791,11 +1789,11 @@
   .w-10 {
     width: calc(var(--spacing) * 10);
   }
-  .w-12 {
-    width: calc(var(--spacing) * 12);
-  }
   .w-16 {
     width: calc(var(--spacing) * 16);
+  }
+  .w-20 {
+    width: calc(var(--spacing) * 20);
   }
   .w-28 {
     width: calc(var(--spacing) * 28);
@@ -1811,9 +1809,6 @@
   }
   .w-full {
     width: 100%;
-  }
-  .max-w-\[180px\] {
-    max-width: 180px;
   }
   .max-w-md {
     max-width: var(--container-md);
@@ -1894,6 +1889,9 @@
       margin-inline-start: calc(calc(var(--spacing) * -3) * var(--tw-space-x-reverse));
       margin-inline-end: calc(calc(var(--spacing) * -3) * calc(1 - var(--tw-space-x-reverse)));
     }
+  }
+  .self-center {
+    align-self: center;
   }
   .self-start {
     align-self: flex-start;
@@ -2001,14 +1999,38 @@
   .bg-success {
     background-color: var(--color-success);
   }
+  .bg-transparent {
+    background-color: transparent;
+  }
   .bg-warning {
     background-color: var(--color-warning);
   }
   .loading-spinner {
     mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' stroke='black' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform-origin='center'%3E%3Ccircle cx='12' cy='12' r='9.5' fill='none' stroke-width='3' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='2s' repeatCount='indefinite'/%3E%3Canimate attributeName='stroke-dasharray' values='0,150;42,150;42,150' keyTimes='0;0.475;1' dur='1.5s' repeatCount='indefinite'/%3E%3Canimate attributeName='stroke-dashoffset' values='0;-16;-59' keyTimes='0;0.475;1' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/g%3E%3C/svg%3E");
   }
+  .fill-neutral-200 {
+    fill: var(--color-neutral-200);
+  }
+  .fill-neutral-300 {
+    fill: var(--color-neutral-300);
+  }
+  .fill-neutral-400 {
+    fill: var(--color-neutral-400);
+  }
+  .fill-neutral\/10 {
+    fill: var(--color-neutral);
+    @supports (color: color-mix(in lab, red, red)) {
+      fill: color-mix(in oklab, var(--color-neutral) 10%, transparent);
+    }
+  }
   .stroke-current {
     stroke: currentcolor;
+  }
+  .stroke-neutral-400 {
+    stroke: var(--color-neutral-400);
+  }
+  .stroke-neutral-600 {
+    stroke: var(--color-neutral-600);
   }
   .checkbox-sm {
     padding: 0.1875rem;
@@ -2043,6 +2065,9 @@
   }
   .text-center {
     text-align: center;
+  }
+  .text-left {
+    text-align: left;
   }
   .text-right {
     text-align: right;
@@ -2096,6 +2121,9 @@
   .progress-error {
     color: var(--color-error);
   }
+  .progress-primary {
+    color: var(--color-primary);
+  }
   .progress-success {
     color: var(--color-success);
   }
@@ -2104,12 +2132,6 @@
   }
   .text-base-content {
     color: var(--color-base-content);
-  }
-  .text-base-content\/40 {
-    color: var(--color-base-content);
-    @supports (color: color-mix(in lab, red, red)) {
-      color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
-    }
   }
   .text-base-content\/50 {
     color: var(--color-base-content);
@@ -2128,6 +2150,9 @@
   }
   .text-neutral-content {
     color: var(--color-neutral-content);
+  }
+  .text-primary {
+    color: var(--color-primary);
   }
   .text-success {
     color: var(--color-success);

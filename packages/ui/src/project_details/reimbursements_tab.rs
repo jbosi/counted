@@ -1,7 +1,10 @@
 use dioxus::prelude::*;
 use shared::{ReimbursementSuggestion, User};
 
-use crate::common::{initials, user_color_class, Avatar};
+use crate::{
+    common::{initials, user_color_class, Avatar, CheckMarkIllustration},
+    icons::{DollarIcon, RightArrowIcon},
+};
 
 #[derive(PartialEq, Props, Clone)]
 pub struct ReimbursementsTabProps {
@@ -18,16 +21,11 @@ pub fn ReimbursementsTab(props: ReimbursementsTabProps) -> Element {
     if props.suggestions.is_empty() {
         return rsx! {
             div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
-                svg {
-                    class: "w-12 h-12 text-success",
-                    fill: "none",
-                    stroke: "currentColor",
-                    "stroke-width": "1.5",
-                    view_box: "0 0 24 24",
-                    path { d: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" }
-                }
+                CheckMarkIllustration {}
                 span { class: "font-bold text-base-content", "Les comptes sont bons !" }
-                span { class: "text-sm text-center", "Des suggestions de remboursement seront proposées ici si les comptes ne sont pas équilibrés" }
+                span { class: "text-sm text-center",
+                    "Des suggestions de remboursement seront proposées ici si les comptes ne sont pas équilibrés"
+                }
             }
         };
     }
@@ -42,52 +40,44 @@ pub fn ReimbursementsTab(props: ReimbursementsTabProps) -> Element {
                     let payer_name = payer.map(|u| u.name.as_str()).unwrap_or("?");
                     let debtor_initials = initials(debtor_name);
                     let payer_initials = initials(payer_name);
-                    let debtor_color = debtor.map(|u| user_color_class(u.id)).unwrap_or("bg-neutral");
+                    let debtor_color = debtor
+                        .map(|u| user_color_class(u.id))
+                        .unwrap_or("bg-neutral");
                     let payer_color = payer.map(|u| user_color_class(u.id)).unwrap_or("bg-neutral");
-                    let amount = suggestion.amount;
+                    let amount = suggestion.amount; // Avatars with arrow
                     let curr = currency.clone();
                     let suggestion_clone = suggestion.clone();
-                    rsx! {
-                        li { class: "bg-base-100 rounded-lg shadow-sm p-4 flex items-center gap-3",
-                            // Avatars with arrow
-                            div { class: "flex items-center gap-1 shrink-0",
-                                Avatar { initials: debtor_initials, size: 8, color_class: debtor_color.to_string() }
-                                svg {
-                                    class: "w-4 h-4 text-base-content/40",
-                                    fill: "none",
-                                    stroke: "currentColor",
-                                    "stroke-width": "2",
-                                    view_box: "0 0 24 24",
-                                    path { d: "M5 12h14M12 5l7 7-7 7" }
-                                }
-                                Avatar { initials: payer_initials, size: 8, color_class: payer_color.to_string() }
+                    rsx! { // Info
+                    li { class: "bg-base-100 rounded-lg shadow-sm p-4 flex items-center gap-3", // Avatars with arrow
+                        // Avatars with arrow
+                        div { class: "flex items-center gap-1 shrink-0",
+                            Avatar {
+                                initials: debtor_initials,
+                                size: 8,
+                                color_class: debtor_color.to_string(),
                             }
-                            // Info
-                            div { class: "flex-1 min-w-0",
-                                p { class: "text-sm font-medium truncate",
-                                    "{debtor_name} → {payer_name}"
-                                }
-                                p { class: "text-xs font-semibold text-base-content/60 uppercase",
-                                    "{amount:.2} {curr}"
-                                }
-                            }
-                            // Record button
-                            button {
-                                r#type: "button",
-                                class: "btn btn-circle btn-sm btn-ghost",
-                                title: "Enregistrer le remboursement",
-                                onclick: move |_| props.on_reimburse.call(suggestion_clone.clone()),
-                                svg {
-                                    class: "w-4 h-4",
-                                    fill: "none",
-                                    stroke: "currentColor",
-                                    "stroke-width": "2",
-                                    view_box: "0 0 24 24",
-                                    path { d: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" }
-                                }
+                            RightArrowIcon {} // Info
+                            Avatar {
+                                initials: payer_initials,
+                                size: 8,
+                                color_class: payer_color.to_string(),
                             }
                         }
+                        // Info
+                        div { class: "flex-1 min-w-0",
+                            p { class: "text-sm font-medium truncate", "{debtor_name} → {payer_name}" }
+                            p { class: "text-xs font-semibold text-base-content/60 uppercase", "{amount:.2} {curr}" }
+                        }
+                        // Record button
+                        button {
+                            r#type: "button",
+                            class: "btn btn-circle btn-sm btn-ghost",
+                            title: "Ajouter un remboursement",
+                            onclick: move |_| props.on_reimburse.call(suggestion_clone.clone()),
+                            DollarIcon {}
+                        }
                     }
+                }
                 }
             }
         }

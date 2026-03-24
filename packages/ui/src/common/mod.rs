@@ -1,6 +1,12 @@
 mod avatar;
 pub use avatar::Avatar;
 
+mod check_mark_illustration;
+pub use check_mark_illustration::CheckMarkIllustration;
+
+mod empty_magnifying_glass_illustration;
+pub use empty_magnifying_glass_illustration::EmptyMagnifyingGlassIllustration;
+
 mod back_button_arrow;
 pub use back_button_arrow::BackButtonArrow;
 

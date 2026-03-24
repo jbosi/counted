@@ -1768,9 +1768,6 @@
   .h-6 {
     height: calc(var(--spacing) * 6);
   }
-  .h-12 {
-    height: calc(var(--spacing) * 12);
-  }
   .h-\[1em\] {
     height: 1em;
   }
@@ -1791,9 +1788,6 @@
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
-  }
-  .w-12 {
-    width: calc(var(--spacing) * 12);
   }
   .w-16 {
     width: calc(var(--spacing) * 16);
@@ -2005,6 +1999,9 @@
   .bg-success {
     background-color: var(--color-success);
   }
+  .bg-transparent {
+    background-color: transparent;
+  }
   .bg-warning {
     background-color: var(--color-warning);
   }
@@ -2126,6 +2123,9 @@
   }
   .progress-primary {
     color: var(--color-primary);
+  }
+  .progress-success {
+    color: var(--color-success);
   }
   .text-base-100 {
     color: var(--color-base-100);

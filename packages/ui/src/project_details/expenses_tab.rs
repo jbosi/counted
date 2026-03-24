@@ -3,10 +3,63 @@ use shared::{Expense, ExpenseType, Payment, User};
 use std::collections::{BTreeMap, HashSet};
 use uuid::Uuid;
 
-use crate::common::EmptyMagnifyingGlassIllustration;
+use crate::common::{Avatar, EmptyMagnifyingGlassIllustration};
 use crate::icons::SettingsIcon;
 use crate::project_details::AddExpenseModal;
 use crate::route::Route;
+
+fn get_expense_emoji(expense_name: &str) -> &'static str {
+    let name = expense_name.to_lowercase();
+    let has = |kws: &[&str]| kws.iter().any(|k| name.contains(*k));
+
+    // Food & Drinks
+    if has(&["restaurant", "resto", "dinner", "lunch", "breakfast", "meal", "food", "eat"]) { return "🍽️"; }
+    if has(&["coffee", "café", "starbucks", "tea"]) { return "☕"; }
+    if has(&["pizza"]) { return "🍕"; }
+    if has(&["burger"]) { return "🍔"; }
+    if has(&["sushi"]) { return "🍣"; }
+    if has(&["beer", "bar", "pub", "bière", "biere", "drink", "wine", "alcohol"]) { return "🍺"; }
+    if has(&["grocery", "groceries", "supermarket", "market", "food shopping", "courses"]) { return "🛒"; }
+    if has(&["ice cream", "dessert"]) { return "🍦"; }
+    // Transportation
+    if has(&["uber", "taxi", "cab", "ride"]) { return "🚕"; }
+    if has(&["gas", "fuel", "essence", "petrol"]) { return "⛽"; }
+    if has(&["train", "railway"]) { return "🚆"; }
+    if has(&["plane", "flight", "airplane"]) { return "✈️"; }
+    if has(&["bus"]) { return "🚌"; }
+    if has(&["car", "vehicle", "auto"]) { return "🚗"; }
+    if has(&["bike", "bicycle"]) { return "🚲"; }
+    if has(&["parking"]) { return "🅿️"; }
+    // Accommodation
+    if has(&["hotel", "airbnb", "accommodation", "lodging"]) { return "🏨"; }
+    if has(&["rent", "loyer"]) { return "🏠"; }
+    // Entertainment
+    if has(&["movie", "cinema", "film"]) { return "🎬"; }
+    if has(&["concert", "music", "festival"]) { return "🎵"; }
+    if has(&["game", "gaming"]) { return "🎮"; }
+    if has(&["ski", "skiing", "snowboard"]) { return "🎿"; }
+    if has(&["sport", "gym", "fitness"]) { return "⚽"; }
+    if has(&["ticket", "billet"]) { return "🎟️"; }
+    // Shopping
+    if has(&["shop", "shopping", "clothes", "clothing", "fashion"]) { return "🛍️"; }
+    if has(&["phone", "mobile", "smartphone"]) { return "📱"; }
+    if has(&["computer", "laptop"]) { return "💻"; }
+    if has(&["book", "library"]) { return "📚"; }
+    // Services
+    if has(&["internet", "wifi"]) { return "📡"; }
+    if has(&["electricity", "electric"]) { return "⚡"; }
+    if has(&["water", "eau"]) { return "💧"; }
+    if has(&["insurance", "assurance"]) { return "🛡️"; }
+    if has(&["medical", "doctor", "hospital", "health", "pharmacy"]) { return "🏥"; }
+    if has(&["haircut", "salon", "coiffeur"]) { return "💇"; }
+    if has(&["spa", "massage", "wellness"]) { return "💆"; }
+    // Gifts & Special
+    if has(&["gift", "cadeau", "present"]) { return "🎁"; }
+    if has(&["birthday", "anniversaire"]) { return "🎂"; }
+    if has(&["christmas", "noël"]) { return "🎄"; }
+
+    "💵"
+}
 
 fn expense_type_label(t: &ExpenseType) -> &'static str {
     match t {
@@ -124,6 +177,7 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
                                     let name = expense.name.clone();
                                     let etype = expense.expense_type.clone();
                                     let curr = currency.clone();
+                                    let emoji = get_expense_emoji(&name);
                                     rsx! {
                                     li {
                                         class: "flex items-center gap-3 p-3 bg-base-100 rounded-lg shadow-sm cursor-pointer hover:bg-base-200 transition-colors",
@@ -133,6 +187,11 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
                                                 expense_id,
                                             });
                                         },
+                                        Avatar {
+                                            initials: emoji.to_string(),
+                                            size: 10,
+                                            color_class: "bg-transparent".to_string(),
+                                        }
                                         div { class: "flex-1 min-w-0",
                                             p { class: "font-medium truncate", "{name}" }
                                             p { class: "text-xs text-base-content/60", "{expense_type_label(&etype)}" }

@@ -25,7 +25,7 @@ pub fn AppHeader(props: AppHeaderProps) -> Element {
             div { class: "navbar-center",
                 h1 { class: "text-xl font-bold", "{props.title}" }
                 if let Some(sub_title) = props.sub_title {
-                    div { class: "alert alert-error text-sm mb-3", "{sub_title}" }
+                    div { class: "text-sm mb-3", "{sub_title}" }
                 }
 
             }

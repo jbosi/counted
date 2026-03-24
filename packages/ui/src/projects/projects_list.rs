@@ -7,7 +7,7 @@ use shared::{Account, BatchProject, ProjectDto, ProjectStatus, User};
 use uuid::Uuid;
 
 use crate::common::{
-    initials, upsert_project, user_color_class, write_to_ls, Avatar, LocalStorageState,
+    initials, upsert_project, user_color_class, write_to_ls, Avatar, EmptyMagnifyingGlassIllustration, LocalStorageState,
 };
 use crate::icons::{SettingsIcon, UserIcon};
 use crate::projects::AddProjectModal;
@@ -125,14 +125,7 @@ pub fn ProjectsList() -> Element {
                     if filtered.is_empty() {
                         rsx! {
                 div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
-                    svg {
-                        class: "w-12 h-12",
-                        fill: "none",
-                        stroke: "currentColor",
-                        "stroke-width": "1.5",
-                        view_box: "0 0 24 24",
-                        path { d: "M9 13h6m-3-3v6m-9 1V7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" }
-                    }
+                    EmptyMagnifyingGlassIllustration {}
                     span { class: "font-semibold", "Aucun projet" }
                     span { class: "text-sm text-center", "Créez un projet en cliquant sur le bouton ci-dessous" }
                 }

@@ -3,6 +3,7 @@ use shared::{Expense, ExpenseType, Payment, User};
 use std::collections::{BTreeMap, HashSet};
 use uuid::Uuid;
 
+use crate::common::EmptyMagnifyingGlassIllustration;
 use crate::icons::SettingsIcon;
 use crate::project_details::AddExpenseModal;
 use crate::route::Route;
@@ -103,14 +104,7 @@ pub fn ExpensesTab(props: ExpensesTabProps) -> Element {
 
             if is_empty {
                 div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
-                    svg {
-                        class: "w-12 h-12",
-                        fill: "none",
-                        stroke: "currentColor",
-                        "stroke-width": "1.5",
-                        view_box: "0 0 24 24",
-                        path { d: "M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" }
-                    }
+                    EmptyMagnifyingGlassIllustration {}
                     span { class: "font-semibold", "Aucune dépense" }
                     span { class: "text-sm text-center",
                         "Commencez par ajouter des dépenses en cliquant sur le bouton ci-dessous"

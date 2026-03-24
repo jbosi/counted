@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use shared::{ReimbursementSuggestion, User};
 
 use crate::{
-    common::{initials, user_color_class, Avatar},
+    common::{initials, user_color_class, Avatar, CheckMarkIllustration},
     icons::{DollarIcon, RightArrowIcon},
 };
 
@@ -21,14 +21,7 @@ pub fn ReimbursementsTab(props: ReimbursementsTabProps) -> Element {
     if props.suggestions.is_empty() {
         return rsx! {
             div { class: "flex flex-col items-center gap-2 py-12 text-base-content/60",
-                svg {
-                    class: "w-12 h-12 text-success",
-                    fill: "none",
-                    stroke: "currentColor",
-                    "stroke-width": "1.5",
-                    view_box: "0 0 24 24",
-                    path { d: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" }
-                }
+                CheckMarkIllustration {}
                 span { class: "font-bold text-base-content", "Les comptes sont bons !" }
                 span { class: "text-sm text-center",
                     "Des suggestions de remboursement seront proposées ici si les comptes ne sont pas équilibrés"

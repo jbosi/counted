@@ -158,14 +158,7 @@ pub fn ProjectsList() -> Element {
                     onclick: move |_| {
                         show_add_project.set(true);
                     },
-                    svg {
-                        class: "w-6 h-6",
-                        fill: "none",
-                        stroke: "currentColor",
-                        "stroke-width": "2",
-                        view_box: "0 0 24 24",
-                        path { d: "M12 5v14M5 12h14" }
-                    }
+                    "+"
                 }
             }
 

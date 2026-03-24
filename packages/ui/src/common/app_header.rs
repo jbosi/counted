@@ -6,7 +6,9 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Props, Clone)]
 pub struct AppHeaderProps {
     title: String,
+    sub_title: Option<String>,
     back_button_route: Route,
+    children: Element,
 }
 
 #[component]
@@ -22,10 +24,12 @@ pub fn AppHeader(props: AppHeaderProps) -> Element {
             }
             div { class: "navbar-center",
                 h1 { class: "text-xl font-bold", "{props.title}" }
+                if let Some(sub_title) = props.sub_title {
+                    div { class: "alert alert-error text-sm mb-3", "{sub_title}" }
+                }
+
             }
-            div { class: "navbar-end",
-                button { r#type: "button", class: "btn btn-ghost btn-circle", BurgerIcon {} }
-            }
+            div { class: "navbar-end", {props.children} }
         }
     }
 }

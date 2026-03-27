@@ -1,6 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useContext, useMemo, useState, type RefObject } from 'react';
-import { useFieldArray, useForm, useWatch, type FieldArrayWithId, type UseFieldArrayUpdate, type UseFormGetValues, type UseFormRegister } from 'react-hook-form';
+import {
+	useFieldArray,
+	useForm,
+	useWatch,
+	type Control,
+	type FieldArrayWithId,
+	type UseFieldArrayUpdate,
+	type UseFormGetValues,
+	type UseFormRegister,
+} from 'react-hook-form';
 import * as z from 'zod';
 import { CountedLocalStorageContext } from '../../../contexts/localStorageContext';
 import { useEditExpense } from '../../../hooks/useExpenses';
@@ -41,8 +50,8 @@ interface FormCheckboxProps {
 	getValues: UseFormGetValues<EditExpenseModalForm>;
 	updateMethod: UseFieldArrayUpdate<EditExpenseModalForm>;
 	fields: FieldArrayWithId<EditExpenseModalForm>[];
+	control: Control<EditExpenseModalForm>;
 	type: 'debtors' | 'payers';
-	amount: number;
 	isChecked: boolean;
 	index: number;
 	shareMode?: boolean;
@@ -88,6 +97,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 		handleSubmit,
 		formState: { errors },
 		getValues,
+		setValue,
 		control,
 	} = useForm<EditExpenseModalForm>({
 		defaultValues: defaultValues,
@@ -101,24 +111,24 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 	const [debtorsShareMode, setDebtorsShareMode] = useState(false);
 
 	const handlePayersRecalculate = useCallback(() => {
-		updateAmounts('payers', getValues(), updatePayer, payersFields, payersShareMode);
-	}, [getValues, updatePayer, payersFields, payersShareMode]);
+		updateAmounts('payers', getValues(), setValue, payersFields, payersShareMode);
+	}, [getValues, setValue, payersFields, payersShareMode]);
 
 	const handleDebtorsRecalculate = useCallback(() => {
-		updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, debtorsShareMode);
-	}, [getValues, updateDebtor, debtorsfields, debtorsShareMode]);
+		updateAmounts('debtors', getValues(), setValue, debtorsfields, debtorsShareMode);
+	}, [getValues, setValue, debtorsfields, debtorsShareMode]);
 
 	const togglePayersShareMode = useCallback(() => {
 		const newMode = !payersShareMode;
 		setPayersShareMode(newMode);
-		updateAmounts('payers', getValues(), updatePayer, payersFields, newMode);
-	}, [payersShareMode, getValues, updatePayer, payersFields]);
+		updateAmounts('payers', getValues(), setValue, payersFields, newMode);
+	}, [payersShareMode, getValues, setValue, payersFields]);
 
 	const toggleDebtorsShareMode = useCallback(() => {
 		const newMode = !debtorsShareMode;
 		setDebtorsShareMode(newMode);
-		updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, newMode);
-	}, [debtorsShareMode, getValues, updateDebtor, debtorsfields]);
+		updateAmounts('debtors', getValues(), setValue, debtorsfields, newMode);
+	}, [debtorsShareMode, getValues, setValue, debtorsfields]);
 
 	const { mutate, isPending, isError, error } = useEditExpense();
 
@@ -175,8 +185,8 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 								{...register('totalAmount', {
 									valueAsNumber: true,
 									onBlur() {
-										updateAmounts('debtors', getValues(), updateDebtor, debtorsfields, debtorsShareMode);
-										updateAmounts('payers', getValues(), updatePayer, payersFields, payersShareMode);
+										updateAmounts('debtors', getValues(), setValue, debtorsfields, debtorsShareMode);
+										updateAmounts('payers', getValues(), setValue, payersFields, payersShareMode);
 									},
 								})}
 							/>
@@ -198,7 +208,6 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 								{payersFields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
-										amount={field.amount}
 										isChecked={field.isChecked}
 										user={field.user}
 										index={index}
@@ -206,6 +215,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 										getValues={getValues}
 										updateMethod={updatePayer}
 										fields={payersFields}
+										control={control}
 										type="payers"
 										shareMode={payersShareMode}
 										onRecalculate={handlePayersRecalculate}
@@ -223,7 +233,6 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 								{debtorsfields.map((field, index) => (
 									<FormCheckbox
 										key={field.id}
-										amount={field.amount}
 										isChecked={field.isChecked}
 										user={field.user}
 										index={index}
@@ -231,6 +240,7 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 										getValues={getValues}
 										updateMethod={updateDebtor}
 										fields={debtorsfields}
+										control={control}
 										type="debtors"
 										shareMode={debtorsShareMode}
 										onRecalculate={handleDebtorsRecalculate}
@@ -250,9 +260,9 @@ export function EditExpenseModal({ dialogRef, modalId, users, projectId, expense
 	);
 }
 
-export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, fields, amount, shareMode, onRecalculate }: FormCheckboxProps) {
+export function FormCheckbox({ isChecked, register, type, user, index, getValues, updateMethod, control, shareMode, onRecalculate }: FormCheckboxProps) {
 	return (
-		<label className="label justify-between">
+		<div className="label justify-between">
 			<div className="flex gap-2">
 				<input
 					type="checkbox"
@@ -268,7 +278,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 								onRecalculate?.();
 							} else {
 								resetExpenseAmountOnUnchecked(getValues, type, index, updateMethod, user);
-								updateAmounts(type, getValues(), updateMethod, fields, false);
+								onRecalculate?.();
 							}
 						},
 					})}
@@ -277,7 +287,7 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 			</div>
 			{shareMode ? (
 				<ExpenseShareInput
-					amount={amount}
+					control={control}
 					user={user}
 					index={index}
 					register={register}
@@ -299,6 +309,6 @@ export function FormCheckbox({ isChecked, register, type, user, index, getValues
 					})}
 				/>
 			)}
-		</label>
+		</div>
 	);
 }

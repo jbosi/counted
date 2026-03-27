@@ -1,4 +1,4 @@
-import type { FieldArrayWithId, UseFieldArrayUpdate, UseFormGetValues } from 'react-hook-form';
+import type { FieldArrayWithId, UseFieldArrayUpdate, UseFormGetValues, UseFormSetValue } from 'react-hook-form';
 import * as z from 'zod';
 import { ExpenseTypeConst, type ExpenseType } from '../../../../types/expenses.model';
 import type { User } from '../../../../types/users.model';
@@ -87,7 +87,7 @@ export function toggleCheckedIfAmountChange(
 export function updateAmounts<T extends 'debtors' | 'payers'>(
 	type: T,
 	values: AddExpenseModalForm,
-	updateMethod: UseFieldArrayUpdate<AddExpenseModalForm, 'debtors' | 'payers'>,
+	setValue: UseFormSetValue<AddExpenseModalForm>,
 	debtorsOrPayersfields: FieldArrayWithId<AddExpenseModalForm>[],
 	shareMode?: boolean,
 ) {
@@ -109,18 +109,16 @@ export function updateAmounts<T extends 'debtors' | 'payers'>(
 		activeDebtorOrPayersFields.forEach((field) => {
 			const shares = field.shares ?? 1;
 			const amount = parseFloat(((shares / totalShares) * totalAmountValue).toFixed(2));
-			updateMethod(
-				debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
-				{ amount, isChecked: field.isChecked, user: field.user, shares },
-			);
+			const actualIndex = debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			setValue(`${type}.${actualIndex}.amount` as any, amount);
 		});
 	} else {
 		const updatedAndRoundedDebtorOrPayersAmount = parseFloat((totalAmountValue / activeDebtorOrPayersCount).toFixed(2));
 		activeDebtorOrPayersFields.forEach((field) => {
-			updateMethod(
-				debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id),
-				{ amount: updatedAndRoundedDebtorOrPayersAmount, isChecked: field.isChecked, user: field.user, shares: field.shares ?? 0 },
-			);
+			const actualIndex = debtorsOrPayersfields.findIndex((f) => f.user.id === field.user.id);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			setValue(`${type}.${actualIndex}.amount` as any, updatedAndRoundedDebtorOrPayersAmount);
 		});
 	}
 }
